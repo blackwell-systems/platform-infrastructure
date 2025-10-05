@@ -1,0 +1,113 @@
+{
+  "app": "python3 app.py",
+  "watch": {
+    "include": [
+      "**"
+    ],
+    "exclude": [
+      "README.md",
+      "cdk*.json",
+      "requirements*.txt",
+      "source.bat",
+      "**/__pycache__",
+      "**/.venv"
+    ]
+  },
+  "context": {
+    "@aws-cdk/aws-apigateway:usagePlanKeyOrderInsensitiveId": true,
+    "@aws-cdk/core:stackRelativeExports": true,
+    "@aws-cdk/aws-rds:lowercaseDbIdentifier": true,
+    "@aws-cdk/aws-lambda:recognizeVersionProps": true,
+    "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
+    "@aws-cdk/aws-cloudfront:defaultSecurityPolicyTLSv1.2_2021": true,
+    "@aws-cdk/aws-apigateway:requestValidatorUniqueId": true,
+    "@aws-cdk/core:target-partitions": [
+      "aws",
+      "aws-cn"
+    ],
+    "@aws-cdk/aws-iam:standardizedServicePrincipals": true,
+    "@aws-cdk/aws-ecs:arnFormatIncludesClusterName": true,
+    "@aws-cdk/aws-opensearchservice:enableOpensearchMultiAzWithStandby": true,
+    "@aws-cdk/core:enablePartitionLiterals": true,
+    "@aws-cdk/aws-events:eventsTargetQueueSameAccount": true,
+    "@aws-cdk/aws-iam:flattenRolePolicy": true,
+    "@aws-cdk/aws-ecr-assets:duplicateTagsStrategy": "dedupe",
+    "@aws-cdk/aws-rds:auroraClusterChangeSizeToServerless2": true,
+    "@aws-cdk/aws-route53:privateHostedZoneVpc": true,
+    "@aws-cdk/aws-stepfunctions-tasks:enableLogging": true,
+    "@aws-cdk/aws-ec2:launchTemplateDefaultUserData": true,
+    "@aws-cdk/aws-s3-assets:useDefaultSourceReplication": true,
+    "@aws-cdk/aws-rds:preventRenderingDeprecatedCredentials": true,
+    "@aws-cdk/aws-codeguruprofiler:profilingGroupWithoutComputePlatform": true,
+    "@aws-cdk/aws-opensearchservice:enableLogging": true,
+    "@aws-cdk/aws-logs:crossAccountSharingRoleArn": true
+  },
+  "toolkits": {
+    "default": {
+      "bucketName": "cdk-toolkit-bucket-${AWS::AccountId}-${AWS::Region}",
+      "fileAssetsBucketName": "cdk-toolkit-assets-bucket-${AWS::AccountId}-${AWS::Region}",
+      "qualifier": "hnb659fds"
+    }
+  },
+  "profile": "default",
+  "requireApproval": "never",
+  "versionReporting": false,
+  "pathMetadata": false,
+  "assetMetadata": false,
+  "notices": false,
+  "build": "npm run build",
+  "metadata": {
+    "project": {
+      "name": "web-services-infrastructure",
+      "description": "Multi-client web development services infrastructure",
+      "version": "1.0.0",
+      "author": "Web Services Infrastructure Team"
+    },
+    "business": {
+      "clientTiers": {
+        "tier1": {
+          "name": "Essential Solutions",
+          "priceRange": "$360-3,000 setup | $0-150/month",
+          "description": "Template-based and custom development services"
+        },
+        "tier2": {
+          "name": "Professional Solutions", 
+          "priceRange": "$2,400-9,600 setup | $50-400/month",
+          "description": "Advanced frameworks and CMS solutions"
+        },
+        "tier3": {
+          "name": "Enterprise Solutions",
+          "priceRange": "$6,000+ setup | $250+/month",
+          "description": "Custom applications and enterprise platforms"
+        }
+      },
+      "serviceCategories": [
+        "static_sites",
+        "cms_solutions", 
+        "ecommerce",
+        "web_applications",
+        "migrations",
+        "enterprise_platforms"
+      ]
+    },
+    "infrastructure": {
+      "sharedResources": {
+        "enabled": true,
+        "costOptimization": true,
+        "crossClientBilling": true
+      },
+      "security": {
+        "clientIsolation": "iam_tags",
+        "encryptionAtRest": true,
+        "encryptionInTransit": true,
+        "auditLogging": true
+      },
+      "monitoring": {
+        "centralized": true,
+        "alerting": "slack_email",
+        "healthChecks": true,
+        "costTracking": true
+      }
+    }
+  }
+}

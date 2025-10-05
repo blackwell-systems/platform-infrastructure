@@ -1,0 +1,24 @@
+{
+  "client_metadata": {
+    "company_name": "Small Business Co",
+    "client_id": "small-business-co",
+    "service_tier": 2,
+    "contract_start": "2025-01-01",
+    "contract_type": "annual",
+    "billing_model": "fixed_plus_aws",
+    "support_level": "standard"
+  },
+  "services": ["wordpress_lightsail"],
+  "business_info": {
+    "industry": "professional_services",
+    "employee_count": 15,
+    "primary_contact": "owner@smallbusiness.com",
+    "technical_contact": "admin@smallbusiness.com"
+  },
+  "billing_info": {
+    "monthly_fee": 150,
+    "aws_cost_passthrough": true,
+    "billing_day": 1,
+    "payment_terms": "net_30"
+  }
+}
