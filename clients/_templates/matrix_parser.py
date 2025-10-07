@@ -53,9 +53,9 @@ class TechStackMatrix:
 
     def __init__(self, matrix_file: Optional[str] = None):
         if matrix_file is None:
-            # Default to matrix file in parent directories
+            # Default to matrix file in documents directory
             current_dir = Path(__file__).parent
-            matrix_file = str(current_dir.parent.parent.parent / "tech-stack-product-matrix.md")
+            matrix_file = str(current_dir.parent.parent.parent / "documents" / "tech-stack-product-matrix.md")
 
         self.matrix_file = Path(matrix_file)
         self._stacks: Dict[str, StackInfo] = {}

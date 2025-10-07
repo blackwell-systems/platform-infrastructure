@@ -9,7 +9,7 @@ Supports the complete service delivery model:
 Aligned with 30 hosted stack variants across Tier 1, Tier 2, and Dual-Delivery service tiers.
 """
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
 from typing import Dict, Optional, Literal
 import re
 
@@ -22,11 +22,26 @@ class ClientConfig(BaseModel):
     Aligned with current CDK strategy and service delivery models.
     """
 
+    model_config = ConfigDict(
+        str_strip_whitespace=True,
+        validate_assignment=True,
+        json_schema_extra={
+            "examples": [{
+                "client_id": "acme-corp",
+                "company_name": "Acme Corporation",
+                "service_tier": "tier2",
+                "stack_type": "wordpress_ecs_professional_stack",
+                "domain": "acme.com",
+                "contact_email": "admin@acme.com"
+            }]
+        }
+    )
+
     # Core identifiers - these uniquely identify the client
     client_id: str = Field(
         ...,
         description="URL-safe identifier used for AWS resource names, file paths",
-        regex=r'^[a-z0-9-]+$'
+        pattern=r'^[a-z0-9-]+$'
     )
 
     company_name: str = Field(..., description="Human readable name for invoices, emails")
@@ -80,7 +95,8 @@ class ClientConfig(BaseModel):
         description="Additional configuration settings"
     )
 
-    @validator('client_id')
+    @field_validator('client_id')
+    @classmethod
     def validate_client_id(cls, v):
         """Validate client_id format for AWS resource naming."""
         if v.startswith('-') or v.endswith('-'):
@@ -91,29 +107,31 @@ class ClientConfig(BaseModel):
 
         return v
 
-    @validator('contact_email')
+    @field_validator('contact_email')
+    @classmethod
     def validate_email(cls, v):
         """Basic email validation."""
         if '@' not in v or '.' not in v.split('@')[-1]:
             raise ValueError("Invalid email format")
         return v
 
-    @validator('domain')
+    @field_validator('domain')
+    @classmethod
     def validate_domain(cls, v):
         """Basic domain validation."""
         if '.' not in v or ' ' in v:
             raise ValueError("Invalid domain format")
         return v
 
-    @validator('deployment_mode')
-    def validate_deployment_mode(cls, v, values):
+    @model_validator(mode='after')
+    def validate_deployment_mode(self):
         """Validate deployment mode consistency."""
-        service_tier = values.get('service_tier')
-        if v == 'template' and service_tier != 'dual_delivery':
+        if self.deployment_mode == 'template' and self.service_tier != 'dual_delivery':
             raise ValueError("Template deployment mode only available for dual_delivery service tier")
-        return v
+        return self
 
-    @validator('stack_type')
+    @field_validator('stack_type')
+    @classmethod
     def validate_stack_type(cls, v):
         """Validate stack type against known hosted variants."""
         # Define the 30 hosted stack variants from CDK strategy
@@ -260,7 +278,7 @@ class ClientConfig(BaseModel):
         Use this to load client configs from JSON files:
         client = ClientConfig.from_dict(json.load(open('acme-corp.json')))
         """
-        return cls.parse_obj(data)
+        return cls.model_validate(data)
 
     def __str__(self) -> str:
         """Human readable representation for debugging/logging"""
