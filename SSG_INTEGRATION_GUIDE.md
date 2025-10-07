@@ -1,18 +1,18 @@
 # SSG Engine Integration Guide
 
-## 🎯 Overview
+## Overview
 
 This guide explains how to integrate the existing SSG engine system with your CDK stacks, following all Claude steering guide conventions. Your foundation in `shared/ssg_engines.py` is excellent - we just need to modernize it and connect it to your stack implementations.
 
-## 📋 Current State Analysis
+## Current State Analysis
 
-### ✅ What's Working Well
+### What's Working Well
 - **Comprehensive SSG System**: 4 engines (Eleventy, Hugo, Astro, Jekyll) with detailed configurations
 - **Template System**: Pre-defined templates for each engine with use cases
 - **CodeBuild Integration**: Built-in buildspec generation for AWS deployment
 - **Factory Pattern**: Clean SSGEngineFactory for creating engine configurations
 
-### 🔧 What Needs Updating
+### What Needs Updating
 
 1. **Pydantic v1 → v2 Migration**: Main system uses deprecated `@validator` syntax
 2. **SSG-Client Integration**: Connect SSG system to client configurations
@@ -20,7 +20,7 @@ This guide explains how to integrate the existing SSG engine system with your CD
 4. **Stack Implementations**: Create actual CDK stacks that use SSG configurations
 5. **Template Repositories**: Replace placeholder URLs with real template repos
 
-## 🚀 Step-by-Step Integration
+## Step-by-Step Integration
 
 ### Phase 1: Modernize SSG Engine System
 
