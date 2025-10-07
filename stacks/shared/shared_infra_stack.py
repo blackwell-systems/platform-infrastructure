@@ -11,28 +11,40 @@ Provides operational infrastructure shared across all hosted clients:
 Supports comprehensive service delivery model:
 - Tier 1 (Essential): 11 hosted-only stacks ($360-3,000 setup | $0-150/month)
 - Tier 2 (Professional): 7 hosted-only stacks ($2,400-9,600 setup | $50-400/month)
-- Dual-Delivery: 5 stacks offering both hosted solutions AND consulting templates
-- Migration Support: 7 specialized migration stacks (40% of revenue)
-- Consulting Templates: 4 template-only delivery stacks
+- Tier 3 Dual-Delivery: 5 stacks offering both hosted solutions AND consulting templates
+- Tier 3 Migration Support: 7 specialized migration stacks (40% of revenue)
+- Tier 3 Consulting Templates: 4 template-only delivery stacks
 
 Total: 30 stack variants supported across all service delivery models that use shared infrastructure.
 
 This is NOT for client workloads - it's for running the web services business efficiently.
 """
 
+from typing import Any, Dict
+
 from aws_cdk import (
-    Stack,
-    Tags,
-    aws_route53 as route53,
-    aws_sns as sns,
-    aws_cloudwatch as cloudwatch,
-    aws_iam as iam,
-    aws_s3 as s3,
     Duration,
     RemovalPolicy,
+    Stack,
+    Tags,
 )
+from aws_cdk import (
+    aws_cloudwatch as cloudwatch,
+)
+from aws_cdk import (
+    aws_iam as iam,
+)
+from aws_cdk import (
+    aws_route53 as route53,
+)
+from aws_cdk import (
+    aws_s3 as s3,
+)
+from aws_cdk import (
+    aws_sns as sns,
+)
+
 from constructs import Construct
-from typing import Dict, Any
 
 
 class SharedInfraStack(Stack):
@@ -48,11 +60,11 @@ class SharedInfraStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
-        
+
         # Business configuration
         self.business_domain = "yourwebservices.com"  # Replace with actual business domain
         self.notification_email = "ops@yourwebservices.com"  # Replace with actual email
-        
+
         # Create shared resources
         self._create_business_dns()
         self._create_operational_notifications()
@@ -64,7 +76,7 @@ class SharedInfraStack(Stack):
 
         # Apply business tags to all resources
         self._apply_shared_tags()
-    
+
     def _create_business_dns(self) -> None:
         """Create hosted zone for business domain management."""
         self.business_hosted_zone = route53.HostedZone(
@@ -73,13 +85,13 @@ class SharedInfraStack(Stack):
             zone_name=self.business_domain,
             comment=f"Business domain for {self.business_domain} - client DNS management"
         )
-        
+
         # Export hosted zone for use by client stacks
         self.business_hosted_zone.node.add_metadata("export", True)
-    
+
     def _create_operational_notifications(self) -> None:
         """Create SNS topics for operational alerts and notifications."""
-        
+
         # Critical operational alerts (outages, security issues)
         self.critical_alerts_topic = sns.Topic(
             self,
@@ -87,30 +99,30 @@ class SharedInfraStack(Stack):
             topic_name="web-services-critical-alerts",
             display_name="Web Services Critical Alerts"
         )
-        
+
         # Business notifications (new clients, billing, etc.)
         self.business_notifications_topic = sns.Topic(
             self,
-            "BusinessNotificationsTopic", 
+            "BusinessNotificationsTopic",
             topic_name="web-services-business-notifications",
             display_name="Web Services Business Notifications"
         )
-        
+
         # Cost and billing alerts
         self.cost_alerts_topic = sns.Topic(
             self,
             "CostAlertsTopic",
-            topic_name="web-services-cost-alerts", 
+            topic_name="web-services-cost-alerts",
             display_name="Web Services Cost Alerts"
         )
-        
+
         # Subscribe email to all topics
         for topic in [self.critical_alerts_topic, self.business_notifications_topic, self.cost_alerts_topic]:
             topic.add_subscription(sns.EmailSubscription(self.notification_email))
-    
+
     def _create_operational_monitoring(self) -> None:
         """Create centralized operational monitoring dashboard."""
-        
+
         self.operational_dashboard = cloudwatch.Dashboard(
             self,
             "OperationalDashboard",
@@ -118,7 +130,7 @@ class SharedInfraStack(Stack):
             period_override=cloudwatch.PeriodOverride.AUTO,
             start="-PT24H",  # Last 24 hours
         )
-        
+
         # Add basic business metrics widgets (will be populated as clients are added)
         self.operational_dashboard.add_widgets(
             cloudwatch.TextWidget(
@@ -152,12 +164,12 @@ class SharedInfraStack(Stack):
                         "- **Professional Frameworks**: `nextjs_professional_headless_cms_stack`, `nuxtjs_professional_headless_cms_stack`\n" +
                         "- **WordPress**: `wordpress_lightsail_stack`, `wordpress_ecs_professional_stack`\n" +
                         "- **Enhanced Shopify**: `shopify_aws_basic_integration_stack`\n\n" +
-                        "### Dual-Delivery (Hosted OR Templates): Flexible delivery models\n" +
+                        "### Tier 3 Dual-Delivery (Hosted OR Templates): Flexible delivery models\n" +
                         "- **Advanced Shopify**: `shopify_advanced_aws_integration_stack`\n" +
                         "- **Performance Commerce**: `headless_shopify_custom_frontend_stack`\n" +
                         "- **AWS Native**: `amplify_custom_development_stack`\n" +
                         "- **Python Solutions**: `fastapi_pydantic_api_stack`, `fastapi_react_vue_stack`\n\n" +
-                        "### Migration Support (40% revenue): All platform migrations\n" +
+                        "### Tier 3 Migration Support (40% revenue): All platform migrations\n" +
                         "- **Assessment**: `migration_assessment_stack` - Planning and analysis\n" +
                         "- **E-commerce**: `magento_migration_stack`, `prestashop_migration_stack`, `opencart_migration_stack`\n" +
                         "- **CMS**: `wordpress_migration_stack`, `legacy_cms_migration_stack`\n" +
@@ -187,10 +199,10 @@ class SharedInfraStack(Stack):
                 height=12
             )
         )
-    
+
     def _create_cost_allocation_foundation(self) -> None:
         """Create foundation for cost allocation and billing automation."""
-        
+
         # IAM role for cost allocation and billing automation
         self.cost_allocation_role = iam.Role(
             self,
@@ -204,7 +216,7 @@ class SharedInfraStack(Stack):
             ],
             description="Role for cost allocation and billing automation across client infrastructure"
         )
-        
+
         # Basic cost alarm for overall AWS spending
         cloudwatch.Alarm(
             self,
@@ -232,13 +244,13 @@ class SharedInfraStack(Stack):
         tier_thresholds = {
             "tier1": 150,   # Max monthly: $150 (matches Tier 1 pricing)
             "tier2": 400,   # Max monthly: $400 (matches Tier 2 pricing)
-            "tier3": 2000   # Max monthly: $2000 (enterprise buffer)
+            "tier3": 2000   # Max monthly: $2000 (enterprise buffer for all tier3 services)
         }
 
         tier_descriptions = {
             "tier1": "Essential Solutions - Template-based services",
             "tier2": "Professional Solutions - Custom development",
-            "tier3": "Enterprise Solutions - Complex applications"
+            "tier3": "Enterprise Solutions - Dual-delivery, consultation, and migration services"
         }
 
         # Create tier-specific cost alarms
@@ -310,7 +322,7 @@ class SharedInfraStack(Stack):
 
     def _create_shared_storage(self) -> None:
         """Create shared storage for operational data and backups."""
-        
+
         # Operational data bucket (deployment artifacts, client configs, etc.)
         self.operational_bucket = s3.Bucket(
             self,
@@ -338,11 +350,11 @@ class SharedInfraStack(Stack):
             ],
             removal_policy=RemovalPolicy.RETAIN
         )
-        
+
         # Cross-client backup coordination bucket
         self.backup_coordination_bucket = s3.Bucket(
             self,
-            "BackupCoordinationBucket", 
+            "BackupCoordinationBucket",
             bucket_name=f"web-services-backups-{self.account}-{self.region}",
             versioned=True,
             encryption=s3.BucketEncryption.S3_MANAGED,
@@ -365,7 +377,7 @@ class SharedInfraStack(Stack):
             ],
             removal_policy=RemovalPolicy.RETAIN
         )
-    
+
     def _apply_shared_tags(self) -> None:
         """Apply business-wide tags to all shared resources."""
 
@@ -379,11 +391,11 @@ class SharedInfraStack(Stack):
             "Compliance": "Business",
             # Comprehensive service delivery model support
             "StackVariantSupport": "30-Variants-SharedInfra",
-            "ServiceDeliveryModels": "Hosted-DualDelivery-Migration",
-            "TierSupport": "T1-T2-DualDelivery",
+            "ServiceDeliveryModels": "Hosted-DualDelivery-Consultation-Migration",
+            "TierSupport": "T1-T2-T3",
             "ClientIsolation": "IAM-Tags",
             "CostAllocation": "Automated",
-            "ServiceTiers": "Essential-Professional-DualDelivery",
+            "ServiceTiers": "Essential-Professional-Enterprise",
             "StackTypes": "Static-CMS-Framework-Commerce-Migration",
             "BillingModel": "Client-Tier-DeliveryModel-Based",
             "RevenueStreams": "Hosted-Migration",
@@ -393,7 +405,7 @@ class SharedInfraStack(Stack):
 
         for key, value in shared_tags.items():
             Tags.of(self).add(key, value)
-    
+
     @property
     def exports(self) -> Dict[str, Any]:
         """Export key resources for use by other stacks."""
@@ -436,14 +448,14 @@ class SharedInfraStack(Stack):
                 "wordpress_ecs_professional_stack",
                 "shopify_aws_basic_integration_stack",
 
-                # Dual-Delivery Stacks (Hosted OR Templates)
+                # Tier 3 Dual-Delivery Stacks (Hosted OR Templates)
                 "shopify_advanced_aws_integration_stack",
                 "headless_shopify_custom_frontend_stack",
                 "amplify_custom_development_stack",
                 "fastapi_pydantic_api_stack",
                 "fastapi_react_vue_stack",
 
-                # Migration Support Stacks
+                # Tier 3 Migration Support Stacks
                 "migration_assessment_stack",
                 "magento_migration_stack",
                 "prestashop_migration_stack",
@@ -462,3 +474,4 @@ class SharedInfraStack(Stack):
                 "ManagedBy": "CDK"
             }
         }
+

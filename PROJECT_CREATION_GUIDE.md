@@ -70,7 +70,7 @@ client = small_business_client(
 client = ClientConfig(
     client_id="enterprise-co",
     company_name="Enterprise Company",
-    service_tier="dual_delivery",
+    service_tier="tier3_dual_delivery",
     stack_type="fastapi_react_vue_stack",
     deployment_mode="hosted",  # or "template"
     domain="enterprise.com",
@@ -111,11 +111,25 @@ tier1_stacks = [
     "astro_sanity_stack",              # Astro + Sanity CMS
     "gatsby_contentful_stack",         # Gatsby + Contentful
     "astro_template_basic_stack",      # Basic Astro template
-    "eleventy_snipcart_stack",         # Eleventy + Snipcart ecommerce
-    "astro_foxy_stack",                # Astro + Foxy.io ecommerce
+    "eleventy_snipcart_stack",         # Eleventy + Snipcart ($29-99/month, 2% fee)
+    "astro_foxy_stack",                # Astro + Foxy.io ($75-300/month, 1.5% fee)
     "shopify_standard_dns_stack"       # Shopify DNS-only setup
 ]
 ```
+
+#### E-commerce Stack Details
+
+**Snipcart E-commerce (Simple):**
+- **Cost**: $29-99/month + 2.0% transaction fee
+- **Best for**: Small stores, digital products, simple catalogs
+- **Setup time**: ~3 hours (low complexity)
+- **Features**: Cart, checkout, inventory, digital products, subscriptions
+
+**Foxy.io E-commerce (Advanced):**
+- **Cost**: $75-300/month + 1.5% transaction fee  
+- **Best for**: Advanced features, subscriptions, complex catalogs
+- **Setup time**: ~6 hours (high complexity)
+- **Features**: Cart, checkout, inventory, subscriptions, customer portal, advanced shipping
 
 **Tier 2 (Professional) - 7 Stack Variants:**
 ```python
@@ -132,7 +146,7 @@ tier2_stacks = [
 
 **Dual-Delivery - 5 Stack Variants:**
 ```python
-dual_delivery_stacks = [
+tier3_dual_delivery_stacks = [
     "shopify_advanced_aws_integration_stack",      # Advanced Shopify + AWS
     "headless_shopify_custom_frontend_stack",      # Headless Shopify
     "amplify_custom_development_stack",            # AWS Amplify custom
@@ -181,6 +195,19 @@ client = shopify_client(
     "onlinestore.com", "admin@onlinestore.com",
     integration_level="basic"  # "dns", "basic", "advanced", "headless"
 )
+
+# E-commerce Specific Templates
+client = snipcart_client(
+    "small-shop", "Small Shop",
+    "smallshop.com", "admin@smallshop.com",
+    complexity="simple"  # "simple", "advanced"
+)
+
+client = foxy_client(
+    "premium-store", "Premium Store",
+    "premiumstore.com", "admin@premiumstore.com",
+    features=["subscriptions", "multi_currency"]  # Advanced features
+)
 ```
 
 ### Step 4: Configure SSG Engine (For Static Sites)
@@ -194,7 +221,7 @@ from shared.ssg_engines import SSGEngineFactory, StaticSiteConfig
 ssg_config = StaticSiteConfig(
     client_id="demo-client",
     domain="demo-client.com", 
-    ssg_engine="eleventy",  # "eleventy", "hugo", "astro", "jekyll"
+    ssg_engine="eleventy",  # "eleventy", "hugo", "astro", "jekyll", "nextjs", "nuxt", "gatsby"
     template_variant="business_modern",
     performance_tier="optimized",  # "basic", "optimized", "premium"
     cdn_caching_strategy="moderate"  # "minimal", "moderate", "aggressive"
@@ -205,6 +232,60 @@ engine = ssg_config.get_ssg_config()
 print(f"Engine: {engine.engine_name}")
 print(f"Build commands: {[cmd.command for cmd in engine.build_commands]}")
 print(f"Output directory: {engine.output_directory}")
+```
+
+### Step 4b: Configure E-commerce Sites
+
+For e-commerce enabled sites, use the enhanced e-commerce configuration:
+
+```python
+# Simple E-commerce with Snipcart
+snipcart_config = StaticSiteConfig(
+    client_id="online-store",
+    domain="store.example.com",
+    ssg_engine="eleventy",
+    template_variant="snipcart_ecommerce",  # E-commerce template
+    performance_tier="optimized",
+    ecommerce_provider="snipcart",
+    ecommerce_config={
+        "store_name": "My Online Store",
+        "currency": "USD",
+        "tax_included": False
+    }
+)
+
+# Advanced E-commerce with Foxy.io
+foxy_config = StaticSiteConfig(
+    client_id="advanced-store",
+    domain="advanced-store.com",
+    ssg_engine="astro",
+    template_variant="foxy_ecommerce",  # Advanced e-commerce template
+    performance_tier="premium",
+    ecommerce_provider="foxy",
+    ecommerce_config={
+        "store_name": "Advanced Store",
+        "currency": "USD",
+        "subscription_enabled": True,
+        "multi_currency": True
+    }
+)
+
+# Get e-commerce integration details
+ecommerce_integration = snipcart_config.get_ecommerce_integration()
+if ecommerce_integration:
+    print(f"Provider: {ecommerce_integration.provider}")
+    print(f"Monthly cost: ${ecommerce_integration.monthly_cost_range[0]}-${ecommerce_integration.monthly_cost_range[1]}")
+    print(f"Transaction fee: {ecommerce_integration.transaction_fee_percent}%")
+    print(f"Setup complexity: {ecommerce_integration.setup_complexity}")
+    print(f"Required AWS services: {ecommerce_integration.aws_services_needed}")
+    
+# Get required environment variables
+env_vars = snipcart_config.get_environment_variables()
+print(f"Required environment variables: {env_vars}")
+
+# Get AWS services needed
+aws_services = snipcart_config.get_required_aws_services()
+print(f"AWS services required: {aws_services}")
 ```
 
 ### Step 5: Save Configuration
@@ -349,6 +430,141 @@ cd clients/acme-corp
 uv run cdk deploy AcmeCorp-Prod-WordPressEcsProfessional
 ```
 
+## 🛒 E-commerce Configuration Examples
+
+### Snipcart E-commerce Setup
+
+```python
+# Simple Snipcart store
+snipcart_store = StaticSiteConfig(
+    client_id="boutique-store",
+    domain="boutique.example.com",
+    ssg_engine="eleventy",
+    template_variant="snipcart_ecommerce",
+    performance_tier="optimized",
+    ecommerce_provider="snipcart",
+    ecommerce_config={
+        "store_name": "Boutique Store",
+        "currency": "USD",
+        "tax_included": False,
+        "shipping_same_as_billing": True,
+        "inventory_management": True
+    },
+    environment_vars={
+        "SNIPCART_API_KEY": "${SNIPCART_API_KEY}",
+        "SNIPCART_PUBLIC_KEY": "${SNIPCART_PUBLIC_KEY}"
+    }
+)
+
+# Get cost breakdown
+integration = snipcart_store.get_ecommerce_integration()
+print(f"Monthly platform cost: ${integration.monthly_cost_range[0]}-${integration.monthly_cost_range[1]}")
+print(f"Transaction fee: {integration.transaction_fee_percent}%")
+print(f"AWS services needed: {integration.aws_services_needed}")
+```
+
+### Foxy.io Advanced E-commerce Setup
+
+```python
+# Advanced Foxy.io store
+foxy_store = StaticSiteConfig(
+    client_id="premium-electronics",
+    domain="electronics.example.com", 
+    ssg_engine="astro",
+    template_variant="foxy_ecommerce",
+    performance_tier="premium",
+    ecommerce_provider="foxy",
+    ecommerce_config={
+        "store_name": "Premium Electronics",
+        "currency": "USD",
+        "multi_currency": True,
+        "subscription_products": True,
+        "customer_accounts": True,
+        "advanced_shipping": True,
+        "tax_calculation": True
+    },
+    environment_vars={
+        "FOXY_STORE_DOMAIN": "${FOXY_STORE_DOMAIN}",
+        "FOXY_API_KEY": "${FOXY_API_KEY}",
+        "FOXY_WEBHOOK_SECRET": "${FOXY_WEBHOOK_SECRET}"
+    },
+    webhook_endpoints=[
+        "/api/webhooks/foxy/order-created",
+        "/api/webhooks/foxy/subscription-modified"
+    ],
+    requires_backend_api=True
+)
+
+# Get comprehensive setup details
+integration = foxy_store.get_ecommerce_integration()
+print(f"Setup complexity: {integration.setup_complexity}")
+print(f"Build dependencies: {integration.build_dependencies}")
+print(f"AWS services: {integration.aws_services_needed}")
+print(f"Required webhooks: {foxy_store.webhook_endpoints}")
+```
+
+### E-commerce Recommendations Engine
+
+```python
+from shared.ssg_engines import SSGEngineFactory
+
+# Get recommendations by complexity level
+simple_recs = SSGEngineFactory.get_recommended_stack_for_ecommerce("snipcart", "simple")
+for rec in simple_recs:
+    print(f"Engine: {rec['engine']}, Template: {rec['template']}")
+    print(f"Estimated setup: {rec['estimated_hours']} hours")
+    print(f"Monthly cost: ${rec['monthly_cost_range'][0]}-${rec['monthly_cost_range'][1]}")
+
+# Get all e-commerce templates
+ecommerce_templates = SSGEngineFactory.get_ecommerce_templates()
+for engine, templates in ecommerce_templates.items():
+    print(f"\n{engine.upper()} E-commerce Templates:")
+    for template in templates:
+        integration = template.ecommerce_integration
+        if integration:
+            print(f"  - {template.name}: {integration.provider} ({integration.setup_complexity})")
+
+# Get templates by specific provider
+snipcart_templates = SSGEngineFactory.get_templates_by_provider("snipcart")
+foxy_templates = SSGEngineFactory.get_templates_by_provider("foxy")
+```
+
+### E-commerce Cost Planning
+
+```python
+def calculate_ecommerce_costs(client_config, monthly_sales=5000):
+    """Calculate total monthly e-commerce costs including platform fees."""
+    
+    # Get e-commerce integration details
+    if hasattr(client_config, 'get_ecommerce_integration'):
+        integration = client_config.get_ecommerce_integration()
+        if integration:
+            platform_cost = integration.monthly_cost_range[1]  # Use max
+            transaction_fee = (monthly_sales * integration.transaction_fee_percent) / 100
+            
+            # AWS hosting costs (estimated)
+            aws_services = client_config.get_required_aws_services()
+            aws_cost = len(aws_services) * 15  # ~$15 per service
+            
+            total_cost = platform_cost + transaction_fee + aws_cost
+            
+            return {
+                "platform_monthly": platform_cost,
+                "transaction_fees": transaction_fee,
+                "aws_hosting": aws_cost,
+                "total_monthly": total_cost,
+                "cost_per_sale": total_cost / (monthly_sales / 100) if monthly_sales > 0 else 0
+            }
+    
+    return None
+
+# Example usage
+costs = calculate_ecommerce_costs(snipcart_store, monthly_sales=3000)
+if costs:
+    print(f"Total monthly cost: ${costs['total_monthly']:.2f}")
+    print(f"Cost per $100 in sales: ${costs['cost_per_sale']:.2f}")
+```
+
 ## 🔧 Advanced Configuration
 
 ### Environment-Specific Configs
@@ -399,7 +615,7 @@ migration_client = ClientConfig(
 template_client = ClientConfig(
     client_id="enterprise-template",
     company_name="Enterprise Template Co",
-    service_tier="dual_delivery",
+    service_tier="tier3_dual_delivery",
     stack_type="fastapi_react_vue_stack",
     deployment_mode="template",  # Template delivery
     domain="enterprise-template.com", 
@@ -423,8 +639,8 @@ def validate_client_config(config_data: dict) -> ClientConfig:
         if client.service_tier == "tier1" and client.monthly_cost_range[1] > 150:
             raise ValueError("Tier 1 clients cannot exceed $150/month AWS costs")
             
-        if client.deployment_mode == "template" and client.service_tier != "dual_delivery":
-            raise ValueError("Template mode only available for dual_delivery tier")
+        if client.deployment_mode == "template" and client.service_tier != "tier3_dual_delivery":
+            raise ValueError("Template mode only available for tier3_dual_delivery tier")
             
         return client
         
@@ -455,7 +671,7 @@ def validate_stack_type(stack_type: str, service_tier: str) -> bool:
             "wordpress_lightsail_stack", "wordpress_ecs_professional_stack",
             "shopify_aws_basic_integration_stack"
         ],
-        "dual_delivery": [
+        "tier3_dual_delivery": [
             "shopify_advanced_aws_integration_stack",
             "headless_shopify_custom_frontend_stack",
             "amplify_custom_development_stack", 
@@ -518,7 +734,7 @@ ClientConfig(
 
 ClientConfig(
     service_tier="tier2", 
-    deployment_mode="template"  # Only dual_delivery supports template mode
+    deployment_mode="template"  # Only tier3_dual_delivery supports template mode
 )
 
 # ✓ Valid combinations  
@@ -528,7 +744,7 @@ ClientConfig(
 )
 
 ClientConfig(
-    service_tier="dual_delivery",
+    service_tier="tier3_dual_delivery",
     deployment_mode="template"  # Correct tier for template mode
 )
 ```
@@ -554,6 +770,8 @@ uv sync                    # Install all dependencies
 - `wordpress_client()` - WordPress sites (professional/enterprise)
 - `shopify_client()` - Shopify integrations (dns/basic/advanced/headless)
 - `nextjs_client()` - Next.js applications (professional/enterprise)
+- `snipcart_client()` - Simple e-commerce with Snipcart integration
+- `foxy_client()` - Advanced e-commerce with Foxy.io integration
 
 ### Key Properties  
 - `client.deployment_name` - CDK deployment identifier
@@ -570,6 +788,9 @@ uv run cdk deploy          # Deploy infrastructure
 uv run pytest             # Run tests
 uv run black .             # Format code
 uv run ruff check .        # Lint code
+
+# E-commerce specific testing
+uv run python -c "from shared.ssg_engines import SSGEngineFactory; print('E-commerce templates:', SSGEngineFactory.get_ecommerce_templates())"
 ```
 
 ### Migration and Updates
@@ -583,13 +804,37 @@ new_stack = migrate_stack_type(old_stack)  # Returns "astro_template_basic_stack
 
 ---
 
+## 🛠️ E-commerce Deployment Checklist
+
+When deploying e-commerce sites, follow this checklist:
+
+### Pre-deployment
+- [ ] **Provider Setup**: Create account with Snipcart/Foxy.io
+- [ ] **API Keys**: Obtain and secure API keys in AWS Parameter Store
+- [ ] **Domain**: Ensure SSL certificate is ready
+- [ ] **Testing**: Set up sandbox/test environment first
+
+### Configuration
+- [ ] **Template Selection**: Choose appropriate e-commerce template
+- [ ] **Environment Variables**: Configure all required variables
+- [ ] **Webhooks**: Set up webhook endpoints for order processing
+- [ ] **AWS Services**: Ensure Lambda, SES, and other services are configured
+
+### Post-deployment
+- [ ] **Payment Testing**: Test checkout flow thoroughly
+- [ ] **Order Processing**: Verify webhook delivery and processing
+- [ ] **Performance**: Monitor site performance under load
+- [ ] **Cost Monitoring**: Set up billing alerts for platform and AWS costs
+
 ## 🎯 Next Steps
 
 1. **Review the tech stack matrix** in `documents/tech-stack-product-matrix.md`
-2. **Set up your development environment** with Python 3.13+ and uv  
-3. **Deploy shared infrastructure** using the SharedInfraStack
-4. **Create your first client configuration** using the template functions
-5. **Validate pricing and suitability** using the matrix parser
-6. **Deploy client infrastructure** following the CDK patterns
+2. **Check SSG integration guide** in `SSG_INTEGRATION_GUIDE.md` for Phase 3 e-commerce details
+3. **Set up your development environment** with Python 3.13+ and uv  
+4. **Deploy shared infrastructure** using the SharedInfraStack
+5. **Create your first client configuration** using the template functions
+6. **For e-commerce sites**: Review cost implications and provider requirements
+7. **Validate pricing and suitability** using the matrix parser
+8. **Deploy client infrastructure** following the CDK patterns
 
-This configuration system provides the foundation for a scalable, well-organized multi-client web services platform with proper cost allocation, validation, and operational monitoring.
+This configuration system provides the foundation for a scalable, well-organized multi-client web services platform with comprehensive e-commerce support, proper cost allocation, validation, and operational monitoring.

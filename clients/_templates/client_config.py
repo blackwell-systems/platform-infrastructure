@@ -9,9 +9,9 @@ Supports the complete service delivery model:
 Aligned with 30 hosted stack variants across Tier 1, Tier 2, and Dual-Delivery service tiers.
 """
 
-from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
-from typing import Dict, Optional, Literal
-import re
+from typing import Dict, Literal, Optional
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class ClientConfig(BaseModel):
@@ -47,20 +47,32 @@ class ClientConfig(BaseModel):
     company_name: str = Field(..., description="Human readable name for invoices, emails")
 
     # Service delivery configuration
-    service_tier: Literal["tier1", "tier2", "dual_delivery"] = Field(
+    service_tier: Literal["tier1", "tier2", "tier3"] = Field(
         ...,
-        description="Service tier for cost tracking and resource allocation"
+        description="Primary service tier (tier1: Essential, tier2: Professional, tier3: Enterprise)"
+    )
+
+    # Management model for tier1 services (Tier 1A, 1B, 1C)
+    management_model: Optional[Literal["developer_managed", "self_managed", "technical"]] = Field(
+        default=None,
+        description="Service management model for tier1: developer_managed (1A), self_managed (1B), technical (1C)"
+    )
+
+    # Service delivery model (applies to all tiers)
+    delivery_model: Literal["hosted", "consulting_template"] = Field(
+        default="hosted",
+        description="Service delivery: hosted (we manage) or consulting_template (client manages)"
+    )
+
+    # Service type within tier (especially for tier3)
+    service_type: Optional[Literal["dual_delivery", "consultation", "migration", "standard"]] = Field(
+        default="standard",
+        description="Specific service type: dual_delivery, consultation, migration, or standard"
     )
 
     stack_type: str = Field(
         ...,
         description="Technology stack variant from CDK strategy (30 hosted variants)"
-    )
-
-    # Dual-delivery support (only for dual-delivery service tier)
-    deployment_mode: Literal["hosted", "template"] = Field(
-        default="hosted",
-        description="Deployment mode for dual-delivery stacks"
     )
 
     domain: str = Field(..., description="Primary domain where website will be hosted")
@@ -124,59 +136,146 @@ class ClientConfig(BaseModel):
         return v
 
     @model_validator(mode='after')
-    def validate_deployment_mode(self):
-        """Validate deployment mode consistency."""
-        if self.deployment_mode == 'template' and self.service_tier != 'dual_delivery':
-            raise ValueError("Template deployment mode only available for dual_delivery service tier")
+    def validate_service_configuration(self):
+        """Validate service configuration consistency."""
+        
+        # Validate management model is only for tier1
+        if self.management_model and self.service_tier != 'tier1':
+            raise ValueError("Management model only applies to tier1 services")
+        
+        # Validate tier1 requires management model
+        if self.service_tier == 'tier1' and not self.management_model:
+            raise ValueError("Tier1 services must specify management_model: developer_managed, self_managed, or technical")
+        
+        # Validate consulting_template delivery model restrictions
+        if self.delivery_model == 'consulting_template':
+            # Only certain service types support consulting templates
+            if self.service_tier == 'tier1':
+                raise ValueError("Tier1 services do not support consulting_template delivery")
+            if self.service_tier == 'tier2' and self.service_type not in ['dual_delivery', 'standard']:
+                raise ValueError("Tier2 consulting_template only available for dual_delivery or standard services")
+        
+        # Validate service_type consistency
+        if self.service_tier == 'tier3':
+            if self.service_type == 'standard' and self.delivery_model == 'consulting_template':
+                # Tier3 standard services can be consulting templates
+                pass
+            elif self.service_type not in ['dual_delivery', 'consultation', 'migration', 'standard']:
+                raise ValueError("Tier3 services must specify service_type: dual_delivery, consultation, migration, or standard")
+        
+        return self
+
+    @model_validator(mode='after')
+    def validate_stack_service_alignment(self):
+        """Validate stack type matches service tier and management model."""
+        
+        # Define stack categories (same as in stack_type validator)
+        tier1_developer_managed = {"eleventy_marketing_stack", "astro_portfolio_stack", "jekyll_github_stack", "eleventy_snipcart_stack"}
+        tier1_self_managed = {"eleventy_decap_cms_stack", "astro_tina_cms_stack", "astro_sanity_stack", "gatsby_contentful_stack", "astro_template_basic_stack"}
+        tier1_technical = {"jekyll_github_stack", "astro_foxy_stack"}
+        tier2_stacks = {"astro_advanced_cms_stack", "gatsby_headless_cms_stack", "nextjs_professional_headless_cms_stack", "nuxtjs_professional_headless_cms_stack", "wordpress_lightsail_stack", "wordpress_ecs_professional_stack", "shopify_aws_basic_integration_stack", "fastapi_pydantic_api_stack"}
+        tier3_dual_delivery = {"shopify_advanced_aws_integration_stack", "headless_shopify_custom_frontend_stack", "amplify_custom_development_stack", "fastapi_pydantic_api_stack", "fastapi_react_vue_stack"}
+        tier3_migration = {"migration_assessment_stack", "magento_migration_stack", "prestashop_migration_stack", "opencart_migration_stack", "wordpress_migration_stack", "legacy_cms_migration_stack", "custom_platform_migration_stack"}
+        tier3_consultation = {"fastapi_react_vue_stack", "amplify_custom_development_stack", "nextjs_enterprise_applications_stack", "nuxtjs_enterprise_applications_stack", "wordpress_custom_development_stack", "aws_serverless_custom_stack"}
+        
+        # Validate tier1 stack matches management model
+        if self.service_tier == 'tier1':
+            if self.management_model == 'developer_managed' and self.stack_type not in tier1_developer_managed:
+                raise ValueError(f"Stack '{self.stack_type}' not compatible with developer_managed model. Use: {list(tier1_developer_managed)}")
+            elif self.management_model == 'self_managed' and self.stack_type not in tier1_self_managed:
+                raise ValueError(f"Stack '{self.stack_type}' not compatible with self_managed model. Use: {list(tier1_self_managed)}")
+            elif self.management_model == 'technical' and self.stack_type not in tier1_technical:
+                raise ValueError(f"Stack '{self.stack_type}' not compatible with technical model. Use: {list(tier1_technical)}")
+        
+        # Validate tier2 stacks
+        elif self.service_tier == 'tier2' and self.stack_type not in tier2_stacks:
+            raise ValueError(f"Stack '{self.stack_type}' not compatible with tier2. Use tier2 stacks: {list(tier2_stacks)}")
+        
+        # Validate tier3 stacks match service type
+        elif self.service_tier == 'tier3':
+            if self.service_type == 'dual_delivery' and self.stack_type not in tier3_dual_delivery:
+                raise ValueError(f"Stack '{self.stack_type}' not compatible with dual_delivery. Use: {list(tier3_dual_delivery)}")
+            elif self.service_type == 'migration' and self.stack_type not in tier3_migration:
+                raise ValueError(f"Stack '{self.stack_type}' not compatible with migration services. Use: {list(tier3_migration)}")
+            elif self.service_type == 'consultation' and self.stack_type not in tier3_consultation:
+                raise ValueError(f"Stack '{self.stack_type}' not compatible with consultation services. Use: {list(tier3_consultation)}")
+        
         return self
 
     @field_validator('stack_type')
     @classmethod
     def validate_stack_type(cls, v):
-        """Validate stack type against known hosted variants."""
-        # Define the 30 hosted stack variants from CDK strategy
-        hosted_stack_variants = {
-            # Tier 1 Hosted-Only Stacks (11 variants)
-            "eleventy_marketing_stack",
-            "astro_portfolio_stack",
-            "jekyll_github_stack",
-            "eleventy_decap_cms_stack",
-            "astro_tina_cms_stack",
-            "astro_sanity_stack",
-            "gatsby_contentful_stack",
-            "astro_template_basic_stack",
-            "eleventy_snipcart_stack",
-            "astro_foxy_stack",
-            "shopify_standard_dns_stack",
+        """Validate stack type against service tier and management model."""
+        
+        # Tier 1 stack variants organized by management model
+        tier1_developer_managed = {
+            "eleventy_marketing_stack",      # Static Marketing Sites
+            "astro_portfolio_stack",         # Portfolio/Business Sites  
+            "jekyll_github_stack",           # Documentation Sites
+            "eleventy_snipcart_stack",       # Simple E-commerce
+        }
+        
+        tier1_self_managed = {
+            "eleventy_decap_cms_stack",      # Static + Decap CMS (FREE)
+            "astro_tina_cms_stack",          # Static + Tina CMS
+            "astro_sanity_stack",            # Static + Sanity
+            "gatsby_contentful_stack",       # Static + Contentful
+            "astro_template_basic_stack",    # Astro + Basic Headless CMS
+        }
+        
+        tier1_technical = {
+            "jekyll_github_stack",           # Jekyll + GitHub Pages
+            "astro_foxy_stack",              # Static Templates
+        }
 
-            # Tier 2 Hosted-Only Stacks (7 variants)
-            "astro_advanced_cms_stack",
-            "gatsby_headless_cms_stack",
-            "nextjs_professional_headless_cms_stack",
-            "nuxtjs_professional_headless_cms_stack",
-            "wordpress_lightsail_stack",
-            "wordpress_ecs_professional_stack",
-            "shopify_aws_basic_integration_stack",
+        # Tier 2 stack variants
+        tier2_stacks = {
+            "astro_advanced_cms_stack",              # Advanced CMS solutions
+            "gatsby_headless_cms_stack",             # Content-heavy sites
+            "nextjs_professional_headless_cms_stack", # Professional frameworks
+            "nuxtjs_professional_headless_cms_stack", # Professional frameworks
+            "wordpress_lightsail_stack",             # WordPress solutions
+            "wordpress_ecs_professional_stack",      # WordPress professional
+            "shopify_aws_basic_integration_stack",   # Enhanced Shopify
+            "fastapi_pydantic_api_stack",            # Python backend (dual-delivery capable)
+        }
 
-            # Dual-Delivery Stacks (5 variants - when used in hosted mode)
+        # Tier 3 stack variants organized by service type
+        tier3_dual_delivery = {
             "shopify_advanced_aws_integration_stack",
             "headless_shopify_custom_frontend_stack",
             "amplify_custom_development_stack",
             "fastapi_pydantic_api_stack",
             "fastapi_react_vue_stack",
-
-            # Migration Support Stacks (7 variants)
+        }
+        
+        tier3_migration = {
             "migration_assessment_stack",
-            "magento_migration_stack",
+            "magento_migration_stack", 
             "prestashop_migration_stack",
             "opencart_migration_stack",
             "wordpress_migration_stack",
             "legacy_cms_migration_stack",
             "custom_platform_migration_stack"
         }
+        
+        tier3_consultation = {
+            "fastapi_react_vue_stack",
+            "amplify_custom_development_stack",
+            "nextjs_enterprise_applications_stack",
+            "nuxtjs_enterprise_applications_stack",
+            "wordpress_custom_development_stack",
+            "aws_serverless_custom_stack"
+        }
+        
+        tier3_standard = tier3_dual_delivery.union(tier3_migration).union(tier3_consultation)
 
-        if v not in hosted_stack_variants:
-            raise ValueError(f"Unknown stack type: {v}. Must be one of the 30 hosted stack variants.")
+        # All valid stacks
+        all_stacks = (tier1_developer_managed.union(tier1_self_managed).union(tier1_technical)
+                     .union(tier2_stacks).union(tier3_standard))
+
+        if v not in all_stacks:
+            raise ValueError(f"Unknown stack type: {v}. Must be one of the documented stack variants.")
 
         return v
 
@@ -225,7 +324,7 @@ class ClientConfig(BaseModel):
             "Environment": self.environment,
             "StackType": self.stack_type,
             "ServiceTier": self.service_tier,
-            "DeploymentMode": self.deployment_mode,
+            "DeliveryModel": self.delivery_model,
 
             # Cost allocation - for AWS Cost Explorer and billing
             "BillingGroup": f"{self.client_id}-{self.environment}",  # Group costs together
@@ -239,6 +338,12 @@ class ClientConfig(BaseModel):
             # Migration tracking (if applicable)
             "MigrationSource": self.migration_source or "new_development"
         }
+
+        # Add service-specific tags
+        if self.management_model:
+            tags["ManagementModel"] = self.management_model
+        if self.service_type and self.service_type != "standard":
+            tags["ServiceType"] = self.service_type
 
         # Allow custom tags via custom_settings like "tag:Department": "Marketing"
         for key, value in self.custom_settings.items():
@@ -259,8 +364,10 @@ class ClientConfig(BaseModel):
             "client_id": self.client_id,
             "company_name": self.company_name,
             "service_tier": self.service_tier,
+            "management_model": self.management_model,
+            "delivery_model": self.delivery_model,
+            "service_type": self.service_type,
             "stack_type": self.stack_type,
-            "deployment_mode": self.deployment_mode,
             "domain": self.domain,
             "environment": self.environment,
             "contact_email": self.contact_email,
@@ -282,9 +389,22 @@ class ClientConfig(BaseModel):
 
     def __str__(self) -> str:
         """Human readable representation for debugging/logging"""
-        mode_info = f" [{self.deployment_mode}]" if self.service_tier == "dual_delivery" else ""
+        
+        # Build service description
+        service_parts = [self.service_tier.upper()]
+        
+        if self.service_tier == 'tier1' and self.management_model:
+            service_parts.append(f"({self.management_model.replace('_', '-')})")
+        elif self.service_tier == 'tier3' and self.service_type != 'standard':
+            service_parts.append(f"({self.service_type})")
+        
+        if self.delivery_model == 'consulting_template':
+            service_parts.append("[consulting]")
+        
+        service_desc = " ".join(service_parts)
+        
         migration_info = f" (migrating from {self.migration_source})" if self.migration_source else ""
-        return f"{self.company_name} ({self.client_id}) - {self.service_tier.upper()} {self.stack_type}{mode_info} in {self.environment}{migration_info}"
+        return f"{self.company_name} ({self.client_id}) - {service_desc} {self.stack_type} in {self.environment}{migration_info}"
 
 
 def create_client_config(
@@ -304,12 +424,14 @@ def create_client_config(
     Args:
         client_id: URL-safe identifier (e.g., "acme-corp")
         company_name: Human readable name (e.g., "Acme Corporation")
-        service_tier: Service tier ("tier1", "tier2", "dual_delivery")
+        service_tier: Service tier ("tier1", "tier2", "tier3")
         stack_type: Technology stack from CDK strategy (30 hosted variants)
         domain: Client domain (e.g., "acme.com")
         contact_email: Primary contact email
         environment: Deployment environment ("prod", "staging", "dev")
-        deployment_mode: Deployment mode ("hosted", "template") - only for dual_delivery tier
+        delivery_model: Service delivery ("hosted", "consulting_template")
+        management_model: Management model for tier1 ("developer_managed", "self_managed", "technical")
+        service_type: Service type for tier3 ("dual_delivery", "consultation", "migration", "standard")
         **kwargs: Additional settings (migration_source, aws_account, region, custom_settings)
 
     Returns:
@@ -331,188 +453,237 @@ def create_client_config(
 # Quick templates for common client types
 # These are just shortcuts - you can create configs manually too
 
-def individual_client(client_id: str, company_name: str, domain: str, contact_email: str) -> ClientConfig:
+def tier1_developer_managed_client(client_id: str, company_name: str, domain: str, contact_email: str,
+                                  stack_type: str = "eleventy_marketing_stack") -> ClientConfig:
     """
-    Template for individual/freelancer clients (Tier 1).
-
-    Assumes they want a simple marketing site using Eleventy (most common for individuals).
-    Low cost, fast performance, easy to manage.
+    Template for Tier 1A: Developer-Managed clients ($480-1,440 setup | $75-125/month).
+    
+    For busy professionals who want "set it and forget it" service with professional maintenance.
+    We handle all content updates, performance optimization, and maintenance.
 
     Example:
-        client = individual_client("johns-design", "John's Design Studio", "johnsdesign.com", "john@johnsdesign.com")
+        client = tier1_developer_managed_client("law-firm", "Smith Law Firm", "smithlaw.com", "admin@smithlaw.com")
     """
     return create_client_config(
         client_id=client_id,
         company_name=company_name,
         service_tier="tier1",
-        stack_type="eleventy_marketing_stack",  # Most common for individuals
+        management_model="developer_managed",
+        stack_type=stack_type,
         domain=domain,
         contact_email=contact_email,
         environment="prod"
     )
 
 
-def small_business_client(client_id: str, company_name: str, domain: str, contact_email: str) -> ClientConfig:
+def tier1_self_managed_client(client_id: str, company_name: str, domain: str, contact_email: str,
+                             stack_type: str = "astro_tina_cms_stack") -> ClientConfig:
     """
-    Template for small business clients (Tier 2).
-
-    Assumes they want WordPress ECS Professional (most common for small businesses).
-    More scalable than Lightsail, suitable for growing businesses.
+    Template for Tier 1B: Self-Managed clients ($720-2,400 setup | $50-75/month).
+    
+    For clients comfortable with CMS editing who want complete control over their content
+    through easy-to-use web-based editing tools.
 
     Example:
-        client = small_business_client("acme-corp", "Acme Corporation", "acme.com", "admin@acme.com")
+        client = tier1_self_managed_client("content-biz", "Content Business", "contentbiz.com", "admin@contentbiz.com")
+    """
+    return create_client_config(
+        client_id=client_id,
+        company_name=company_name,
+        service_tier="tier1",
+        management_model="self_managed",
+        stack_type=stack_type,
+        domain=domain,
+        contact_email=contact_email,
+        environment="prod"
+    )
+
+
+def tier1_technical_client(client_id: str, company_name: str, domain: str, contact_email: str,
+                          stack_type: str = "jekyll_github_stack") -> ClientConfig:
+    """
+    Template for Tier 1C: Technical clients ($360-960 setup | $0-50/month).
+    
+    For developers, agencies, and technical users comfortable with Git, Markdown, 
+    and basic web development.
+
+    Example:
+        client = tier1_technical_client("dev-agency", "Dev Agency", "devagency.com", "team@devagency.com")
+    """
+    return create_client_config(
+        client_id=client_id,
+        company_name=company_name,
+        service_tier="tier1",
+        management_model="technical",
+        stack_type=stack_type,
+        domain=domain,
+        contact_email=contact_email,
+        environment="prod"
+    )
+
+
+def tier2_professional_client(client_id: str, company_name: str, domain: str, contact_email: str,
+                             stack_type: str = "astro_advanced_cms_stack") -> ClientConfig:
+    """
+    Template for Tier 2: Professional Solutions clients ($2,400-9,600 setup | $50-400/month).
+
+    For growing businesses, established service providers, and content-heavy sites.
+    More advanced than tier1 with better CMS integration and performance.
+
+    Example:
+        client = tier2_professional_client("growing-biz", "Growing Business", "growingbiz.com", "admin@growingbiz.com")
     """
     return create_client_config(
         client_id=client_id,
         company_name=company_name,
         service_tier="tier2",
-        stack_type="wordpress_ecs_professional_stack",
-        domain=domain,
-        contact_email=contact_email,
-        environment="prod"
-    )
-
-
-def enterprise_client(client_id: str, company_name: str, domain: str, contact_email: str,
-                     deployment_mode: str = "hosted") -> ClientConfig:
-    """
-    Template for enterprise clients (Dual-Delivery).
-
-    Assumes they want FastAPI + React/Vue (most common for enterprise).
-    These clients usually have complex requirements and may prefer template delivery.
-
-    Example:
-        # Hosted mode
-        client = enterprise_client("bigcorp", "BigCorp Industries", "bigcorp.com", "devops@bigcorp.com")
-
-        # Template mode
-        client = enterprise_client("tech-corp", "Tech Corp", "techcorp.com", "devops@techcorp.com", "template")
-    """
-    return create_client_config(
-        client_id=client_id,
-        company_name=company_name,
-        service_tier="dual_delivery",
-        stack_type="fastapi_react_vue_stack",
-        domain=domain,
-        contact_email=contact_email,
-        deployment_mode=deployment_mode,
-        environment="prod"
-    )
-
-
-def astro_client(client_id: str, company_name: str, domain: str, contact_email: str,
-                advanced: bool = False) -> ClientConfig:
-    """
-    Template for Astro-based clients.
-
-    Args:
-        advanced: If True, uses Tier 2 advanced CMS setup. If False, uses Tier 1 basic setup.
-
-    Example:
-        # Tier 1 basic
-        client = astro_client("design-studio", "Design Studio", "designstudio.com", "admin@designstudio.com")
-
-        # Tier 2 advanced
-        client = astro_client("content-biz", "Content Business", "contentbiz.com", "admin@contentbiz.com", advanced=True)
-    """
-    stack_type = "astro_advanced_cms" if advanced else "astro_template_basic"
-
-    return create_client_config(
-        client_id=client_id,
-        company_name=company_name,
         stack_type=stack_type,
         domain=domain,
         contact_email=contact_email,
         environment="prod"
     )
+
+
+def tier3_dual_delivery_client(client_id: str, company_name: str, domain: str, contact_email: str,
+                              delivery_model: str = "hosted",
+                              stack_type: str = "fastapi_react_vue_stack") -> ClientConfig:
+    """
+    Template for Tier 3: Dual-Delivery clients ($6,000-60,000+ setup | $250-2,000/month).
+
+    For enterprise clients who need flexible delivery - either hosted solutions or 
+    consulting templates deployed in their own infrastructure.
+
+    Example:
+        # Hosted mode
+        client = tier3_dual_delivery_client("bigcorp", "BigCorp Industries", "bigcorp.com", "devops@bigcorp.com")
+
+        # Consulting template mode  
+        client = tier3_dual_delivery_client("tech-corp", "Tech Corp", "techcorp.com", "devops@techcorp.com", "consulting_template")
+    """
+    return create_client_config(
+        client_id=client_id,
+        company_name=company_name,
+        service_tier="tier3",
+        service_type="dual_delivery",
+        delivery_model=delivery_model,
+        stack_type=stack_type,
+        domain=domain,
+        contact_email=contact_email,
+        environment="prod"
+    )
+
+
+def tier3_migration_client(client_id: str, company_name: str, domain: str, contact_email: str,
+                          stack_type: str = "magento_migration_stack",
+                          migration_source: str = None) -> ClientConfig:
+    """
+    Template for Tier 3: Migration Services clients (40% of revenue).
+
+    Specialized platform migration services to move from legacy systems to modern solutions.
+    High-value, urgent projects with comprehensive migration support.
+
+    Example:
+        client = tier3_migration_client("legacy-store", "Legacy Store", "legacystore.com", "admin@legacystore.com", 
+                                       "magento_migration_stack", "magento_1x")
+    """
+    return create_client_config(
+        client_id=client_id,
+        company_name=company_name,
+        service_tier="tier3",
+        service_type="migration",
+        stack_type=stack_type,
+        domain=domain,
+        contact_email=contact_email,
+        migration_source=migration_source,
+        environment="prod"
+    )
+
+
+def tier3_consultation_client(client_id: str, company_name: str, domain: str, contact_email: str,
+                             stack_type: str = "fastapi_react_vue_stack") -> ClientConfig:
+    """
+    Template for Tier 3: Consultation-Only clients.
+
+    Pure consulting services where we deliver infrastructure templates and guidance
+    but client manages their own deployment and infrastructure.
+
+    Example:
+        client = tier3_consultation_client("enterprise-dev", "Enterprise Dev Team", "enterprisedev.com", "cto@enterprisedev.com")
+    """
+    return create_client_config(
+        client_id=client_id,
+        company_name=company_name,
+        service_tier="tier3",
+        service_type="consultation",
+        delivery_model="consulting_template",
+        stack_type=stack_type,
+        domain=domain,
+        contact_email=contact_email,
+        environment="prod"
+    )
+
+
+# Legacy template functions - deprecated, use tier-specific functions above
+# Kept for backward compatibility but should migrate to new structure
+
+def astro_client(client_id: str, company_name: str, domain: str, contact_email: str,
+                advanced: bool = False) -> ClientConfig:
+    """
+    DEPRECATED: Use tier1_self_managed_client() or tier2_professional_client() instead.
+    
+    Template for Astro-based clients.
+    """
+    if advanced:
+        return tier2_professional_client(client_id, company_name, domain, contact_email, "astro_advanced_cms_stack")
+    else:
+        return tier1_self_managed_client(client_id, company_name, domain, contact_email, "astro_template_basic_stack")
 
 
 def wordpress_client(client_id: str, company_name: str, domain: str, contact_email: str,
                     enterprise: bool = False) -> ClientConfig:
     """
+    DEPRECATED: Use tier2_professional_client() or tier3_dual_delivery_client() instead.
+    
     Template for WordPress-based clients.
-
-    Args:
-        enterprise: If True, uses Tier 3 enterprise ECS setup. If False, uses Tier 2 professional setup.
-
-    Example:
-        # Tier 2 professional
-        client = wordpress_client("local-business", "Local Business", "localbusiness.com", "admin@localbusiness.com")
-
-        # Tier 3 enterprise
-        client = wordpress_client("bigcorp", "BigCorp", "bigcorp.com", "devops@bigcorp.com", enterprise=True)
     """
-    stack_type = "wordpress_ecs_enterprise" if enterprise else "wordpress_ecs_professional"
+    if enterprise:
+        return tier3_dual_delivery_client(client_id, company_name, domain, contact_email, "hosted", "wordpress_ecs_professional_stack")
+    else:
+        return tier2_professional_client(client_id, company_name, domain, contact_email, "wordpress_ecs_professional_stack")
 
-    return create_client_config(
-        client_id=client_id,
-        company_name=company_name,
-        stack_type=stack_type,
-        domain=domain,
-        contact_email=contact_email,
-        environment="prod"
-    )
 
+# Additional legacy functions - use tier-specific functions instead
 
 def shopify_client(client_id: str, company_name: str, domain: str, contact_email: str,
                   integration_level: str = "basic") -> ClientConfig:
     """
-    Template for Shopify-based clients.
-
-    Args:
-        integration_level: "dns" (Tier 1), "basic" (Tier 2), "advanced" (Tier 2/3), "headless" (Tier 3)
-
-    Example:
-        # Tier 1 DNS-only
-        client = shopify_client("small-shop", "Small Shop", "smallshop.com", "admin@smallshop.com", "dns")
-
-        # Tier 2 basic integration
-        client = shopify_client("growing-shop", "Growing Shop", "growingshop.com", "admin@growingshop.com", "basic")
-
-        # Tier 3 headless
-        client = shopify_client("premium-shop", "Premium Shop", "premiumshop.com", "admin@premiumshop.com", "headless")
+    DEPRECATED: Use appropriate tier-specific functions instead.
+    
+    Example mappings:
+    - DNS-only -> tier1_developer_managed_client(..., "shopify_standard_dns_stack") 
+    - Basic -> tier2_professional_client(..., "shopify_aws_basic_integration_stack")
+    - Advanced -> tier3_dual_delivery_client(..., stack_type="shopify_advanced_aws_integration_stack")
+    - Headless -> tier3_dual_delivery_client(..., stack_type="headless_shopify_custom_frontend_stack")
     """
-    stack_mapping = {
-        "dns": "shopify_standard_dns",
-        "basic": "shopify_aws_basic_integration",
-        "advanced": "shopify_aws_advanced_integration",
-        "headless": "headless_shopify_custom_frontend"
-    }
-
-    stack_type = stack_mapping.get(integration_level, "shopify_aws_basic_integration")
-
-    return create_client_config(
-        client_id=client_id,
-        company_name=company_name,
-        stack_type=stack_type,
-        domain=domain,
-        contact_email=contact_email,
-        environment="prod"
-    )
+    if integration_level == "dns":
+        return tier1_developer_managed_client(client_id, company_name, domain, contact_email, "shopify_standard_dns_stack")
+    elif integration_level == "basic":
+        return tier2_professional_client(client_id, company_name, domain, contact_email, "shopify_aws_basic_integration_stack")
+    elif integration_level == "advanced":
+        return tier3_dual_delivery_client(client_id, company_name, domain, contact_email, "hosted", "shopify_advanced_aws_integration_stack")
+    elif integration_level == "headless":
+        return tier3_dual_delivery_client(client_id, company_name, domain, contact_email, "hosted", "headless_shopify_custom_frontend_stack")
+    else:
+        return tier2_professional_client(client_id, company_name, domain, contact_email, "shopify_aws_basic_integration_stack")
 
 
 def nextjs_client(client_id: str, company_name: str, domain: str, contact_email: str,
                  enterprise: bool = False) -> ClientConfig:
     """
-    Template for Next.js-based clients.
-
-    Args:
-        enterprise: If True, uses Tier 3 enterprise applications. If False, uses Tier 2 professional.
-
-    Example:
-        # Tier 2 professional
-        client = nextjs_client("modern-biz", "Modern Business", "modernbiz.com", "admin@modernbiz.com")
-
-        # Tier 3 enterprise
-        client = nextjs_client("tech-corp", "Tech Corp", "techcorp.com", "devops@techcorp.com", enterprise=True)
+    DEPRECATED: Use tier2_professional_client() or tier3_consultation_client() instead.
     """
-    stack_type = "nextjs_enterprise_applications" if enterprise else "nextjs_professional_headless_cms"
+    if enterprise:
+        return tier3_consultation_client(client_id, company_name, domain, contact_email, "nextjs_enterprise_applications_stack")
+    else:
+        return tier2_professional_client(client_id, company_name, domain, contact_email, "nextjs_professional_headless_cms_stack")
 
-    return create_client_config(
-        client_id=client_id,
-        company_name=company_name,
-        stack_type=stack_type,
-        domain=domain,
-        contact_email=contact_email,
-        environment="prod"
-    )

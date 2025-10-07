@@ -23,6 +23,7 @@ This repository provides a complete **multi-client web services infrastructure p
 
 - **30 Pre-configured Stack Variants** across 3 service tiers (Tier 1: $360-3K setup, Tier 2: $2.4K-9.6K setup, Dual-delivery: Custom pricing)
 - **7 Static Site Generators** (Eleventy, Hugo, Astro, Jekyll, Next.js, Nuxt, Gatsby) with optimized configurations
+- **E-commerce Integration**: Built-in support for Snipcart, Foxy.io, Shopify (3 tiers), with cost transparency
 - **Dual-Delivery Service Models**: Deploy in your AWS account (hosted) OR deliver infrastructure code to clients (template)
 - **Migration Specialization**: 7 specialized stacks for legacy platform migrations
 - **Type-Safe Configuration**: Pydantic-based client configuration with automatic validation and cost estimation
@@ -178,8 +179,8 @@ platform-infrastructure/
 | `astro_sanity_stack` | Astro with Sanity headless CMS | Media-rich content sites |
 | `gatsby_contentful_stack` | Gatsby with Contentful CMS integration | Marketing sites, blogs |
 | `astro_template_basic_stack` | Basic Astro template for quick deployment | Simple business sites |
-| `eleventy_snipcart_stack` | Eleventy with Snipcart e-commerce | Small online stores |
-| `astro_foxy_stack` | Astro with Foxy.io e-commerce integration | Product showcase sites |
+| `eleventy_snipcart_stack` | Eleventy with Snipcart e-commerce ($29-99/month, 2% fee) | Small online stores |
+| `astro_foxy_stack` | Astro with Foxy.io e-commerce ($75-300/month, 1.5% fee) | Advanced e-commerce sites |
 | `shopify_standard_dns_stack` | Shopify DNS-only setup | Basic Shopify stores |
 
 ### Tier 2 (Professional) - 7 Stack Variants
@@ -579,7 +580,7 @@ def validate_business_requirements(client_config, business_type):
     validation_rules = {
         "ecommerce": {
             "required_integrations": ["payment_processing", "inventory_management"],
-            "recommended_tiers": ["tier2", "dual_delivery"],
+            "recommended_tiers": ["tier2", "tier3_dual_delivery"],
             "min_monthly_budget": 100
         },
         "content_publishing": {

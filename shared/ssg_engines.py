@@ -11,6 +11,11 @@ SSGEngineType = Literal[
     "eleventy", "hugo", "astro", "jekyll", "nextjs", "nuxt", "gatsby"
 ]
 
+ECommerceProvider = Literal[
+    "snipcart", "foxy", "shopify_basic", "shopify_advanced", "shopify_headless", 
+    "woocommerce", "custom_api", "none"
+]
+
 
 class BuildCommand(BaseModel):
     """Represents a build step for SSG compilation"""
@@ -56,6 +61,45 @@ class BuildCommand(BaseModel):
         return v.strip()
 
 
+class ECommerceIntegration(BaseModel):
+    """E-commerce platform integration configuration"""
+
+    model_config = ConfigDict(
+        str_strip_whitespace=True,
+        validate_assignment=True,
+        json_schema_extra={
+            "examples": [
+                {
+                    "provider": "snipcart",
+                    "features": ["cart", "checkout", "inventory"],
+                    "setup_complexity": "low",
+                    "monthly_cost_range": [29, 99],
+                    "transaction_fee_percent": 2.0,
+                    "integration_method": "javascript_snippet"
+                }
+            ]
+        },
+    )
+
+    provider: ECommerceProvider = Field(..., description="E-commerce platform provider")
+    features: List[str] = Field(..., description="Available e-commerce features")
+    setup_complexity: Literal["low", "medium", "high"] = Field(default="medium")
+    monthly_cost_range: List[int] = Field(description="Monthly cost range [min, max]")
+    transaction_fee_percent: Optional[float] = Field(None, description="Transaction fee percentage")
+    integration_method: Literal[
+        "javascript_snippet", "api_integration", "headless_api", "plugin_based", "custom_backend"
+    ] = Field(description="How the e-commerce platform integrates")
+    required_environment_vars: List[str] = Field(
+        default_factory=list, description="Required environment variables"
+    )
+    build_dependencies: List[str] = Field(
+        default_factory=list, description="Additional build dependencies needed"
+    )
+    aws_services_needed: List[str] = Field(
+        default_factory=list, description="Additional AWS services required"
+    )
+
+
 class SSGTemplate(BaseModel):
     """Template configuration for SSG engines"""
 
@@ -83,6 +127,7 @@ class SSGTemplate(BaseModel):
                     "demo_url": "https://demo.yourservices.com/business-modern",
                     "difficulty_level": "intermediate",
                     "estimated_setup_hours": 2.0,
+                    "ecommerce_integration": None
                 }
             ]
         },
@@ -101,6 +146,12 @@ class SSGTemplate(BaseModel):
     )
     estimated_setup_hours: float = Field(
         default=2.0, ge=0.5, le=40.0, description="Estimated setup time in hours"
+    )
+    ecommerce_integration: Optional[ECommerceIntegration] = Field(
+        None, description="E-commerce platform integration if applicable"
+    )
+    supports_ecommerce: bool = Field(
+        default=False, description="Whether this template supports e-commerce features"
     )
 
     @field_validator("repo_url")
@@ -267,6 +318,35 @@ class EleventyConfig(SSGEngineConfig):
                     "contact_info",
                 ],
                 demo_url="https://demo.yourservices.com/business-modern",
+                supports_ecommerce=False,
+            ),
+            SSGTemplate(
+                name="snipcart_ecommerce",
+                description="Simple e-commerce site with Snipcart integration for small stores",
+                use_cases=["simple_ecommerce", "small_stores", "product_catalogs", "digital_products"],
+                repo_url="https://github.com/your-templates/eleventy-snipcart-store",
+                customization_points=[
+                    "product_catalog",
+                    "cart_styling",
+                    "payment_methods",
+                    "shipping_options",
+                    "tax_configuration",
+                ],
+                demo_url="https://demo.yourservices.com/eleventy-snipcart",
+                difficulty_level="intermediate",
+                estimated_setup_hours=3.0,
+                supports_ecommerce=True,
+                ecommerce_integration=ECommerceIntegration(
+                    provider="snipcart",
+                    features=["cart", "checkout", "inventory", "digital_products", "subscriptions"],
+                    setup_complexity="low",
+                    monthly_cost_range=[29, 99],
+                    transaction_fee_percent=2.0,
+                    integration_method="javascript_snippet",
+                    required_environment_vars=["SNIPCART_API_KEY"],
+                    build_dependencies=[],
+                    aws_services_needed=["Lambda", "SES"]  # For order notifications
+                ),
             ),
             SSGTemplate(
                 name="service_provider",
@@ -297,6 +377,7 @@ class EleventyConfig(SSGEngineConfig):
                     "conversion_forms",
                 ],
                 demo_url="https://demo.yourservices.com/marketing-landing",
+                supports_ecommerce=False,
             ),
         ]
 
@@ -455,6 +536,7 @@ class AstroConfig(SSGEngineConfig):
                     "integrations",
                 ],
                 demo_url="https://demo.yourservices.com/astro-interactive",
+                supports_ecommerce=False,
             ),
             SSGTemplate(
                 name="performance_focused",
@@ -474,6 +556,82 @@ class AstroConfig(SSGEngineConfig):
                     "optimization_settings",
                 ],
                 demo_url="https://demo.yourservices.com/astro-performance",
+                supports_ecommerce=False,
+            ),
+            SSGTemplate(
+                name="foxy_ecommerce",
+                description=(
+                    "Advanced e-commerce with Foxy.io integration and React islands"
+                ),
+                use_cases=[
+                    "advanced_ecommerce",
+                    "scalable_stores",
+                    "subscription_products",
+                    "complex_catalogs"
+                ],
+                repo_url="https://github.com/your-templates/astro-foxy-store",
+                customization_points=[
+                    "product_pages",
+                    "cart_components",
+                    "checkout_flow",
+                    "subscription_management",
+                    "inventory_display",
+                    "customer_accounts",
+                ],
+                demo_url="https://demo.yourservices.com/astro-foxy",
+                difficulty_level="advanced",
+                estimated_setup_hours=6.0,
+                supports_ecommerce=True,
+                ecommerce_integration=ECommerceIntegration(
+                    provider="foxy",
+                    features=[
+                        "cart", "checkout", "inventory", "subscriptions", 
+                        "customer_portal", "advanced_shipping", "tax_calculation"
+                    ],
+                    setup_complexity="high",
+                    monthly_cost_range=[75, 300],
+                    transaction_fee_percent=1.5,
+                    integration_method="api_integration",
+                    required_environment_vars=["FOXY_STORE_DOMAIN", "FOXY_API_KEY"],
+                    build_dependencies=["@astrojs/react", "@foxy.io/sdk"],
+                    aws_services_needed=["Lambda", "API Gateway", "DynamoDB", "SES"]
+                ),
+            ),
+            SSGTemplate(
+                name="tina_cms_portfolio",
+                description=(
+                    "Portfolio template with Tina CMS for easy content management"
+                ),
+                use_cases=["portfolios", "creative_agencies", "freelancers", "showcases"],
+                repo_url="https://github.com/your-templates/astro-tina-portfolio",
+                customization_points=[
+                    "project_layouts",
+                    "gallery_styles",
+                    "contact_forms",
+                    "cms_schemas",
+                ],
+                demo_url="https://demo.yourservices.com/astro-tina",
+                difficulty_level="intermediate",
+                estimated_setup_hours=4.0,
+                supports_ecommerce=False,
+            ),
+            SSGTemplate(
+                name="sanity_cms_business",
+                description=(
+                    "Business site with Sanity CMS for structured content management"
+                ),
+                use_cases=["business_sites", "content_heavy", "multi_author", "editorial"],
+                repo_url="https://github.com/your-templates/astro-sanity-business",
+                customization_points=[
+                    "content_schemas",
+                    "page_layouts",
+                    "author_profiles",
+                    "content_workflows",
+                ],
+                demo_url="https://demo.yourservices.com/astro-sanity",
+                difficulty_level="intermediate",
+                estimated_setup_hours=5.0,
+                supports_ecommerce=False,
             ),
         ]
 
@@ -869,11 +1027,75 @@ class SSGEngineFactory:
         """Get available templates for an engine"""
         engine = cls.create_engine(engine_type)
         return engine.available_templates
+    
+    @classmethod
+    def get_ecommerce_templates(cls) -> Dict[str, List[SSGTemplate]]:
+        """Get all e-commerce templates across all engines"""
+        ecommerce_templates = {}
+        
+        for engine_type in cls._engines.keys():
+            engine = cls.create_engine(engine_type)
+            templates = [t for t in engine.available_templates if t.supports_ecommerce]
+            if templates:
+                ecommerce_templates[engine_type] = templates
+                
+        return ecommerce_templates
+    
+    @classmethod
+    def get_templates_by_provider(cls, provider: ECommerceProvider) -> Dict[str, List[SSGTemplate]]:
+        """Get templates that support a specific e-commerce provider"""
+        provider_templates = {}
+        
+        for engine_type in cls._engines.keys():
+            engine = cls.create_engine(engine_type)
+            templates = [
+                t for t in engine.available_templates 
+                if (t.supports_ecommerce and 
+                    t.ecommerce_integration and 
+                    t.ecommerce_integration.provider == provider)
+            ]
+            if templates:
+                provider_templates[engine_type] = templates
+                
+        return provider_templates
+    
+    @classmethod
+    def get_recommended_stack_for_ecommerce(
+        cls, 
+        provider: ECommerceProvider, 
+        complexity: Literal["simple", "advanced", "enterprise"] = "simple"
+    ) -> List[Dict[str, Any]]:
+        """Get recommended SSG engine and template combinations for e-commerce"""
+        recommendations = []
+        
+        complexity_mapping = {
+            "simple": "low",
+            "advanced": "high", 
+            "enterprise": "high"  # Map enterprise to high for now
+        }
+        
+        target_complexity = complexity_mapping.get(complexity, "low")
+        provider_templates = cls.get_templates_by_provider(provider)
+        
+        for engine_type, templates in provider_templates.items():
+            for template in templates:
+                if (template.ecommerce_integration and 
+                    template.ecommerce_integration.setup_complexity == target_complexity):
+                    recommendations.append({
+                        "engine": engine_type,
+                        "template": template.name,
+                        "provider": provider,
+                        "complexity": complexity,
+                        "estimated_hours": template.estimated_setup_hours,
+                        "monthly_cost_range": template.ecommerce_integration.monthly_cost_range
+                    })
+        
+        return sorted(recommendations, key=lambda x: x["estimated_hours"])
 
 
 # Client Configuration Integration
 class StaticSiteConfig(BaseModel):
-    """Configuration for static site deployment"""
+    """Configuration for static site deployment with e-commerce support"""
 
     model_config = ConfigDict(
         str_strip_whitespace=True,
@@ -884,9 +1106,15 @@ class StaticSiteConfig(BaseModel):
                     "client_id": "demo-client",
                     "domain": "demo-client.com",
                     "ssg_engine": "eleventy",
-                    "template_variant": "business_modern",
+                    "template_variant": "snipcart_ecommerce",
                     "performance_tier": "optimized",
                     "cdn_caching_strategy": "moderate",
+                    "ecommerce_provider": "snipcart",
+                    "ecommerce_config": {
+                        "store_name": "Demo Store",
+                        "currency": "USD",
+                        "tax_included": False
+                    }
                 }
             ]
         },
@@ -914,6 +1142,20 @@ class StaticSiteConfig(BaseModel):
     cdn_caching_strategy: Literal["aggressive", "moderate", "minimal"] = Field(
         default="moderate", description="CDN caching strategy"
     )
+    
+    # E-commerce specific configurations
+    ecommerce_provider: Optional[ECommerceProvider] = Field(
+        None, description="E-commerce platform provider if applicable"
+    )
+    ecommerce_config: Dict[str, Any] = Field(
+        default_factory=dict, description="E-commerce platform specific configuration"
+    )
+    requires_backend_api: bool = Field(
+        default=False, description="Whether this configuration requires backend API services"
+    )
+    webhook_endpoints: List[str] = Field(
+        default_factory=list, description="Required webhook endpoints for e-commerce integrations"
+    )
 
     @field_validator("domain")
     @classmethod
@@ -938,27 +1180,68 @@ class StaticSiteConfig(BaseModel):
 
     @model_validator(mode="after")
     def validate_template_engine_compatibility(self):
-        """Ensure template variant is compatible with selected engine"""
+        """Ensure template variant is compatible with selected engine and validate e-commerce config"""
         ssg_engine = self.ssg_engine
         template_variant = self.template_variant
 
         if ssg_engine and template_variant:
-            try:
-                engine_config = SSGEngineFactory.create_engine(
-                    ssg_engine, template_variant
+            # Get engine configuration - let errors propagate for validation
+            engine_config = SSGEngineFactory.create_engine(ssg_engine, template_variant)
+            
+            # Check if template exists for this engine
+            available_templates = [t.name for t in engine_config.available_templates]
+            if template_variant not in available_templates:
+                available = ", ".join(available_templates)
+                raise ValueError(
+                    f'Template "{template_variant}" not available for '
+                    f'{ssg_engine}. Available: {available}'
                 )
-                available_templates = [
-                    t.name for t in engine_config.available_templates
-                ]
-                if template_variant not in available_templates:
-                    available = ", ".join(available_templates)
-                    raise ValueError(
-                        f'Template "{template_variant}" not available for '
-                        f'{ssg_engine}. Available: {available}'
+            
+            # Get the specific template object for e-commerce validation
+            template_obj = next(
+                (t for t in engine_config.available_templates if t.name == template_variant), 
+                None
+            )
+            
+            if template_obj:
+                # Check if e-commerce template requires provider
+                if template_obj.supports_ecommerce and not self.ecommerce_provider:
+                    provider_hint = (
+                        template_obj.ecommerce_integration.provider 
+                        if template_obj.ecommerce_integration 
+                        else "unknown"
                     )
-            except Exception:
-                # During initialization, factory might not be ready
-                pass
+                    raise ValueError(
+                        f'Template "{template_variant}" is an e-commerce template but no '
+                        f'ecommerce_provider specified. Required provider: {provider_hint}'
+                    )
+                
+                # Check if non-ecommerce template has provider specified
+                if not template_obj.supports_ecommerce and self.ecommerce_provider:
+                    ecommerce_templates = [
+                        t.name for t in engine_config.available_templates 
+                        if t.supports_ecommerce
+                    ]
+                    suggestion = (
+                        f" Try: {', '.join(ecommerce_templates)}" 
+                        if ecommerce_templates 
+                        else ""
+                    )
+                    raise ValueError(
+                        f'Template "{template_variant}" does not support e-commerce but '
+                        f'ecommerce_provider "{self.ecommerce_provider}" was specified.{suggestion}'
+                    )
+                
+                # Validate provider matches template integration
+                if (template_obj.supports_ecommerce and 
+                    template_obj.ecommerce_integration and 
+                    self.ecommerce_provider and 
+                    template_obj.ecommerce_integration.provider != self.ecommerce_provider):
+                    raise ValueError(
+                        f'Template "{template_variant}" is configured for '
+                        f'{template_obj.ecommerce_integration.provider} but '
+                        f'{self.ecommerce_provider} was specified'
+                    )
 
         return self
 
@@ -970,15 +1253,60 @@ class StaticSiteConfig(BaseModel):
         """Get available templates for selected engine"""
         return SSGEngineFactory.get_engine_templates(self.ssg_engine)
 
+    def get_ecommerce_integration(self) -> Optional[ECommerceIntegration]:
+        """Get the e-commerce integration configuration for the selected template"""
+        if not self.ecommerce_provider:
+            return None
+            
+        try:
+            engine_config = self.get_ssg_config()
+            template_obj = next(
+                (t for t in engine_config.available_templates if t.name == self.template_variant),
+                None
+            )
+            return template_obj.ecommerce_integration if template_obj else None
+        except Exception:
+            return None
+    
+    def get_required_aws_services(self) -> List[str]:
+        """Get list of AWS services required for this configuration"""
+        base_services = ["S3", "CloudFront", "Route53", "Certificate Manager"]
+        
+        ecommerce_integration = self.get_ecommerce_integration()
+        if ecommerce_integration:
+            base_services.extend(ecommerce_integration.aws_services_needed)
+            
+        return list(set(base_services))  # Remove duplicates
+    
+    def get_environment_variables(self) -> Dict[str, str]:
+        """Get all environment variables including e-commerce specific ones"""
+        env_vars = self.environment_vars.copy()
+        
+        ecommerce_integration = self.get_ecommerce_integration()
+        if ecommerce_integration:
+            for var in ecommerce_integration.required_environment_vars:
+                if var not in env_vars:
+                    env_vars[var] = f"${{{var}}}"  # Placeholder for CDK parameter
+        
+        return env_vars
+
     def to_aws_tags(self) -> Dict[str, str]:
         """Convert configuration to AWS resource tags"""
-        return {
+        tags = {
             "Client": self.client_id,
             "SSGEngine": self.ssg_engine,
             "Template": self.template_variant,
             "PerformanceTier": self.performance_tier,
             "Environment": "production",  # Can be parameterized later
         }
+        
+        if self.ecommerce_provider:
+            tags["ECommerceProvider"] = self.ecommerce_provider
+            tags["HasECommerce"] = "true"
+        else:
+            tags["HasECommerce"] = "false"
+            
+        return tags
 
 
 # Usage Examples and Testing
