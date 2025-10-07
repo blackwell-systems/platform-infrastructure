@@ -24,7 +24,7 @@ This repository provides a complete **multi-client web services infrastructure p
 - **30 Pre-configured Stack Variants** across 3 service tiers (Tier 1: $360-3K setup, Tier 2: $2.4K-9.6K setup, Dual-delivery: Custom pricing)
 - **7 Static Site Generators** (Eleventy, Hugo, Astro, Jekyll, Next.js, Nuxt, Gatsby) with optimized configurations
 - **Dual-Delivery Service Models**: Deploy in your AWS account (hosted) OR deliver infrastructure code to clients (template)
-- **Migration Specialization**: 7 specialized stacks for legacy platform migrations (40% revenue potential)
+- **Migration Specialization**: 7 specialized stacks for legacy platform migrations
 - **Type-Safe Configuration**: Pydantic-based client configuration with automatic validation and cost estimation
 
 ### Who This Is For
