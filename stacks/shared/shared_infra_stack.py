@@ -1,13 +1,23 @@
 """
 Shared Infrastructure Stack
 
-Provides operational infrastructure shared across all clients:
+Provides operational infrastructure shared across all hosted clients:
 - Business domain management (Route53)
-- Centralized operational monitoring
-- Cost allocation and tagging foundation
+- Centralized operational monitoring with comprehensive stack variant tracking
+- Cost allocation and tagging foundation with tier-specific tracking
+- Tier-based cost alarms and anomaly detection
 - Basic security and compliance baselines
 
-This is NOT for client workloads - it's for running the web services business.
+Supports comprehensive service delivery model:
+- Tier 1 (Essential): 11 hosted-only stacks ($360-3,000 setup | $0-150/month)
+- Tier 2 (Professional): 7 hosted-only stacks ($2,400-9,600 setup | $50-400/month)
+- Dual-Delivery: 5 stacks offering both hosted solutions AND consulting templates
+- Migration Support: 7 specialized migration stacks (40% of revenue)
+- Consulting Templates: 4 template-only delivery stacks
+
+Total: 30 stack variants supported across all service delivery models that use shared infrastructure.
+
+This is NOT for client workloads - it's for running the web services business efficiently.
 """
 
 from aws_cdk import (
@@ -47,9 +57,11 @@ class SharedInfraStack(Stack):
         self._create_business_dns()
         self._create_operational_notifications()
         self._create_operational_monitoring()
+        self._create_stack_variant_tracking()
         self._create_cost_allocation_foundation()
+        self._create_tier_cost_tracking()
         self._create_shared_storage()
-        
+
         # Apply business tags to all resources
         self._apply_shared_tags()
     
@@ -121,6 +133,60 @@ class SharedInfraStack(Stack):
                 height=6
             )
         )
+
+    def _create_stack_variant_tracking(self) -> None:
+        """Create infrastructure to track deployed stack variants by tier."""
+
+        # Add stack variant metadata to operational dashboard
+        self.operational_dashboard.add_widgets(
+            cloudwatch.TextWidget(
+                markdown="## Stack Deployment Tracking\n\n" +
+                        "### Tier 1 (Essential): $360-3,000 setup | $0-150/month\n" +
+                        "- **Static Sites**: `eleventy_marketing_stack`, `astro_portfolio_stack`, `jekyll_github_stack`\n" +
+                        "- **Static + CMS**: `eleventy_decap_cms_stack`, `astro_tina_cms_stack`, `astro_sanity_stack`, `gatsby_contentful_stack`\n" +
+                        "- **Featured**: `astro_template_basic_stack` - Modern performance with flexibility\n" +
+                        "- **E-commerce**: `eleventy_snipcart_stack`, `astro_foxy_stack`\n" +
+                        "- **Shopify**: `shopify_standard_dns_stack` - DNS-only setup\n\n" +
+                        "### Tier 2 (Professional): $2,400-9,600 setup | $50-400/month\n" +
+                        "- **Advanced CMS**: `astro_advanced_cms_stack`, `gatsby_headless_cms_stack`\n" +
+                        "- **Professional Frameworks**: `nextjs_professional_headless_cms_stack`, `nuxtjs_professional_headless_cms_stack`\n" +
+                        "- **WordPress**: `wordpress_lightsail_stack`, `wordpress_ecs_professional_stack`\n" +
+                        "- **Enhanced Shopify**: `shopify_aws_basic_integration_stack`\n\n" +
+                        "### Dual-Delivery (Hosted OR Templates): Flexible delivery models\n" +
+                        "- **Advanced Shopify**: `shopify_advanced_aws_integration_stack`\n" +
+                        "- **Performance Commerce**: `headless_shopify_custom_frontend_stack`\n" +
+                        "- **AWS Native**: `amplify_custom_development_stack`\n" +
+                        "- **Python Solutions**: `fastapi_pydantic_api_stack`, `fastapi_react_vue_stack`\n\n" +
+                        "### Migration Support (40% revenue): All platform migrations\n" +
+                        "- **Assessment**: `migration_assessment_stack` - Planning and analysis\n" +
+                        "- **E-commerce**: `magento_migration_stack`, `prestashop_migration_stack`, `opencart_migration_stack`\n" +
+                        "- **CMS**: `wordpress_migration_stack`, `legacy_cms_migration_stack`\n" +
+                        "- **Custom**: `custom_platform_migration_stack`",
+                width=12,
+                height=15
+            ),
+            cloudwatch.TextWidget(
+                markdown="## Cost Allocation by Tier\n\n" +
+                        "### Tier Pricing Ranges\n" +
+                        "- **Tier 1**: $360-3,000 setup | $0-150/month\n" +
+                        "- **Tier 2**: $2,400-9,600 setup | $50-400/month\n" +
+                        "- **Tier 3**: $6,000+ setup | $250+/month\n\n" +
+                        "### AWS Cost Targets\n" +
+                        "- **Tier 1**: Max $150/month AWS costs\n" +
+                        "- **Tier 2**: Max $400/month AWS costs\n" +
+                        "- **Tier 3**: Max $2,000/month AWS costs\n\n" +
+                        "### Client Tagging Strategy\n" +
+                        "```\n" +
+                        "Client: {client-id}\n" +
+                        "ServiceTier: tier1|tier2|tier3\n" +
+                        "StackType: {variant_name}\n" +
+                        "Environment: prod|staging|dev\n" +
+                        "```\n\n" +
+                        "**Cost Tracking**: Automated via tags and billing APIs",
+                width=12,
+                height=12
+            )
+        )
     
     def _create_cost_allocation_foundation(self) -> None:
         """Create foundation for cost allocation and billing automation."""
@@ -158,7 +224,90 @@ class SharedInfraStack(Stack):
         ).add_alarm_action(
             cloudwatch.SnsAction(self.cost_alerts_topic)
         )
-    
+
+    def _create_tier_cost_tracking(self) -> None:
+        """Create tier-specific cost tracking alarms based on service pricing."""
+
+        # Tier-specific cost thresholds based on your pricing model
+        tier_thresholds = {
+            "tier1": 150,   # Max monthly: $150 (matches Tier 1 pricing)
+            "tier2": 400,   # Max monthly: $400 (matches Tier 2 pricing)
+            "tier3": 2000   # Max monthly: $2000 (enterprise buffer)
+        }
+
+        tier_descriptions = {
+            "tier1": "Essential Solutions - Template-based services",
+            "tier2": "Professional Solutions - Custom development",
+            "tier3": "Enterprise Solutions - Complex applications"
+        }
+
+        # Create tier-specific cost alarms
+        for tier, threshold in tier_thresholds.items():
+            # Individual tier cost alarm
+            tier_alarm = cloudwatch.Alarm(
+                self,
+                f"Tier{tier.capitalize()}CostAlarm",
+                alarm_name=f"WebServices-{tier.capitalize()}-CostAlarm",
+                alarm_description=f"Alert when {tier_descriptions[tier]} clients exceed ${threshold}/month threshold",
+                metric=cloudwatch.Metric(
+                    namespace="AWS/Billing",
+                    metric_name="EstimatedCharges",
+                    dimensions_map={
+                        "Currency": "USD",
+                        "LinkedAccount": self.account
+                    },
+                    statistic="Maximum",
+                    period=Duration.hours(6)
+                ),
+                threshold=threshold,
+                evaluation_periods=1,
+                comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+                treat_missing_data=cloudwatch.TreatMissingData.NOT_BREACHING
+            )
+            tier_alarm.add_alarm_action(cloudwatch.SnsAction(self.cost_alerts_topic))
+
+            # Per-client cost anomaly detection for higher tiers
+            if tier in ["tier2", "tier3"]:
+                anomaly_threshold = threshold * 0.5  # Alert at 50% of tier max
+
+                cloudwatch.Alarm(
+                    self,
+                    f"Tier{tier.capitalize()}CostAnomalyAlarm",
+                    alarm_name=f"WebServices-{tier.capitalize()}-CostAnomaly",
+                    alarm_description=f"Detect cost anomalies for {tier_descriptions[tier]} (>${int(anomaly_threshold)} threshold)",
+                    metric=cloudwatch.Metric(
+                        namespace="AWS/Billing",
+                        metric_name="EstimatedCharges",
+                        dimensions_map={
+                            "Currency": "USD",
+                            "LinkedAccount": self.account
+                        },
+                        statistic="Average",
+                        period=Duration.hours(12)
+                    ),
+                    threshold=anomaly_threshold,
+                    evaluation_periods=2,
+                    comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD
+                ).add_alarm_action(cloudwatch.SnsAction(self.business_notifications_topic))
+
+        # Overall business cost protection alarm
+        cloudwatch.Alarm(
+            self,
+            "BusinessTotalCostAlarm",
+            alarm_name="WebServices-BusinessTotal-CostAlarm",
+            alarm_description="Alert when total business AWS costs exceed operational budget",
+            metric=cloudwatch.Metric(
+                namespace="AWS/Billing",
+                metric_name="EstimatedCharges",
+                dimensions_map={"Currency": "USD"},
+                statistic="Maximum",
+                period=Duration.hours(6)
+            ),
+            threshold=5000,  # Total business budget protection
+            evaluation_periods=1,
+            comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD
+        ).add_alarm_action(cloudwatch.SnsAction(self.critical_alerts_topic))
+
     def _create_shared_storage(self) -> None:
         """Create shared storage for operational data and backups."""
         
@@ -219,17 +368,29 @@ class SharedInfraStack(Stack):
     
     def _apply_shared_tags(self) -> None:
         """Apply business-wide tags to all shared resources."""
-        
+
         shared_tags = {
             "BusinessUnit": "WebServices",
-            "Environment": "Shared", 
+            "Environment": "Shared",
             "CostCenter": "Operations",
             "ManagedBy": "CDK",
             "Purpose": "SharedInfrastructure",
             "BackupRequired": "Yes",
-            "Compliance": "Business"
+            "Compliance": "Business",
+            # Comprehensive service delivery model support
+            "StackVariantSupport": "30-Variants-SharedInfra",
+            "ServiceDeliveryModels": "Hosted-DualDelivery-Migration",
+            "TierSupport": "T1-T2-DualDelivery",
+            "ClientIsolation": "IAM-Tags",
+            "CostAllocation": "Automated",
+            "ServiceTiers": "Essential-Professional-DualDelivery",
+            "StackTypes": "Static-CMS-Framework-Commerce-Migration",
+            "BillingModel": "Client-Tier-DeliveryModel-Based",
+            "RevenueStreams": "Hosted-Migration",
+            "MigrationSupport": "40-Percent-Revenue",
+            "DualDeliveryEnabled": "Hosted-Mode-Only"
         }
-        
+
         for key, value in shared_tags.items():
             Tags.of(self).add(key, value)
     
@@ -245,5 +406,59 @@ class SharedInfraStack(Stack):
             "operational_bucket_name": self.operational_bucket.bucket_name,
             "backup_coordination_bucket_name": self.backup_coordination_bucket.bucket_name,
             "cost_allocation_role_arn": self.cost_allocation_role.role_arn,
-            "operational_dashboard_url": f"https://{self.region}.console.aws.amazon.com/cloudwatch/home?region={self.region}#dashboards:name=WebServicesOperations"
+            "operational_dashboard_url": f"https://{self.region}.console.aws.amazon.com/cloudwatch/home?region={self.region}#dashboards:name=WebServicesOperations",
+            # NEW: Tier-specific resources for client stacks
+            "tier_cost_thresholds": {
+                "tier1": 150,
+                "tier2": 400,
+                "tier3": 2000
+            },
+            "supported_stack_variants": [
+                # Tier 1 Hosted-Only Stacks
+                "eleventy_marketing_stack",
+                "astro_portfolio_stack",
+                "jekyll_github_stack",
+                "eleventy_decap_cms_stack",
+                "astro_tina_cms_stack",
+                "astro_sanity_stack",
+                "gatsby_contentful_stack",
+                "astro_template_basic_stack",
+                "eleventy_snipcart_stack",
+                "astro_foxy_stack",
+                "shopify_standard_dns_stack",
+
+                # Tier 2 Hosted-Only Stacks
+                "astro_advanced_cms_stack",
+                "gatsby_headless_cms_stack",
+                "nextjs_professional_headless_cms_stack",
+                "nuxtjs_professional_headless_cms_stack",
+                "wordpress_lightsail_stack",
+                "wordpress_ecs_professional_stack",
+                "shopify_aws_basic_integration_stack",
+
+                # Dual-Delivery Stacks (Hosted OR Templates)
+                "shopify_advanced_aws_integration_stack",
+                "headless_shopify_custom_frontend_stack",
+                "amplify_custom_development_stack",
+                "fastapi_pydantic_api_stack",
+                "fastapi_react_vue_stack",
+
+                # Migration Support Stacks
+                "migration_assessment_stack",
+                "magento_migration_stack",
+                "prestashop_migration_stack",
+                "opencart_migration_stack",
+                "wordpress_migration_stack",
+                "legacy_cms_migration_stack",
+                "custom_platform_migration_stack"
+            ],
+            "client_tagging_template": {
+                "Client": "{client-id}",
+                "ServiceTier": "{tier1|tier2|tier3}",
+                "StackType": "{variant_name}",
+                "Environment": "{prod|staging|dev}",
+                "BillingGroup": "{client-id}-{environment}",
+                "CostCenter": "{client-id}",
+                "ManagedBy": "CDK"
+            }
         }
