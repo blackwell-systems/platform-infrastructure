@@ -6,7 +6,10 @@ from shared.ssg_engines import (
     AstroConfig,
     BuildCommand,
     EleventyConfig,
+    GatsbyConfig,
     HugoConfig,
+    NextJSConfig,
+    NuxtConfig,
     SSGEngineFactory,
     SSGTemplate,
     StaticSiteConfig,
@@ -122,6 +125,9 @@ class TestSSGEngineFactory:
         assert "hugo" in engines
         assert "astro" in engines
         assert "jekyll" in engines
+        assert "nextjs" in engines
+        assert "nuxt" in engines
+        assert "gatsby" in engines
 
     def test_create_engine(self):
         """Test creating engine configurations"""
@@ -129,7 +135,7 @@ class TestSSGEngineFactory:
         eleventy = SSGEngineFactory.create_engine("eleventy")
         assert isinstance(eleventy, EleventyConfig)
         assert eleventy.engine_name == "eleventy"
-        assert eleventy.runtime_version == "nodejs-18"
+        assert eleventy.runtime_version == "nodejs-20"
 
         # Test Hugo
         hugo = SSGEngineFactory.create_engine("hugo")
@@ -141,6 +147,24 @@ class TestSSGEngineFactory:
         astro = SSGEngineFactory.create_engine("astro")
         assert isinstance(astro, AstroConfig)
         assert astro.engine_name == "astro"
+
+        # Test Next.js
+        nextjs = SSGEngineFactory.create_engine("nextjs")
+        assert isinstance(nextjs, NextJSConfig)
+        assert nextjs.engine_name == "nextjs"
+        assert nextjs.runtime_version == "nodejs-20"
+
+        # Test Nuxt
+        nuxt = SSGEngineFactory.create_engine("nuxt")
+        assert isinstance(nuxt, NuxtConfig)
+        assert nuxt.engine_name == "nuxt"
+        assert nuxt.runtime_version == "nodejs-20"
+
+        # Test Gatsby
+        gatsby = SSGEngineFactory.create_engine("gatsby")
+        assert isinstance(gatsby, GatsbyConfig)
+        assert gatsby.engine_name == "gatsby"
+        assert gatsby.runtime_version == "nodejs-20"
 
     def test_unsupported_engine(self):
         """Test that unsupported engines raise ValueError"""
@@ -163,7 +187,7 @@ class TestSSGEngineConfigurations:
         eleventy = EleventyConfig()
 
         assert eleventy.engine_name == "eleventy"
-        assert eleventy.runtime_version == "nodejs-18"
+        assert eleventy.runtime_version == "nodejs-20"
         assert eleventy.output_directory == "_site"
 
         # Test build commands
@@ -198,12 +222,75 @@ class TestSSGEngineConfigurations:
         astro = AstroConfig()
 
         assert astro.engine_name == "astro"
-        assert astro.runtime_version == "nodejs-18"
+        assert astro.runtime_version == "nodejs-20"
         assert astro.output_directory == "dist"
 
         features = astro.optimization_features
         assert features["component_islands"] is True
         assert features["zero_js_by_default"] is True
+
+    def test_nextjs_config(self):
+        """Test Next.js configuration"""
+        nextjs = NextJSConfig()
+
+        assert nextjs.engine_name == "nextjs"
+        assert nextjs.runtime_version == "nodejs-20"
+        assert nextjs.output_directory == "out"
+
+        # Test build commands
+        build_commands = nextjs.build_commands
+        assert len(build_commands) >= 1
+        assert any(cmd.name == "build_site" for cmd in build_commands)
+        assert any(cmd.name == "export_static" for cmd in build_commands)
+
+        # Test optimization features
+        features = nextjs.optimization_features
+        assert features["automatic_static_optimization"] is True
+        assert features["react_server_components"] is True
+        assert features["build_performance"] == "fast"
+
+        # Test templates
+        templates = nextjs.available_templates
+        assert len(templates) > 0
+        assert any(t.name == "professional_headless_cms" for t in templates)
+
+    def test_nuxt_config(self):
+        """Test Nuxt.js configuration"""
+        nuxt = NuxtConfig()
+
+        assert nuxt.engine_name == "nuxt"
+        assert nuxt.runtime_version == "nodejs-20"
+        assert nuxt.output_directory == "dist"
+
+        # Test optimization features
+        features = nuxt.optimization_features
+        assert features["vue_3_composition_api"] is True
+        assert features["nitro_engine"] is True
+        assert features["build_performance"] == "fast"
+
+        # Test templates
+        templates = nuxt.available_templates
+        assert len(templates) > 0
+        assert any(t.name == "professional_headless_cms" for t in templates)
+
+    def test_gatsby_config(self):
+        """Test Gatsby configuration"""
+        gatsby = GatsbyConfig()
+
+        assert gatsby.engine_name == "gatsby"
+        assert gatsby.runtime_version == "nodejs-20"
+        assert gatsby.output_directory == "public"
+
+        # Test optimization features
+        features = gatsby.optimization_features
+        assert features["graphql_data_layer"] is True
+        assert features["progressive_web_app"] is True
+        assert features["build_performance"] == "moderate"
+
+        # Test templates
+        templates = gatsby.available_templates
+        assert len(templates) > 0
+        assert any(t.name == "contentful_integration" for t in templates)
 
 
 class TestStaticSiteConfig:

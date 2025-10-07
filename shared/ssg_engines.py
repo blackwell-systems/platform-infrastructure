@@ -210,7 +210,7 @@ class EleventyConfig(SSGEngineConfig):
 
     @property
     def runtime_version(self) -> str:
-        return "nodejs-18"
+        return "nodejs-20"
 
     @property
     def install_commands(self) -> List[str]:
@@ -400,7 +400,7 @@ class AstroConfig(SSGEngineConfig):
 
     @property
     def runtime_version(self) -> str:
-        return "nodejs-18"
+        return "nodejs-20"
 
     @property
     def install_commands(self) -> List[str]:
@@ -554,6 +554,288 @@ class JekyllConfig(SSGEngineConfig):
         ]
 
 
+class NextJSConfig(SSGEngineConfig):
+    """Next.js SSG engine configuration"""
+
+    @property
+    def engine_name(self) -> str:
+        return "nextjs"
+
+    @property
+    def runtime_version(self) -> str:
+        return "nodejs-20"
+
+    @property
+    def install_commands(self) -> List[str]:
+        return ["npm ci", "npm install -g next"]
+
+    @property
+    def build_commands(self) -> List[BuildCommand]:
+        return [
+            BuildCommand(
+                name="build_site",
+                command="npm run build",
+                environment_vars={
+                    "NODE_ENV": "production",
+                    "NEXT_TELEMETRY_DISABLED": "1",
+                },
+            ),
+            BuildCommand(
+                name="export_static",
+                command="npm run export",
+                environment_vars={"NODE_ENV": "production"},
+            ),
+        ]
+
+    @property
+    def output_directory(self) -> str:
+        return "out"
+
+    @property
+    def optimization_features(self) -> Dict[str, Any]:
+        return {
+            "automatic_static_optimization": True,
+            "image_optimization": True,
+            "code_splitting": True,
+            "prefetching": True,
+            "typescript_support": True,
+            "app_router": True,
+            "react_server_components": True,
+            "build_performance": "fast",
+        }
+
+    @property
+    def available_templates(self) -> List[SSGTemplate]:
+        return [
+            SSGTemplate(
+                name="professional_headless_cms",
+                description=(
+                    "Professional headless CMS integration with Contentful/Strapi"
+                ),
+                use_cases=["professional_sites", "headless_cms", "content_heavy"],
+                repo_url="https://github.com/your-templates/nextjs-professional-headless-cms",
+                customization_points=[
+                    "cms_integration",
+                    "page_layouts",
+                    "styling_system",
+                    "seo_config",
+                ],
+                demo_url="https://demo.yourservices.com/nextjs-professional",
+                difficulty_level="intermediate",
+            ),
+            SSGTemplate(
+                name="enterprise_applications",
+                description=(
+                    "Enterprise-grade applications with advanced features and "
+                    "integrations"
+                ),
+                use_cases=[
+                    "enterprise_apps",
+                    "complex_applications",
+                    "multi_tenant",
+                    "advanced_routing",
+                ],
+                repo_url="https://github.com/your-templates/nextjs-enterprise-applications",
+                customization_points=[
+                    "authentication",
+                    "authorization",
+                    "database_integration",
+                    "api_routes",
+                    "middleware",
+                ],
+                demo_url="https://demo.yourservices.com/nextjs-enterprise",
+                difficulty_level="advanced",
+            ),
+        ]
+
+
+class NuxtConfig(SSGEngineConfig):
+    """Nuxt.js SSG engine configuration"""
+
+    @property
+    def engine_name(self) -> str:
+        return "nuxt"
+
+    @property
+    def runtime_version(self) -> str:
+        return "nodejs-20"
+
+    @property
+    def install_commands(self) -> List[str]:
+        return ["npm ci", "npm install -g nuxt"]
+
+    @property
+    def build_commands(self) -> List[BuildCommand]:
+        return [
+            BuildCommand(
+                name="generate_static",
+                command="npm run generate",
+                environment_vars={
+                    "NODE_ENV": "production",
+                    "NITRO_PRESET": "static",
+                    "NUXT_TELEMETRY_DISABLED": "1",
+                },
+            ),
+            BuildCommand(
+                name="optimize_build",
+                command="npm run build:optimize",
+                environment_vars={"NODE_ENV": "production"},
+            ),
+        ]
+
+    @property
+    def output_directory(self) -> str:
+        return "dist"
+
+    @property
+    def optimization_features(self) -> Dict[str, Any]:
+        return {
+            "vue_3_composition_api": True,
+            "auto_imports": True,
+            "server_side_rendering": True,
+            "static_generation": True,
+            "typescript_support": True,
+            "universal_rendering": True,
+            "nitro_engine": True,
+            "build_performance": "fast",
+        }
+
+    @property
+    def available_templates(self) -> List[SSGTemplate]:
+        return [
+            SSGTemplate(
+                name="professional_headless_cms",
+                description="Professional Nuxt 3 with headless CMS integration",
+                use_cases=["vue_applications", "professional_sites", "spa_conversion"],
+                repo_url="https://github.com/your-templates/nuxt-professional-headless-cms",
+                customization_points=[
+                    "cms_integration",
+                    "vue_components",
+                    "styling",
+                    "ssr_config",
+                ],
+                demo_url="https://demo.yourservices.com/nuxt-professional",
+                difficulty_level="intermediate",
+            ),
+            SSGTemplate(
+                name="enterprise_applications",
+                description=(
+                    "Enterprise Nuxt applications with advanced Vue ecosystem "
+                    "integration"
+                ),
+                use_cases=[
+                    "enterprise_vue_apps",
+                    "complex_spas",
+                    "vue_ecosystem",
+                    "pinia_state_management",
+                ],
+                repo_url="https://github.com/your-templates/nuxt-enterprise-applications",
+                customization_points=[
+                    "pinia_stores",
+                    "vue_router",
+                    "composables",
+                    "middleware",
+                    "plugins",
+                ],
+                demo_url="https://demo.yourservices.com/nuxt-enterprise",
+                difficulty_level="advanced",
+            ),
+        ]
+
+
+class GatsbyConfig(SSGEngineConfig):
+    """Gatsby SSG engine configuration"""
+
+    @property
+    def engine_name(self) -> str:
+        return "gatsby"
+
+    @property
+    def runtime_version(self) -> str:
+        return "nodejs-20"
+
+    @property
+    def install_commands(self) -> List[str]:
+        return ["npm ci", "npm install -g gatsby-cli"]
+
+    @property
+    def build_commands(self) -> List[BuildCommand]:
+        return [
+            BuildCommand(
+                name="build_site",
+                command="npm run build",
+                environment_vars={
+                    "NODE_ENV": "production",
+                    "GATSBY_TELEMETRY_DISABLED": "1",
+                    "CI": "true",
+                },
+            ),
+            BuildCommand(
+                name="optimize_images",
+                command="npm run build:optimize",
+                environment_vars={"NODE_ENV": "production"},
+            ),
+        ]
+
+    @property
+    def output_directory(self) -> str:
+        return "public"
+
+    @property
+    def optimization_features(self) -> Dict[str, Any]:
+        return {
+            "graphql_data_layer": True,
+            "automatic_code_splitting": True,
+            "progressive_web_app": True,
+            "image_optimization": True,
+            "prefetching": True,
+            "react_hydration": True,
+            "plugin_ecosystem": True,
+            "build_performance": "moderate",
+        }
+
+    @property
+    def available_templates(self) -> List[SSGTemplate]:
+        return [
+            SSGTemplate(
+                name="contentful_integration",
+                description="Gatsby with Contentful CMS integration and GraphQL",
+                use_cases=["content_sites", "blogs", "marketing_sites"],
+                repo_url="https://github.com/your-templates/gatsby-contentful",
+                customization_points=[
+                    "contentful_schema",
+                    "page_templates",
+                    "graphql_queries",
+                    "styling",
+                ],
+                demo_url="https://demo.yourservices.com/gatsby-contentful",
+                difficulty_level="intermediate",
+            ),
+            SSGTemplate(
+                name="headless_cms_stack",
+                description=(
+                    "Advanced Gatsby with multiple headless CMS options and GraphQL "
+                    "optimization"
+                ),
+                use_cases=[
+                    "headless_cms_sites",
+                    "content_management",
+                    "editorial_workflows",
+                    "multi_source_content",
+                ],
+                repo_url="https://github.com/your-templates/gatsby-headless-cms",
+                customization_points=[
+                    "cms_selection",
+                    "graphql_optimization",
+                    "content_sourcing",
+                    "build_optimization",
+                ],
+                demo_url="https://demo.yourservices.com/gatsby-headless",
+                difficulty_level="advanced",
+            ),
+        ]
+
+
 class SSGEngineFactory:
     """Factory for creating SSG engine configurations"""
 
@@ -562,6 +844,9 @@ class SSGEngineFactory:
         "hugo": HugoConfig,
         "astro": AstroConfig,
         "jekyll": JekyllConfig,
+        "nextjs": NextJSConfig,
+        "nuxt": NuxtConfig,
+        "gatsby": GatsbyConfig,
     }
 
     @classmethod
