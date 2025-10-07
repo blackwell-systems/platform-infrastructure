@@ -1,328 +1,349 @@
-# Test SSG Engine System (without CDK dependencies)
+# Test SSG Engine System
+import pytest
+from pydantic import ValidationError
 
-from typing import Dict, List, Literal, Optional, Any
-from abc import ABC, abstractmethod
-from pydantic import BaseModel, Field, field_validator, ValidationError
+from shared.ssg_engines import (
+    AstroConfig,
+    BuildCommand,
+    EleventyConfig,
+    HugoConfig,
+    SSGEngineFactory,
+    SSGTemplate,
+    StaticSiteConfig,
+)
 
-# Copy the core system without CDK imports for testing
-SSGEngineType = Literal["eleventy", "hugo", "astro", "jekyll"]
 
-class BuildCommand(BaseModel):
-    name: str = Field(..., description="Name of the build step")
-    command: str = Field(..., description="Shell command to execute")
-    environment_vars: Dict[str, str] = Field(default_factory=dict, description="Environment variables")
-    timeout_minutes: int = Field(default=10, ge=1, le=60, description="Timeout for this build step")
+class TestBuildCommand:
+    """Test BuildCommand Pydantic model"""
 
-    @field_validator('name')
-    @classmethod
-    def validate_name(cls, v):
-        if not v.replace('_', '').replace('-', '').isalnum():
-            raise ValueError('Build command name must be alphanumeric with underscores/hyphens')
-        return v
+    def test_valid_build_command(self):
+        """Test creating a valid build command"""
+        cmd = BuildCommand(
+            name="test_build",
+            command="npm run build",
+            environment_vars={"NODE_ENV": "production"},
+            timeout_minutes=15,
+        )
 
-class SSGTemplate(BaseModel):
-    name: str = Field(..., description="Template identifier")
-    description: str = Field(..., description="Human-readable description")
-    use_cases: List[str] = Field(..., description="List of appropriate use cases")
-    repo_url: str = Field(..., description="Git repository URL for template")
-    customization_points: List[str] = Field(..., description="List of customizable aspects")
-    demo_url: Optional[str] = Field(None, description="URL of live demo")
-    difficulty_level: Literal["beginner", "intermediate", "advanced"] = Field(default="intermediate")
+        assert cmd.name == "test_build"
+        assert cmd.command == "npm run build"
+        assert cmd.environment_vars["NODE_ENV"] == "production"
+        assert cmd.timeout_minutes == 15
 
-    @field_validator('repo_url')
-    @classmethod
-    def validate_repo_url(cls, v):
-        if not (v.startswith('https://github.com/') or v.startswith('https://gitlab.com/')):
-            raise ValueError('Repository URL must be from GitHub or GitLab')
-        return v
+    def test_invalid_build_command_name(self):
+        """Test that invalid command names are rejected"""
+        with pytest.raises(ValidationError) as exc_info:
+            BuildCommand(name="", command="npm run build")  # Empty name
 
-class SSGEngineConfig(ABC):
-    def __init__(self, template_variant: str = "default"):
-        self.template_variant = template_variant
+        errors = exc_info.value.errors()
+        assert any("Build command name" in str(error["msg"]) for error in errors)
 
-    @property
-    @abstractmethod
-    def engine_name(self) -> str:
-        pass
+    def test_invalid_build_command_command(self):
+        """Test that empty commands are rejected"""
+        with pytest.raises(ValidationError) as exc_info:
+            BuildCommand(name="test_build", command="")  # Empty command
 
-    @property
-    @abstractmethod
-    def runtime_version(self) -> str:
-        pass
+        errors = exc_info.value.errors()
+        assert any(
+            "Build command cannot be empty" in str(error["msg"]) for error in errors
+        )
 
-    @property
-    @abstractmethod
-    def build_commands(self) -> List[BuildCommand]:
-        pass
+    def test_timeout_validation(self):
+        """Test timeout minutes validation"""
+        # Valid timeout
+        cmd = BuildCommand(name="test", command="test", timeout_minutes=30)
+        assert cmd.timeout_minutes == 30
 
-    @property
-    @abstractmethod
-    def optimization_features(self) -> Dict[str, Any]:
-        pass
+        # Invalid timeout (too high)
+        with pytest.raises(ValidationError):
+            BuildCommand(name="test", command="test", timeout_minutes=100)
 
-    @property
-    @abstractmethod
-    def available_templates(self) -> List[SSGTemplate]:
-        pass
 
-class EleventyConfig(SSGEngineConfig):
-    @property
-    def engine_name(self) -> str:
-        return "eleventy"
+class TestSSGTemplate:
+    """Test SSGTemplate Pydantic model"""
 
-    @property
-    def runtime_version(self) -> str:
-        return "nodejs-18"
+    def test_valid_template(self):
+        """Test creating a valid SSG template"""
+        template = SSGTemplate(
+            name="test_template",
+            description="A test template",
+            use_cases=["testing", "development"],
+            repo_url="https://github.com/test/repo",
+            customization_points=["colors", "fonts", "layout"],
+        )
 
-    @property
-    def build_commands(self) -> List[BuildCommand]:
-        return [
-            BuildCommand(name="build_site", command="npx @11ty/eleventy", environment_vars={"ELEVENTY_PRODUCTION": "true"}),
-            BuildCommand(name="optimize_assets", command="npm run optimize", environment_vars={"NODE_ENV": "production"})
-        ]
+        assert template.name == "test_template"
+        assert len(template.use_cases) == 2
+        assert template.difficulty_level == "intermediate"  # Default value
 
-    @property
-    def optimization_features(self) -> Dict[str, Any]:
-        return {
-            "incremental_builds": True,
-            "template_caching": True,
-            "build_performance": "fast",
-            "html_minification": True
-        }
-
-    @property
-    def available_templates(self) -> List[SSGTemplate]:
-        return [
+    def test_invalid_repo_url(self):
+        """Test that invalid repository URLs are rejected"""
+        with pytest.raises(ValidationError) as exc_info:
             SSGTemplate(
-                name="business_modern",
-                description="Modern business website with hero, services, testimonials",
-                use_cases=["business_sites", "professional_services"],
-                repo_url="https://github.com/your-templates/eleventy-business-modern",
-                customization_points=["colors", "fonts", "hero_content", "services_grid"]
+                name="test",
+                description="test",
+                use_cases=["test"],
+                repo_url="https://badsite.com/repo",  # Not GitHub or GitLab
+                customization_points=["test"],
             )
-        ]
 
-class HugoConfig(SSGEngineConfig):
-    @property
-    def engine_name(self) -> str:
-        return "hugo"
+        errors = exc_info.value.errors()
+        assert any(
+            "Repository URL must be from GitHub or GitLab" in str(error["msg"])
+            for error in errors
+        )
 
-    @property
-    def runtime_version(self) -> str:
-        return "golang-1.21"
-
-    @property
-    def build_commands(self) -> List[BuildCommand]:
-        return [
-            BuildCommand(name="build_site", command="hugo --minify --gc", environment_vars={"HUGO_ENV": "production"})
-        ]
-
-    @property
-    def optimization_features(self) -> Dict[str, Any]:
-        return {
-            "extremely_fast_builds": True,
-            "built_in_minification": True,
-            "build_performance": "extremely_fast"
-        }
-
-    @property
-    def available_templates(self) -> List[SSGTemplate]:
-        return [
+    def test_empty_use_cases(self):
+        """Test that empty use cases are rejected"""
+        with pytest.raises(ValidationError) as exc_info:
             SSGTemplate(
-                name="corporate_clean",
-                description="Clean corporate design",
-                use_cases=["corporate_sites", "large_content_sites"],
-                repo_url="https://github.com/your-templates/hugo-corporate-clean",
-                customization_points=["theme_colors", "layout_options"]
+                name="test",
+                description="test",
+                use_cases=[],  # Empty use cases
+                repo_url="https://github.com/test/repo",
+                customization_points=["test"],
             )
-        ]
 
-class AstroConfig(SSGEngineConfig):
-    @property
-    def engine_name(self) -> str:
-        return "astro"
+        errors = exc_info.value.errors()
+        assert any(
+            "At least one use case must be specified" in str(error["msg"])
+            for error in errors
+        )
 
-    @property
-    def runtime_version(self) -> str:
-        return "nodejs-18"
 
-    @property
-    def build_commands(self) -> List[BuildCommand]:
-        return [
-            BuildCommand(name="build_site", command="npm run build", environment_vars={"NODE_ENV": "production"})
-        ]
+class TestSSGEngineFactory:
+    """Test SSG Engine Factory"""
 
-    @property
-    def optimization_features(self) -> Dict[str, Any]:
-        return {
-            "component_islands": True,
-            "partial_hydration": True,
-            "zero_js_by_default": True,
-            "build_performance": "fast"
-        }
+    def test_available_engines(self):
+        """Test getting available engines"""
+        engines = SSGEngineFactory.get_available_engines()
+        assert isinstance(engines, list)
+        assert "eleventy" in engines
+        assert "hugo" in engines
+        assert "astro" in engines
+        assert "jekyll" in engines
 
-    @property
-    def available_templates(self) -> List[SSGTemplate]:
-        return [
-            SSGTemplate(
-                name="modern_interactive",
-                description="Interactive components with React/Vue islands",
-                use_cases=["interactive_sites", "modern_apps"],
-                repo_url="https://github.com/your-templates/astro-modern-interactive",
-                customization_points=["component_framework", "interactive_elements"]
-            )
-        ]
+    def test_create_engine(self):
+        """Test creating engine configurations"""
+        # Test Eleventy
+        eleventy = SSGEngineFactory.create_engine("eleventy")
+        assert isinstance(eleventy, EleventyConfig)
+        assert eleventy.engine_name == "eleventy"
+        assert eleventy.runtime_version == "nodejs-18"
 
-class SSGEngineFactory:
-    _engines = {
-        "eleventy": EleventyConfig,
-        "hugo": HugoConfig,
-        "astro": AstroConfig
-    }
+        # Test Hugo
+        hugo = SSGEngineFactory.create_engine("hugo")
+        assert isinstance(hugo, HugoConfig)
+        assert hugo.engine_name == "hugo"
+        assert hugo.runtime_version == "golang-1.21"
 
-    @classmethod
-    def create_engine(cls, engine_type: SSGEngineType, template_variant: str = "default") -> SSGEngineConfig:
-        if engine_type not in cls._engines:
-            raise ValueError(f"Unsupported SSG engine: {engine_type}")
-        return cls._engines[engine_type](template_variant)
+        # Test Astro
+        astro = SSGEngineFactory.create_engine("astro")
+        assert isinstance(astro, AstroConfig)
+        assert astro.engine_name == "astro"
 
-    @classmethod
-    def get_available_engines(cls) -> List[str]:
-        return list(cls._engines.keys())
+    def test_unsupported_engine(self):
+        """Test that unsupported engines raise ValueError"""
+        with pytest.raises(ValueError, match="Unsupported SSG engine"):
+            SSGEngineFactory.create_engine("unsupported_engine")
 
-class StaticSiteConfig(BaseModel):
-    client_id: str = Field(..., description="Unique client identifier", pattern=r'^[a-z0-9-]+$')
-    domain: str = Field(..., description="Primary domain for the site")
-    ssg_engine: SSGEngineType = Field(default="eleventy", description="Static site generator to use")
-    template_variant: str = Field(default="business_modern", description="Template variant to use")
-    performance_tier: Literal["basic", "optimized", "premium"] = Field(default="optimized", description="Performance optimization level")
+    def test_get_engine_templates(self):
+        """Test getting templates for an engine"""
+        templates = SSGEngineFactory.get_engine_templates("eleventy")
+        assert isinstance(templates, list)
+        assert len(templates) > 0
+        assert all(isinstance(t, SSGTemplate) for t in templates)
 
-    @field_validator('domain')
-    @classmethod
-    def validate_domain(cls, v):
-        import re
-        domain_pattern = r'^[a-zA-Z0-9]([a-zA-Z0-9-]{1,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{1,61}[a-zA-Z0-9])?)*$'
-        if not re.match(domain_pattern, v):
-            raise ValueError('Invalid domain format')
-        return v.lower()
 
-    @field_validator('client_id')
-    @classmethod
-    def validate_client_id(cls, v):
-        if len(v) < 3 or len(v) > 50:
-            raise ValueError('Client ID must be between 3 and 50 characters')
-        return v
+class TestSSGEngineConfigurations:
+    """Test individual SSG engine configurations"""
 
-    def get_ssg_config(self) -> SSGEngineConfig:
-        return SSGEngineFactory.create_engine(self.ssg_engine, self.template_variant)
+    def test_eleventy_config(self):
+        """Test Eleventy configuration"""
+        eleventy = EleventyConfig()
 
-# Test the system
-if __name__ == "__main__":
-    print("🚀 Testing SSG Engine System")
-    print("=" * 50)
+        assert eleventy.engine_name == "eleventy"
+        assert eleventy.runtime_version == "nodejs-18"
+        assert eleventy.output_directory == "_site"
 
-    # Test 1: Factory functionality
-    print("\n1. Available SSG Engines:")
-    engines = SSGEngineFactory.get_available_engines()
-    print(f"   {', '.join(engines)}")
+        # Test build commands
+        build_commands = eleventy.build_commands
+        assert len(build_commands) >= 1
+        assert all(isinstance(cmd, BuildCommand) for cmd in build_commands)
 
-    # Test 2: Engine configurations
-    print("\n2. Engine Configurations:")
-    for engine_type in engines:
-        engine = SSGEngineFactory.create_engine(engine_type)
-        print(f"   {engine.engine_name}:")
-        print(f"     • Runtime: {engine.runtime_version}")
-        print(f"     • Build Performance: {engine.optimization_features.get('build_performance', 'N/A')}")
-        print(f"     • Templates: {len(engine.available_templates)}")
+        # Test optimization features
+        features = eleventy.optimization_features
+        assert features["incremental_builds"] is True
+        assert features["build_performance"] == "fast"
 
-    # Test 3: Client configuration
-    print("\n3. Client Configuration Example:")
-    client_config = StaticSiteConfig(
-        client_id="demo-client",
-        domain="demo-client.yourservices.com",
-        ssg_engine="eleventy",
-        template_variant="business_modern"
-    )
+        # Test templates
+        templates = eleventy.available_templates
+        assert len(templates) > 0
+        assert any(t.name == "business_modern" for t in templates)
 
-    ssg_config = client_config.get_ssg_config()
-    print(f"   Client: {client_config.client_id}")
-    print(f"   Engine: {ssg_config.engine_name}")
-    print(f"   Template: {client_config.template_variant}")
-    print(f"   Build Commands: {len(ssg_config.build_commands)}")
+    def test_hugo_config(self):
+        """Test Hugo configuration"""
+        hugo = HugoConfig()
 
-    # Test 4: Template system
-    print("\n4. Template Details:")
-    template = ssg_config.available_templates[0]
-    print(f"   Name: {template.name}")
-    print(f"   Description: {template.description}")
-    print(f"   Use Cases: {', '.join(template.use_cases)}")
-    print(f"   Customization Points: {len(template.customization_points)}")
+        assert hugo.engine_name == "hugo"
+        assert hugo.runtime_version == "golang-1.21"
+        assert hugo.output_directory == "public"
 
-    # Test 5: Build command details
-    print("\n5. Build Pipeline:")
-    for i, cmd in enumerate(ssg_config.build_commands, 1):
-        print(f"   Step {i}: {cmd.name}")
-        print(f"     Command: {cmd.command}")
-        print(f"     Env Vars: {cmd.environment_vars}")
+        features = hugo.optimization_features
+        assert features["extremely_fast_builds"] is True
+        assert features["build_performance"] == "extremely_fast"
 
-    # Test 6: Pydantic Validation
-    print("\n6. Pydantic Validation Tests:")
+    def test_astro_config(self):
+        """Test Astro configuration"""
+        astro = AstroConfig()
 
-    # Valid configuration
-    try:
-        valid_config = StaticSiteConfig(
-            client_id="demo-client",
-            domain="demo-client.com",
+        assert astro.engine_name == "astro"
+        assert astro.runtime_version == "nodejs-18"
+        assert astro.output_directory == "dist"
+
+        features = astro.optimization_features
+        assert features["component_islands"] is True
+        assert features["zero_js_by_default"] is True
+
+
+class TestStaticSiteConfig:
+    """Test StaticSiteConfig model"""
+
+    def test_valid_config(self):
+        """Test creating a valid static site configuration"""
+        config = StaticSiteConfig(
+            client_id="test-client",
+            domain="test.com",
             ssg_engine="eleventy",
-            template_variant="business_modern"
+            template_variant="business_modern",
         )
-        print("   ✅ Valid configuration accepted")
-        print(f"      Domain normalized: {valid_config.domain}")
-    except ValidationError as e:
-        print(f"   ❌ Unexpected validation error: {e}")
 
-    # Invalid client ID (should fail)
-    try:
-        invalid_config = StaticSiteConfig(
-            client_id="X",  # Too short
-            domain="demo.com"
+        assert config.client_id == "test-client"
+        assert config.domain == "test.com"
+        assert config.ssg_engine == "eleventy"
+        assert config.performance_tier == "optimized"  # Default value
+
+    def test_invalid_client_id(self):
+        """Test invalid client ID validation"""
+        # Too short
+        with pytest.raises(ValidationError):
+            StaticSiteConfig(client_id="x", domain="test.com")
+
+        # Invalid characters
+        with pytest.raises(ValidationError):
+            StaticSiteConfig(
+                client_id="test_client", domain="test.com"  # Underscores not allowed
+            )
+
+    def test_invalid_domain(self):
+        """Test invalid domain validation"""
+        with pytest.raises(ValidationError):
+            StaticSiteConfig(client_id="test-client", domain="invalid..domain")
+
+    def test_domain_normalization(self):
+        """Test that domains are normalized to lowercase"""
+        config = StaticSiteConfig(client_id="test-client", domain="TEST.COM")
+        assert config.domain == "test.com"
+
+    def test_get_ssg_config(self):
+        """Test getting SSG engine configuration"""
+        config = StaticSiteConfig(
+            client_id="test-client", domain="test.com", ssg_engine="eleventy"
         )
-        print("   ❌ Should have failed client ID validation!")
-    except ValidationError as e:
-        print("   ✅ Correctly rejected invalid client ID")
-        print(f"      Error: {e.errors()[0]['msg']}")
 
-    # Invalid domain (should fail)
-    try:
-        invalid_domain = StaticSiteConfig(
-            client_id="demo-client",
-            domain="invalid..domain"  # Invalid format
+        ssg_config = config.get_ssg_config()
+        assert ssg_config.engine_name == "eleventy"
+
+    def test_get_available_templates(self):
+        """Test getting available templates"""
+        config = StaticSiteConfig(
+            client_id="test-client", domain="test.com", ssg_engine="hugo"
         )
-        print("   ❌ Should have failed domain validation!")
-    except ValidationError as e:
-        print("   ✅ Correctly rejected invalid domain")
-        print(f"      Error: {e.errors()[0]['msg']}")
 
-    # Test JSON serialization
-    print("\n7. Pydantic Serialization:")
-    config_dict = valid_config.dict()
-    print(f"   Serialized: {config_dict}")
+        templates = config.get_available_templates()
+        assert isinstance(templates, list)
+        assert len(templates) > 0
 
-    # Test JSON Schema generation
-    schema = StaticSiteConfig.schema()
-    print(f"   Schema properties: {len(schema['properties'])} fields")
-    print(f"   Required fields: {schema.get('required', [])}")
+    def test_aws_tags_generation(self):
+        """Test AWS tags generation"""
+        config = StaticSiteConfig(
+            client_id="test-client",
+            domain="test.com",
+            ssg_engine="astro",
+            template_variant="modern_interactive",
+            performance_tier="premium",
+        )
 
-    print("\n✅ SSG Engine System Test Complete!")
-    print("\nPydantic Benefits Demonstrated:")
-    print("   ✅ Automatic data validation")
-    print("   ✅ Type safety and coercion")
-    print("   ✅ Detailed error messages")
-    print("   ✅ JSON serialization/deserialization")
-    print("   ✅ Schema generation for documentation")
+        tags = config.to_aws_tags()
+        assert tags["Client"] == "test-client"
+        assert tags["SSGEngine"] == "astro"
+        assert tags["Template"] == "modern_interactive"
+        assert tags["PerformanceTier"] == "premium"
+        assert tags["Environment"] == "production"
 
-    print("\nNext Steps:")
-    print("   • Integrate with CDK static site stacks")
-    print("   • Create actual template repositories")
-    print("   • Build CodeBuild integration")
-    print("   • Test with real client configurations")
+
+class TestPydanticV2Features:
+    """Test Pydantic v2 specific features"""
+
+    def test_config_dict_validation(self):
+        """Test that ConfigDict is working properly"""
+        # Test whitespace stripping
+        config = StaticSiteConfig(
+            client_id="  test-client  ",  # Should be stripped
+            domain="  test.com  ",  # Should be stripped
+        )
+
+        assert config.client_id == "test-client"
+        assert config.domain == "test.com"
+
+    def test_json_schema_generation(self):
+        """Test JSON schema generation works"""
+        schema = StaticSiteConfig.model_json_schema()
+
+        assert "properties" in schema
+        assert "client_id" in schema["properties"]
+        assert "domain" in schema["properties"]
+        assert "examples" in schema
+
+    def test_model_serialization(self):
+        """Test model serialization to dict/JSON"""
+        config = StaticSiteConfig(client_id="test-client", domain="test.com")
+
+        # Test dict serialization
+        config_dict = config.model_dump()
+        assert isinstance(config_dict, dict)
+        assert config_dict["client_id"] == "test-client"
+
+        # Test JSON serialization
+        config_json = config.model_dump_json()
+        assert isinstance(config_json, str)
+        assert "test-client" in config_json
+
+    def test_model_validation_from_dict(self):
+        """Test creating model from dictionary"""
+        data = {
+            "client_id": "test-client",
+            "domain": "test.com",
+            "ssg_engine": "eleventy",
+        }
+
+        config = StaticSiteConfig.model_validate(data)
+        assert config.client_id == "test-client"
+        assert config.ssg_engine == "eleventy"
+
+
+if __name__ == "__main__":
+    # Run a simple test when executed directly
+    print("🚀 Running SSG Engine System Tests")
+
+    # Test basic functionality
+    engines = SSGEngineFactory.get_available_engines()
+    print(f"Available engines: {engines}")
+
+    eleventy = SSGEngineFactory.create_engine("eleventy")
+    print(f"Eleventy engine: {eleventy.engine_name}")
+
+    config = StaticSiteConfig(client_id="demo-client", domain="demo.com")
+    print(f"Created config: {config.client_id} -> {config.domain}")
+
+    print("✅ Basic functionality test passed!")
