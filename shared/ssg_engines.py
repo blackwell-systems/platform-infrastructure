@@ -16,6 +16,13 @@ ECommerceProvider = Literal[
     "woocommerce", "custom_api", "none"
 ]
 
+HostingPattern = Literal[
+    "aws",           # Full AWS hosting (S3 + CloudFront + Route53)
+    "github",        # GitHub Pages hosting only
+    "hybrid",        # AWS primary + GitHub Pages fallback
+    "aws_minimal"    # AWS hosting with minimal features (cost-optimized)
+]
+
 
 class BuildCommand(BaseModel):
     """Represents a build step for SSG compilation"""
@@ -238,8 +245,17 @@ class SSGEngineConfig(ABC):
 
     def get_buildspec(self) -> Dict[str, Any]:
         """Generate CodeBuild buildspec for this engine"""
+        # Handle different runtime types
+        runtime_versions = {}
+        if self.runtime_version.startswith("nodejs-"):
+            runtime_versions["nodejs"] = self.runtime_version.split("nodejs-")[1]
+        elif self.runtime_version.startswith("golang-"):
+            runtime_versions["golang"] = self.runtime_version.split("golang-")[1]
+        elif self.runtime_version.startswith("ruby-"):
+            runtime_versions["ruby"] = self.runtime_version.split("ruby-")[1]
+
         install_phase = {
-            "runtime-versions": {"nodejs": self.runtime_version.split("nodejs-")[1]},
+            "runtime-versions": runtime_versions,
             "commands": self.install_commands,
         }
 
@@ -1139,6 +1155,13 @@ class StaticSiteConfig(BaseModel):
     performance_tier: Literal["basic", "optimized", "premium"] = Field(
         default="optimized", description="Performance optimization level"
     )
+    
+    # Hosting pattern configuration - key business decision per client
+    hosting_pattern: Optional[HostingPattern] = Field(
+        default=None,
+        description="Hosting pattern: 'aws' (full), 'github' (pages only), 'hybrid' (AWS+GitHub), 'aws_minimal' (cost-optimized). Auto-selected based on tier if not specified."
+    )
+    
     cdn_caching_strategy: Literal["aggressive", "moderate", "minimal"] = Field(
         default="moderate", description="CDN caching strategy"
     )
@@ -1244,6 +1267,95 @@ class StaticSiteConfig(BaseModel):
                     )
 
         return self
+
+    @model_validator(mode="after") 
+    def set_hosting_pattern_defaults(self):
+        """Auto-select hosting pattern based on business tier and client requirements"""
+        
+        # If hosting pattern is explicitly set, respect the client choice
+        if self.hosting_pattern is not None:
+            return self
+        
+        # Matrix-based hosting pattern selection aligned with business strategy
+        # Based on tech-stack-product-matrix.md service tier positioning
+        
+        # Technical tier: Jekyll + GitHub Pages users prefer GitHub/hybrid
+        if self.ssg_engine == "jekyll" and self.performance_tier == "basic":
+            # Technical users often want GitHub Pages option for cost/control
+            self.hosting_pattern = "hybrid"  # AWS primary + GitHub fallback
+            
+        # Individual/small business tier: Cost-optimized patterns
+        elif self.performance_tier == "basic":
+            # Basic tier focuses on cost optimization
+            if self.ecommerce_provider in ["snipcart", "foxy"]:
+                # E-commerce needs AWS for proper integration
+                self.hosting_pattern = "aws_minimal"  # Cost-optimized AWS
+            else:
+                # Static sites can use GitHub for ultra-low cost
+                self.hosting_pattern = "github"
+                
+        # Professional tier: Full AWS with performance optimization
+        elif self.performance_tier == "optimized":
+            # Professional small business tier needs reliable AWS
+            self.hosting_pattern = "aws"  # Full AWS hosting
+            
+        # Premium/Enterprise tier: Hybrid for maximum flexibility
+        elif self.performance_tier == "premium":
+            # Premium clients want options and redundancy
+            self.hosting_pattern = "hybrid"  # AWS + GitHub fallback
+            
+        # Default fallback to AWS for undefined cases
+        else:
+            self.hosting_pattern = "aws"
+        
+        return self
+
+    def get_hosting_pattern_config(self) -> Dict[str, Any]:
+        """Get detailed hosting pattern configuration and costs"""
+        
+        pattern = self.hosting_pattern or "aws"  # Default fallback
+        
+        # Hosting pattern configurations aligned with business matrix
+        configs = {
+            "aws": {
+                "name": "Full AWS Hosting",
+                "description": "Complete AWS hosting with S3, CloudFront, and Route53",
+                "services": ["S3", "CloudFront", "Route53", "Certificate Manager", "CodeBuild"],
+                "monthly_cost_range": "$5-50",
+                "setup_complexity": "Medium",
+                "best_for": ["Professional sites", "Business tier", "Custom domains"],
+                "features": ["Global CDN", "SSL certificates", "Custom domains", "Performance optimization"]
+            },
+            "github": {
+                "name": "GitHub Pages Only",
+                "description": "GitHub Pages hosting with optional custom domain",
+                "services": ["GitHub Pages"],
+                "monthly_cost_range": "$0",
+                "setup_complexity": "Low",
+                "best_for": ["Technical users", "Documentation", "Personal sites"],
+                "features": ["Free hosting", "Git-based workflow", "Built-in CI/CD", "Jekyll support"]
+            },
+            "hybrid": {
+                "name": "AWS + GitHub Fallback",
+                "description": "Primary AWS hosting with GitHub Pages as backup option",
+                "services": ["S3", "CloudFront", "Route53", "GitHub Pages"],
+                "monthly_cost_range": "$5-50 (AWS) + $0 (GitHub)",
+                "setup_complexity": "High",
+                "best_for": ["Technical users", "Enterprise clients", "Maximum flexibility"],
+                "features": ["Redundancy", "Cost flexibility", "Multiple deployment options", "Technical control"]
+            },
+            "aws_minimal": {
+                "name": "Cost-Optimized AWS",
+                "description": "AWS hosting with minimal features for cost optimization",
+                "services": ["S3", "CloudFront (basic)", "Route53"],
+                "monthly_cost_range": "$1-15",
+                "setup_complexity": "Low",
+                "best_for": ["Budget-conscious clients", "Simple sites", "Basic e-commerce"],
+                "features": ["Low cost", "Essential CDN", "Basic SSL", "Simplified setup"]
+            }
+        }
+        
+        return configs.get(pattern, configs["aws"])
 
     def get_ssg_config(self) -> SSGEngineConfig:
         """Get the SSG engine configuration"""
