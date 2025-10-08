@@ -1,6 +1,6 @@
-# Dual-Delivery Web Services Infrastructure
+# Platform Infrastructure
 
-Multi-client web development services infrastructure using AWS CDK with flexible service delivery models.
+Modern multi-client web development platform built with AWS CDK, featuring intelligent stack factories, flexible SSG/CMS combinations, and automated client deployment patterns.
 
 ## Table of Contents
 
@@ -17,17 +17,16 @@ Multi-client web development services infrastructure using AWS CDK with flexible
 
 ## Overview
 
-This repository provides a complete **multi-client web services infrastructure platform** built on AWS CDK, designed for web development agencies and service providers who need scalable, cost-effective client management.
+A comprehensive **infrastructure-as-code platform** for modern web development, built on AWS CDK with intelligent stack factories and flexible SSG/CMS combinations.
 
-### What This Platform Provides
+### 🏭 Core Platform Features
 
-- **Flexible CMS Tier Architecture**: 4 CMS tiers (Decap/Tina/Sanity/Contentful) with client-selectable SSG engines (15+ combinations)
-- **7 Static Site Generators** (Eleventy, Hugo, Astro, Jekyll, Next.js, Nuxt, Gatsby) with optimized configurations
-- **Client Choice Within Pricing Tiers**: Same monthly cost serves multiple technical comfort levels
-- **E-commerce Provider Abstraction**: Built-in support for Snipcart, Foxy.io, Shopify with extensible architecture
-- **Dual-Delivery Service Models**: Deploy in your AWS account (hosted) OR deliver infrastructure code to clients (template)
-- **Migration Specialization**: 7 specialized stacks for legacy platform migrations
-- **Type-Safe Configuration**: Pydantic-based client configuration with automatic validation and cost estimation
+- **🤖 Intelligent Stack Factories**: Automated stack selection and recommendations based on client requirements
+- **🔧 Flexible Architecture**: 4 CMS tiers + 7 SSG engines = 28+ optimized combinations with client choice
+- **⚡ Modern SSG Support**: Eleventy, Hugo, Astro, Jekyll, Next.js, Nuxt, Gatsby with performance optimization
+- **🛒 E-commerce Integration**: Provider abstraction layer supporting Snipcart, Foxy.io, Shopify with extensible patterns
+- **📦 Migration Tools**: Specialized stacks for legacy platform migrations (WordPress, etc.)
+- **🎯 Type-Safe Configuration**: Pydantic-based validation with automatic cost estimation and requirements matching
 
 ### 🎯 **Architectural Transformation Achievement**
 
@@ -38,32 +37,71 @@ This platform has undergone a major architectural transformation from hardcoded 
 - **Business Impact**: Same monthly pricing ($50-85) serves technical (Hugo), intermediate (Eleventy), modern (Astro), and advanced (Gatsby) implementations
 - **Code Efficiency**: 75% reduction in stack classes (20+ hardcoded → 4 flexible CMS tiers)
 
-### Who This Is For
+### 🎯 Who This Is For
 
-- **Web development agencies** managing multiple client sites
-- **Freelance developers** seeking professional infrastructure templates
-- **Consultants** offering modern web platform migrations
-- **Development teams** needing standardized deployment patterns
+- **Development Teams**: Need consistent, scalable infrastructure patterns across multiple projects
+- **Platform Engineers**: Want intelligent automation for infrastructure decisions and client matching
+- **Web Agencies**: Require flexible, cost-effective solutions for diverse client technical requirements
+- **DevOps Engineers**: Seeking modern IaC patterns with built-in best practices and optimization
 
-The platform implements a monorepo architecture organized by delivery capability for maximum flexibility and operational efficiency.
+### 🏭 Stack Factory System
+
+The platform features **intelligent stack factories** that automatically select optimal infrastructure based on requirements:
+
+```python
+# SSG Stack Factory - Intelligent static site selection
+from shared.factories.ssg_stack_factory import SSGStackFactory
+
+# Get recommendations based on client needs
+recommendations = SSGStackFactory.get_ssg_recommendations({
+    'content_focused': True,
+    'budget_conscious': True,
+    'technical_team': False
+})
+
+# Create optimal stack automatically
+marketing_stack = SSGStackFactory.create_ssg_stack(
+    scope=app,
+    client_id="content-business",
+    domain="contentbiz.com",
+    stack_type="marketing"  # Auto-selects Eleventy for cost/performance
+)
+```
+
+```python
+# E-commerce Stack Factory - Provider tier selection
+from shared.factories.ecommerce_stack_factory import EcommerceStackFactory
+
+# Client chooses provider tier for features, then SSG for technical preference
+store_stack = EcommerceStackFactory.create_ecommerce_stack(
+    scope=app,
+    client_id="modern-store",
+    domain="modernstore.com",
+    ecommerce_provider="foxy",  # Advanced features tier
+    ssg_engine="astro"          # Modern performance choice
+)
+```
 
 ## Current Implementation Status
 
-**Dual-Delivery Service Model**: Complete service delivery flexibility
-**30 Hosted Stack Variants**: Comprehensive technology matrix
-**Shared Infrastructure**: Operational backbone for hosted clients
-**Pydantic Client Configuration**: Type-safe validation and configuration management
-**Migration Specialization**: 7 specialized migration service stacks
+🏭 **Intelligent Stack Factories**: Complete automation for SSG and E-commerce stack selection
+📦 **30+ Stack Variants**: Comprehensive technology matrix with intelligent combinations
+🎯 **Type-Safe Configuration**: Pydantic-based validation and cost estimation
+🔧 **Shared Infrastructure**: Operational backbone with cost optimization and monitoring
+📈 **Migration Specialization**: Automated migration tools for legacy platform modernization
 
-### Core Features
+### Core Technical Features
 
-- **SharedInfraStack**: Operational infrastructure serving all hosted clients (minimizing $/month total cost)
-  - Business domain DNS management (Route53)
-  - Centralized monitoring and alerting (CloudWatch + SNS)
-  - Automated cost allocation and billing
+- **🤖 Stack Factory System**: Intelligent recommendations and automated stack creation
+  - SSG Stack Factory: Marketing, Developer, and Modern Performance tiers
+  - E-commerce Stack Factory: Provider tier selection with SSG flexibility
+  - Cost estimation and requirement matching algorithms
+- **🎯 SharedInfraStack**: Centralized operational infrastructure
+  - Domain management and SSL automation (Route53 + Certificate Manager)
+  - Centralized monitoring and cost allocation (CloudWatch + SNS)
   - Client isolation through IAM and resource tagging
-- **Dual-Delivery Configuration**: Pydantic models supporting both hosted and template delivery modes
-- **Service Delivery Templates**: Pre-configured setups for all service tiers and deployment modes
+- **📋 Configuration Management**: Type-safe client configuration with automatic validation
+- **🔄 Migration Tools**: Pre-built patterns for platform modernization (WordPress → Modern Stack)
 
 ## Quick Start
 
@@ -138,38 +176,48 @@ uv run cdk deploy AcmeCorp-Prod-WordPressEcsProfessional
 
 ## Architecture
 
-### Service Delivery Models
+### Platform Architecture
 
-**Hosted-Only Solutions** (18 stack variants)
-- Deploy and manage infrastructure in our AWS account
-- Comprehensive ongoing hosting and maintenance
-- Shared infrastructure cost optimization
-- Service tiers: Tier 1 (11 variants), Tier 2 (7 variants)
+**🏭 Factory-Based Stack Creation** (Intelligent Automation)
+- **SSG Stack Factory**: Automated selection from Marketing, Developer, Modern Performance tiers
+- **E-commerce Stack Factory**: Provider tier selection with flexible SSG engine pairing
+- **Cost Estimation Engine**: Automatic budget calculation and requirement matching
+- **Recommendation System**: AI-powered stack suggestions based on client profiles
 
-**Dual-Delivery Solutions** (5 stack variants)
-- **Hosted Mode**: Managed service in our AWS account
-- **Template Mode**: Infrastructure code delivered to client AWS account
-- Client choice based on technical capabilities and compliance requirements
-- Examples: FastAPI backends, advanced Shopify integrations, AWS Amplify
+**📦 Organized Stack Categories** (30+ optimized combinations)
+- **Static Site Stacks**: 18 variants across Tier 1 (11 variants) and Tier 2 (7 variants)
+- **E-commerce Stacks**: Provider abstraction supporting Snipcart, Foxy.io, Shopify with SSG flexibility
+- **CMS Integration Stacks**: 4 CMS tiers with client-selectable SSG engines (28+ combinations)
+- **Migration Stacks**: 7 specialized patterns for legacy platform modernization
 
-**Migration Support Services** (7 specialized stacks)
-- Legacy platform assessment and modernization planning
+**🔧 Shared Infrastructure Optimization**
+- Centralized operational backbone for cost efficiency and monitoring
+- Multi-tenant architecture with client isolation and resource tagging
 
 ### Repository Structure
 
 ```
 platform-infrastructure/
-├── stacks/                         # CDK stack definitions
-│   ├── hosted-only/               # 18 hosted-only stack variants
-│   │   ├── tier1/                 # 11 essential solution stacks
-│   │   └── tier2/                 # 7 professional solution stacks
-│   ├── dual-delivery/             # 5 dual-delivery stack variants
-│   ├── migration-support/         # 7 migration service stacks
-│   └── shared/                    # Shared infrastructure (hosted clients only)
+├── shared/                         # 🎯 Technology abstraction layer
+│   ├── factories/                 # 🏭 Intelligent stack factories
+│   │   ├── ssg_stack_factory.py   # SSG stack selection automation
+│   │   └── ecommerce_stack_factory.py # E-commerce provider automation
+│   ├── providers/                 # 🔧 Provider abstraction patterns
+│   │   └── ecommerce/             # E-commerce provider implementations
+│   ├── base/                      # 📦 Base stack classes
+│   ├── ssg/                       # ⚡ SSG engine configurations
+│   └── theme_registry/            # 🎨 Theme management system
+├── stacks/                         # 🚀 Business service layer
+│   ├── hosted-only/               # Managed hosting stacks
+│   │   ├── tier1/                 # Essential solution stacks (Marketing, Developer, Modern)
+│   │   └── tier2/                 # Professional solution stacks
+│   ├── ecommerce/                 # E-commerce business services
+│   ├── cms/                       # CMS business services
+│   ├── migration-support/         # Migration service stacks
+│   └── shared/                    # Shared operational infrastructure
 ├── clients/                       # Client configurations
 │   ├── _templates/               # Pydantic configuration models
 │   └── [client-folders]/         # Individual client configurations
-├── constructs/                    # Reusable CDK constructs
 ├── tools/                         # Business automation and deployment tools
 └── tests/                         # Infrastructure testing
 ```
@@ -238,16 +286,16 @@ platform-infrastructure/
 | `wordpress_ecs_professional_stack` | WordPress on ECS with professional features | Scalable WordPress solutions |
 | `shopify_aws_basic_integration_stack` | Shopify with basic AWS integrations | Enhanced Shopify stores |
 
-### Dual-Delivery - 5 Stack Variants
-*Hosted Mode: $3,600-12,000 setup | Template Mode: $1,800-6,000*
+### Advanced Integration Stacks - 5 Stack Variants
+*Enterprise-grade solutions with custom development and advanced integrations*
 
-| Stack Type | Description | Deployment Modes |
-|------------|-------------|------------------|
-| `shopify_advanced_aws_integration_stack` | Advanced Shopify with full AWS integration | Hosted, Template |
-| `headless_shopify_custom_frontend_stack` | Headless Shopify with custom frontend | Hosted, Template |
-| `amplify_custom_development_stack` | AWS Amplify with custom development | Hosted, Template |
-| `fastapi_pydantic_api_stack` | FastAPI backend with Pydantic validation | Hosted, Template |
-| `fastapi_react_vue_stack` | Full-stack FastAPI with React/Vue frontend | Hosted, Template |
+| Stack Type | Description | Key Features |
+|------------|-------------|--------------|
+| `shopify_advanced_aws_integration_stack` | Advanced Shopify with full AWS integration | Custom APIs, Advanced analytics, Multi-region |
+| `headless_shopify_custom_frontend_stack` | Headless Shopify with custom frontend | React/Vue/Next.js, API optimization, Performance |
+| `amplify_custom_development_stack` | AWS Amplify with custom development | Full-stack, GraphQL, Real-time features |
+| `fastapi_pydantic_api_stack` | FastAPI backend with Pydantic validation | Type-safe APIs, Auto documentation, High performance |
+| `fastapi_react_vue_stack` | Full-stack FastAPI with React/Vue frontend | Modern SPA, API integration, Responsive design |
 
 ### Migration Support - 7 Specialized Stacks
 *40% of total revenue | Custom pricing based on complexity*
