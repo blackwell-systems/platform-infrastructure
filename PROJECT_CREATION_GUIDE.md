@@ -24,23 +24,184 @@ uv run cdk --version
 
 ## 🏗️ Configuration System Architecture
 
-### Service Tiers
-- **Tier 1 (Essential)**: 11 hosted-only stacks | $360-3,000 setup | $0-150/month
-- **Tier 2 (Professional)**: 7 hosted-only stacks | $2,400-9,600 setup | $50-400/month  
-- **Dual-Delivery**: 5 stacks supporting both hosted and template delivery modes
-- **Migration Support**: 7 specialized migration stacks (40% of revenue)
+### 🎯 Service Tier Architecture
+- **🚀 Tier 1 (Essential)**: Foundation stacks with intelligent SSG selection | $360-3,000 setup | $0-150/month
+  - Marketing Stack (Eleventy), Developer Stack (Jekyll), Modern Performance Stack (Astro)
+- **💼 Tier 2 (Professional)**: Advanced integrations with CMS tiers | $2,400-9,600 setup | $50-400/month
+  - 4 CMS tiers × 7 SSG engines = 28+ optimized combinations with client choice
+- **🛒 E-commerce Integration**: Provider abstraction with flexible SSG pairing
+  - Snipcart tier ($85-125/month), Foxy.io tier ($100-150/month), Shopify tiers
+- **🔄 Migration Specialization**: Automated legacy platform modernization tools
 
-### Core Components
-1. **ClientConfig**: Pydantic model for client configuration validation
-2. **SSGEngineFactory**: Static Site Generator management system
-3. **ThemeRegistry**: ✅ NEW - Minimal Mistakes theme integration for Jekyll sites
-4. **TechStackMatrix**: Dynamic pricing and suitability validation
-5. **SharedInfraStack**: Common operational infrastructure
-6. **Tier-specific Stacks**: Service tier implementations
+### 🏭 Core Platform Components
+
+1. **🤖 Intelligent Stack Factories**: Automated stack selection and recommendations
+   - **SSG Stack Factory**: Marketing, Developer, Modern Performance tier automation
+   - **E-commerce Stack Factory**: Provider tier selection with flexible SSG engine pairing
+2. **🎯 ClientConfig**: Pydantic model for client configuration validation and cost estimation
+3. **⚡ SSG Engine System**: 7 SSG engines (Eleventy, Hugo, Astro, Jekyll, Next.js, Nuxt, Gatsby)
+4. **🎨 ThemeRegistry**: Professional theme integration (Minimal Mistakes for Jekyll, etc.)
+5. **🔧 Provider Abstraction**: E-commerce providers (Snipcart, Foxy.io, Shopify) with extensible patterns
+6. **🚀 SharedInfraStack**: Centralized operational infrastructure with cost optimization
+7. **📊 Recommendation Engine**: AI-powered stack suggestions based on client requirements
 
 ## 🚀 Creating a New Project
 
-### Step 1: Define Client Configuration
+### 🏭 Recommended Approach: Stack Factories
+
+The modern way to create projects is using **intelligent stack factories** that automatically recommend and create optimal infrastructure based on client requirements.
+
+#### Step 1: Get Stack Recommendations
+
+```python
+from shared.factories.ssg_stack_factory import SSGStackFactory
+from shared.factories.ecommerce_stack_factory import EcommerceStackFactory
+
+# Get SSG stack recommendations based on client needs
+ssg_recommendations = SSGStackFactory.get_ssg_recommendations({
+    'content_focused': True,        # Marketing/content site
+    'budget_conscious': True,       # Cost optimization important
+    'technical_team': False        # Non-technical client
+})
+
+# Get e-commerce recommendations if needed
+ecommerce_recommendations = EcommerceStackFactory.get_ecommerce_recommendations({
+    'budget_conscious': True,
+    'advanced_ecommerce': False,
+    'prefer_react': False
+})
+
+print(f"Recommended SSG: {ssg_recommendations[0]['stack_type']}")
+print(f"Recommended E-commerce: {ecommerce_recommendations[0]['ecommerce_provider']}")
+```
+
+#### Step 2: Create Stacks Using Factories
+
+```python
+from aws_cdk import App
+from shared.factories.ssg_stack_factory import SSGStackFactory
+from shared.factories.ecommerce_stack_factory import EcommerceStackFactory
+
+app = App()
+
+# Create SSG stack automatically
+ssg_stack = SSGStackFactory.create_ssg_stack(
+    scope=app,
+    client_id="content-business",
+    domain="contentbiz.com",
+    stack_type="marketing"  # From recommendations
+)
+
+# Create e-commerce stack if needed
+if client_needs_ecommerce:
+    ecommerce_stack = EcommerceStackFactory.create_ecommerce_stack(
+        scope=app,
+        client_id="modern-store",
+        domain="store.com",
+        ecommerce_provider="snipcart",  # Budget-friendly choice
+        ssg_engine="eleventy"           # Fast builds, cost-effective
+    )
+```
+
+#### Step 3: Cost Estimation
+
+```python
+# Get cost estimates automatically
+ssg_cost = SSGStackFactory.estimate_total_cost("marketing")
+ecommerce_cost = EcommerceStackFactory.estimate_total_cost("snipcart", "eleventy")
+
+print(f"SSG Setup: ${ssg_cost['setup_cost_range']}")
+print(f"SSG Monthly: ${ssg_cost['monthly_cost_range']}")
+print(f"E-commerce Setup: ${ecommerce_cost['setup_cost_range']}")
+print(f"E-commerce Monthly: ${ecommerce_cost['monthly_cost_range']}")
+```
+
+#### Step 4: Complete Factory System Example
+
+```python
+from aws_cdk import App
+from shared.factories.ssg_stack_factory import SSGStackFactory
+from shared.factories.ecommerce_stack_factory import EcommerceStackFactory
+
+app = App()
+
+# Example: Content-focused business needs marketing site
+content_requirements = {
+    'content_focused': True,
+    'budget_conscious': True,
+    'technical_team': False
+}
+
+# Get recommendations
+ssg_recommendations = SSGStackFactory.get_ssg_recommendations(content_requirements)
+print(f"Recommended: {ssg_recommendations[0]['stack_type']} with {ssg_recommendations[0]['ssg_engine']}")
+# Output: Recommended: marketing with eleventy
+
+# Create the recommended stack
+marketing_stack = SSGStackFactory.create_ssg_stack(
+    scope=app,
+    client_id="content-business",
+    domain="contentbiz.com",
+    stack_type=ssg_recommendations[0]['stack_type']
+)
+
+# Example: Technical team needs documentation site
+tech_requirements = {
+    'technical_team': True,
+    'git_workflow': True,
+    'documentation_site': True
+}
+
+# Get recommendations and create stack
+tech_recommendations = SSGStackFactory.get_ssg_recommendations(tech_requirements)
+docs_stack = SSGStackFactory.create_ssg_stack(
+    scope=app,
+    client_id="tech-docs",
+    domain="docs.techcompany.com",
+    stack_type=tech_recommendations[0]['stack_type'],  # Will be "developer"
+    github_repo="techcompany/documentation",
+    enable_github_pages_fallback=True
+)
+
+# Example: E-commerce business needs online store
+ecommerce_requirements = {
+    'budget_conscious': True,
+    'simple_products': True,
+    'technical_team': True
+}
+
+# Get e-commerce recommendations
+ecommerce_recommendations = EcommerceStackFactory.get_ecommerce_recommendations(ecommerce_requirements)
+store_stack = EcommerceStackFactory.create_ecommerce_stack(
+    scope=app,
+    client_id="simple-store",
+    domain="store.example.com",
+    ecommerce_provider=ecommerce_recommendations[0]['ecommerce_provider'],  # Will be "snipcart"
+    ssg_engine=ecommerce_recommendations[0]['recommended_ssg']  # Will be "hugo" for technical team
+)
+
+app.synth()
+```
+
+#### Step 5: Deploy Your Stacks
+
+```bash
+# Deploy all stacks created by the factories
+uv run cdk deploy ContentBusiness-Marketing-SSG-Stack
+uv run cdk deploy TechDocs-Developer-SSG-Stack
+uv run cdk deploy SimpleStore-Snipcart-Hugo-Stack
+
+# Check deployment status
+uv run cdk list
+```
+
+---
+
+### 📋 Alternative: Traditional Client Configuration
+
+For advanced use cases where you need full control, you can still use the traditional client configuration approach:
+
+#### Step 1: Define Client Configuration
 
 Create a client configuration using the `ClientConfig` model:
 
@@ -377,12 +538,42 @@ print(f"Migration targets: {migration_targets}")
 uv run cdk deploy WebServices-SharedInfra --context account=123456789012 --context region=us-east-1
 ```
 
-### Step 7: Create Client Stack
+### Step 7: Create Stacks Using Factories
 
-Create a client-specific stack file:
+Create stacks using the intelligent factory system:
 
 ```python
-# clients/acme-corp/stack.py
+# app.py - Modern factory-based approach
+from aws_cdk import App
+from shared.factories.ssg_stack_factory import SSGStackFactory
+from shared.factories.ecommerce_stack_factory import EcommerceStackFactory
+
+app = App()
+
+# Create marketing site stack
+marketing_stack = SSGStackFactory.create_ssg_stack(
+    scope=app,
+    client_id="acme-corp",
+    domain="acme.com",
+    stack_type="marketing"  # Intelligent Eleventy stack with optimizations
+)
+
+# Optional: Add e-commerce if needed
+ecommerce_stack = EcommerceStackFactory.create_ecommerce_stack(
+    scope=app,
+    client_id="acme-store",
+    domain="store.acme.com",
+    ecommerce_provider="snipcart",
+    ssg_engine="eleventy"  # Consistent with marketing site
+)
+
+app.synth()
+```
+
+**Alternative: Traditional Client-Specific Stack** (for advanced users):
+
+```python
+# clients/acme-corp/stack.py - Traditional approach
 from aws_cdk import Stack, App
 from constructs import Construct
 from clients._templates.client_config import ClientConfig
@@ -390,35 +581,41 @@ from clients._templates.client_config import ClientConfig
 class AcmeCorpStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, client_config: ClientConfig, **kwargs):
         super().__init__(scope, construct_id, **kwargs)
-        
+
         self.client_config = client_config
-        
+
         # Apply client tags to all resources
         for key, value in client_config.tags.items():
             self.add_tags(**{key: value})
-        
-        # Create client-specific resources
-        self._create_storage_resources()
-        self._create_networking_resources() 
-        self._create_compute_resources()
-        
-    def _create_storage_resources(self):
-        # Implementation based on stack_type
-        pass
-        
-    def _create_networking_resources(self):
-        # Implementation based on stack_type
-        pass
-        
-    def _create_compute_resources(self):
-        # Implementation based on stack_type
+
+        # Create client-specific resources based on factory patterns
+        self._create_resources_via_factories()
+
+    def _create_resources_via_factories(self):
+        # Use factories internally for consistency
         pass
 ```
 
-### Step 8: Deploy Client Stack
+### Step 8: Deploy Your Stacks
+
+Deploy the factory-created stacks:
+
+```bash
+# Deploy the stacks created by factories
+uv run cdk deploy AcmeCorp-Marketing-SSG-Stack
+uv run cdk deploy AcmeStore-Snipcart-Eleventy-Stack
+
+# Check all available stacks
+uv run cdk list
+
+# Deploy with custom parameters if needed
+uv run cdk deploy AcmeCorp-Marketing-SSG-Stack --parameters Domain=acme.com
+```
+
+**Alternative: Traditional Client Stack Deployment** (for advanced users):
 
 ```python
-# clients/acme-corp/app.py
+# clients/acme-corp/app.py - Traditional approach
 #!/usr/bin/env python3
 import json
 from pathlib import Path
@@ -428,15 +625,15 @@ from clients.acme_corp.stack import AcmeCorpStack
 
 def main():
     app = cdk.App()
-    
+
     # Load client configuration
     config_file = Path(__file__).parent / "config.json"
     with open(config_file) as f:
         config_data = json.load(f)
-    
+
     client_config = ClientConfig.from_dict(config_data)
-    
-    # Create client stack
+
+    # Create client stack (now uses factories internally)
     AcmeCorpStack(
         app,
         client_config.deployment_name,
@@ -447,17 +644,11 @@ def main():
             region=client_config.region
         )
     )
-    
+
     app.synth()
 
 if __name__ == "__main__":
     main()
-```
-
-```bash
-# Deploy client stack
-cd clients/acme-corp
-uv run cdk deploy AcmeCorp-Prod-WordPressEcsProfessional
 ```
 
 ## 🎨 Theme System Integration
@@ -489,14 +680,22 @@ jekyll_config = StaticSiteConfig(
     }
 )
 
-# ✅ UPDATED: Deploy Jekyll stack using SSG Stack Factory
+# Deploy Jekyll stack using SSG Stack Factory
 jekyll_stack = SSGStackFactory.create_ssg_stack(
     scope=app,
     client_id="professional-docs",
     domain="docs.professional.com",
     stack_type="developer",  # Uses JekyllGitHubStack internally
     theme_id="minimal-mistakes",
-    theme_config=jekyll_config.theme_config
+    theme_config={
+        "skin": "mint",
+        "author_name": "Company Name",
+        "author_bio": "Professional documentation",
+        "search": True,
+        "navigation": True,
+        "sidebar": True,
+        "social_sharing": True
+    }
 )
 ```
 
@@ -913,13 +1112,43 @@ When deploying e-commerce sites, follow this checklist:
 
 ## 🎯 Next Steps
 
-1. **Review the tech stack matrix** in `documents/tech-stack-product-matrix.md`
-2. **Check SSG integration guide** in `SSG_INTEGRATION_GUIDE.md` for Phase 3 e-commerce details
-3. **Set up your development environment** with Python 3.13+ and uv  
-4. **Deploy shared infrastructure** using the SharedInfraStack
-5. **Create your first client configuration** using the template functions
-6. **For e-commerce sites**: Review cost implications and provider requirements
-7. **Validate pricing and suitability** using the matrix parser
-8. **Deploy client infrastructure** following the CDK patterns
+1. **Set up your development environment** with Python 3.13+ and uv
+2. **Deploy shared infrastructure** using the SharedInfraStack
+3. **Try the intelligent factory system**:
+   ```bash
+   # Get stack recommendations
+   uv run python -c "
+   from shared.factories.ssg_stack_factory import SSGStackFactory
+   requirements = {'content_focused': True, 'budget_conscious': True}
+   recommendations = SSGStackFactory.get_ssg_recommendations(requirements)
+   print('Recommended:', recommendations[0])
+   "
+   ```
+4. **Create your first stack using factories**:
+   ```bash
+   # Create and deploy a marketing stack
+   uv run python -c "
+   from aws_cdk import App
+   from shared.factories.ssg_stack_factory import SSGStackFactory
 
-This configuration system provides the foundation for a scalable, well-organized multi-client web services platform with comprehensive e-commerce support, proper cost allocation, validation, and operational monitoring.
+   app = App()
+   stack = SSGStackFactory.create_ssg_stack(
+       scope=app, client_id='my-business',
+       domain='mybusiness.com', stack_type='marketing'
+   )
+   app.synth()
+   "
+   uv run cdk deploy MyBusiness-Marketing-SSG-Stack
+   ```
+5. **For e-commerce sites**: Use the EcommerceStackFactory for intelligent provider selection
+6. **Explore advanced features**: Check out the SSG Integration Guide for detailed configurations
+7. **Review cost implications**: Use the built-in cost estimation features in both factories
+
+**Factory System Benefits:**
+- 🎯 **Intelligent Recommendations**: Get stack suggestions based on your specific requirements
+- 🚀 **Consistent Architecture**: All stacks follow proven patterns and best practices
+- 💰 **Cost Transparency**: Built-in cost estimation for setup and monthly expenses
+- 🔧 **Easy Deployment**: Simplified CDK stack creation with minimal configuration
+- 📈 **Scalable Patterns**: Architecture designed for growth from individual to enterprise
+
+This factory-based system provides the foundation for a scalable, well-organized multi-client web services platform with intelligent stack selection, comprehensive e-commerce support, and automated operational monitoring.

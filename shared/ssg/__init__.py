@@ -7,7 +7,7 @@ focused, maintainable modules.
 """
 
 # Public API - everything users need to import
-from .site_config import StaticSiteConfig
+from .static_site_config import StaticSiteConfig
 from .factory import SSGEngineFactory
 from .core_models import (
     BuildCommand, 

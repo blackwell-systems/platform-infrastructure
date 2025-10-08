@@ -117,6 +117,29 @@ class SSGStackFactory:
             "key_features": ["component_islands", "partial_hydration", "framework_agnostic", "performance_optimized"],
             "hosting_pattern": "aws_optimized",
             "performance_tier": "premium"
+        },
+        "decap_cms_tier": {
+            "tier_name": "Decap CMS - Free Git-Based Content Management",
+            "monthly_cost_range": (50, 75),  # No CMS fees, only hosting
+            "setup_cost_range": (960, 2640),  # Varies by SSG engine choice
+            "target_market": ["budget_conscious_businesses", "technical_teams", "small_to_medium_content", "git_workflow_users"],
+            "best_for": "Budget-friendly content management with full git workflow control",
+            "complexity_level": "low_to_medium",
+            "cms_provider": "decap",
+            "cms_type": "git_based",
+            "ssg_engine_options": ["hugo", "eleventy", "astro", "gatsby"],
+            "template_variants": ["git_cms_basic", "markdown_focused", "developer_friendly"],
+            "key_features": ["free_cms", "git_workflow", "markdown_editing", "github_oauth", "version_control", "no_vendor_lock_in"],
+            "hosting_pattern": "aws_optimized",
+            "performance_tier": "optimized",
+            "cms_features": ["admin_interface", "media_management", "editorial_workflow", "github_integration"],
+            "ideal_client_profile": {
+                "budget": "cost_conscious",
+                "technical_comfort": "medium_to_high",
+                "content_volume": "small_to_medium",
+                "team_size": "1-5_people",
+                "workflow_preference": "git_based"
+            }
         }
     }
 
@@ -307,6 +330,49 @@ class SSGStackFactory:
                 "complexity": "Medium to High",
                 "build_time": "Fast",
                 "key_benefits": ["Component islands", "Framework agnostic", "Optimal performance", "Modern developer experience"]
+            })
+
+        # CMS recommendations - Decap CMS tier
+        if (requirements.get("content_management", False) or
+            requirements.get("cms_needed", False) or
+            requirements.get("git_based_cms", False) or
+            requirements.get("budget_conscious", False) and requirements.get("content_management", False)):
+
+            # Determine best SSG engine for Decap CMS based on requirements
+            recommended_ssg = "eleventy"  # Default
+            if requirements.get("performance_critical", False):
+                recommended_ssg = "hugo"
+            elif requirements.get("modern_features", False):
+                recommended_ssg = "astro"
+            elif requirements.get("react_preferred", False):
+                recommended_ssg = "gatsby"
+
+            recommendations.append({
+                "stack_type": "decap_cms_tier",
+                "ssg_engine": recommended_ssg,
+                "ssg_engine_options": ["hugo", "eleventy", "astro", "gatsby"],
+                "monthly_cost": "$50-75",
+                "setup_cost": "$960-2,640",
+                "reason": "Free git-based CMS with full content management capabilities and SSG flexibility",
+                "best_for": "Budget-conscious sites needing content management, technical teams, small-medium content volume",
+                "complexity": "Low to Medium",
+                "build_time": "Fast",
+                "cms_provider": "decap",
+                "cms_cost": "$0/month",
+                "key_benefits": [
+                    "Completely free CMS",
+                    "Git-based workflow",
+                    "Choose your SSG engine",
+                    "No vendor lock-in",
+                    "Version controlled content",
+                    "GitHub OAuth integration"
+                ],
+                "ideal_for": {
+                    "budget": "Cost-conscious (free CMS)",
+                    "team_size": "1-5 people",
+                    "content_volume": "Small to medium",
+                    "technical_comfort": "Medium (git workflow)"
+                }
             })
 
         # Enterprise/Advanced recommendations (future)

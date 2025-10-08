@@ -12,6 +12,7 @@ Supports the complete service delivery model:
 from typing import Dict, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from models.cms_config import CMSIntegrationConfig
 
 
 class ClientConfig(BaseModel):
@@ -34,7 +35,19 @@ class ClientConfig(BaseModel):
                     "stack_type": "tina_cms_tier",
                     "ssg_engine": "astro",
                     "domain": "contentbiz.com",
-                    "contact_email": "admin@contentbiz.com"
+                    "contact_email": "admin@contentbiz.com",
+                    "cms_config": {
+                        "cms": {
+                            "provider": "tina",
+                            "admin_users": ["admin@contentbiz.com"],
+                            "content_settings": {
+                                "repository": "contentbiz-site",
+                                "repository_owner": "contentbiz",
+                                "branch": "main"
+                            }
+                        },
+                        "ssg_engine": "astro"
+                    }
                 },
                 {
                     "client_id": "tech-store",
@@ -126,6 +139,12 @@ class ClientConfig(BaseModel):
         description="AWS region for deployment"
     )
 
+    # CMS Configuration (for CMS-enabled stacks)
+    cms_config: Optional[CMSIntegrationConfig] = Field(
+        default=None,
+        description="CMS integration configuration for CMS-enabled stack types"
+    )
+
     # Optional customizations - escape hatch for special client needs
     custom_settings: Dict[str, str] = Field(
         default_factory=dict,
@@ -191,6 +210,61 @@ class ClientConfig(BaseModel):
         return self
 
     @model_validator(mode='after')
+    def validate_cms_configuration(self):
+        """Validate CMS configuration for CMS-enabled stacks."""
+
+        # CMS tiers that require CMS configuration
+        cms_tiers = {
+            "decap_cms_tier", "tina_cms_tier", "sanity_cms_tier",
+            "contentful_cms_tier", "strapi_cms_tier", "ghost_cms_tier"
+        }
+
+        if self.stack_type in cms_tiers:
+            if not self.cms_config:
+                raise ValueError(f"Stack type '{self.stack_type}' requires cms_config to be specified")
+
+            # Validate CMS configuration
+            try:
+                self.cms_config.validate_integration()
+            except Exception as e:
+                raise ValueError(f"Invalid CMS configuration: {str(e)}")
+
+            # Ensure CMS provider matches stack type expectations
+            expected_providers = {
+                "decap_cms_tier": ["decap"],
+                "tina_cms_tier": ["tina"],
+                "sanity_cms_tier": ["sanity"],
+                "contentful_cms_tier": ["contentful"],
+                "strapi_cms_tier": ["strapi"],
+                "ghost_cms_tier": ["ghost"]
+            }
+
+            if self.stack_type in expected_providers:
+                expected = expected_providers[self.stack_type]
+                if self.cms_config.cms.provider not in expected:
+                    raise ValueError(
+                        f"Stack type '{self.stack_type}' expects CMS provider to be one of {expected}, "
+                        f"but got '{self.cms_config.cms.provider}'"
+                    )
+
+            # Ensure SSG engine is compatible with CMS provider
+            if self.ssg_engine and self.cms_config.ssg_engine:
+                if self.ssg_engine != self.cms_config.ssg_engine:
+                    raise ValueError(
+                        f"SSG engine mismatch: client config specifies '{self.ssg_engine}' "
+                        f"but CMS config specifies '{self.cms_config.ssg_engine}'"
+                    )
+            elif self.ssg_engine:
+                # Set CMS config SSG engine from client config
+                self.cms_config.ssg_engine = self.ssg_engine
+
+        elif self.cms_config:
+            # Warn if CMS config is provided for non-CMS stack
+            print(f"⚠️  Warning: CMS configuration provided for non-CMS stack '{self.stack_type}' - will be ignored")
+
+        return self
+
+    @model_validator(mode='after')
     def validate_stack_service_alignment(self):
         """Validate stack type matches service tier and management model."""
         
@@ -206,9 +280,9 @@ class ClientConfig(BaseModel):
 
         # All valid tier1 stack types (combine static + flexible tiers)
         all_tier1_stacks = tier1_developer_managed | tier1_self_managed | tier1_technical | tier1_cms_tiers | tier1_ecommerce_tiers
-        tier2_stacks = {"astro_advanced_cms_stack", "gatsby_headless_cms_stack", "nextjs_professional_headless_cms_stack", "nuxtjs_professional_headless_cms_stack", "wordpress_lightsail_stack", "wordpress_ecs_professional_stack", "shopify_aws_basic_integration_stack", "fastapi_pydantic_api_stack"}
+        tier2_stacks = {"astro_advanced_cms_stack", "gatsby_headless_cms_stack", "nextjs_professional_headless_cms_stack", "nuxtjs_professional_headless_cms_stack", "wordpress_lightsail_stack", "wordpress_ecs_professional_stack", "wordpress_headless_basic_stack", "shopify_aws_basic_integration_stack", "fastapi_pydantic_api_stack"}
         tier3_dual_delivery = {"shopify_advanced_aws_integration_stack", "headless_shopify_custom_frontend_stack", "amplify_custom_development_stack", "fastapi_pydantic_api_stack", "fastapi_react_vue_stack"}
-        tier3_migration = {"migration_assessment_stack", "magento_migration_stack", "prestashop_migration_stack", "opencart_migration_stack", "wordpress_migration_stack", "legacy_cms_migration_stack", "custom_platform_migration_stack"}
+        tier3_migration = {"migration_assessment_stack", "magento_migration_stack", "prestashop_migration_stack", "opencart_migration_stack", "wordpress_migration_stack", "wordpress_headless_professional_stack", "wordpress_woocommerce_headless_stack", "legacy_cms_migration_stack", "custom_platform_migration_stack"}
         tier3_consultation = {"fastapi_react_vue_stack", "amplify_custom_development_stack", "nextjs_enterprise_applications_stack", "nuxtjs_enterprise_applications_stack", "wordpress_custom_development_stack", "aws_serverless_custom_stack"}
         
         # ✅ UPDATED: Flexible Architecture Validation
@@ -449,6 +523,73 @@ class ClientConfig(BaseModel):
 
         return tags
 
+    def get_cms_provider_instance(self):
+        """
+        Get configured CMS provider instance if CMS is enabled.
+
+        Returns:
+            CMSProvider instance or None if no CMS configuration
+
+        Example:
+            if client.has_cms():
+                provider = client.get_cms_provider_instance()
+                env_vars = provider.get_environment_variables()
+        """
+        if not self.cms_config:
+            return None
+
+        return self.cms_config.get_provider_instance()
+
+    def has_cms(self) -> bool:
+        """Check if this client configuration includes CMS integration"""
+        return self.cms_config is not None
+
+    def get_cms_environment_variables(self) -> Dict[str, str]:
+        """
+        Get CMS environment variables for stack deployment.
+
+        Returns:
+            Dict of environment variables needed for CMS integration
+        """
+        if not self.has_cms():
+            return {}
+
+        provider = self.get_cms_provider_instance()
+        if not provider:
+            return {}
+
+        return provider.get_environment_variables()
+
+    def setup_cms_infrastructure(self, stack):
+        """
+        Set up CMS infrastructure on the CDK stack.
+
+        Args:
+            stack: CDK stack instance to add CMS resources to
+        """
+        if not self.has_cms():
+            return
+
+        provider = self.get_cms_provider_instance()
+        if provider:
+            provider.setup_infrastructure(stack)
+
+    def validate_cms_compatibility(self) -> bool:
+        """
+        Validate that the CMS configuration is compatible with the stack type and SSG engine.
+
+        Returns:
+            True if configuration is valid
+
+        Raises:
+            ValueError: If configuration is incompatible
+        """
+        if not self.has_cms():
+            return True
+
+        # This validation is also done in model validators, but can be called explicitly
+        return self.cms_config.validate_integration()
+
     def to_dict(self) -> Dict:
         """
         Convert to dictionary for JSON serialization.
@@ -511,7 +652,8 @@ def create_client_config(
     domain: str,
     contact_email: str,
     environment: str = "prod",
-    deployment_mode: str = "hosted",
+    delivery_model: str = "hosted",
+    cms_config: Optional[CMSIntegrationConfig] = None,
     **kwargs
 ) -> ClientConfig:
     """
@@ -526,6 +668,7 @@ def create_client_config(
         contact_email: Primary contact email
         environment: Deployment environment ("prod", "staging", "dev")
         delivery_model: Service delivery ("hosted", "consulting_template")
+        cms_config: CMS integration configuration for CMS-enabled stacks
         management_model: Management model for tier1 ("developer_managed", "self_managed", "technical")
         service_type: Service type for tier3 ("dual_delivery", "consultation", "migration", "standard")
         **kwargs: Additional settings (migration_source, aws_account, region, custom_settings)
@@ -541,7 +684,8 @@ def create_client_config(
         domain=domain,
         environment=environment,
         contact_email=contact_email,
-        deployment_mode=deployment_mode,
+        delivery_model=delivery_model,
+        cms_config=cms_config,
         **kwargs
     )
 
@@ -573,7 +717,10 @@ def tier1_developer_managed_client(client_id: str, company_name: str, domain: st
 
 
 def tier1_self_managed_client(client_id: str, company_name: str, domain: str, contact_email: str,
-                             stack_type: str = "tina_cms_tier") -> ClientConfig:
+                             stack_type: str = "tina_cms_tier",
+                             cms_provider: str = None,
+                             repository: str = None,
+                             repository_owner: str = None) -> ClientConfig:
     """
     Template for Tier 1B: Self-Managed clients ($720-2,400 setup | $50-75/month).
 
@@ -587,9 +734,47 @@ def tier1_self_managed_client(client_id: str, company_name: str, domain: str, co
         # Uses Tina CMS tier (client can choose Astro, Eleventy, Next.js, or Nuxt)
         client = tier1_self_managed_client("content-biz", "Content Business", "contentbiz.com", "admin@contentbiz.com")
 
-        # Or specify different CMS tier
-        client = tier1_self_managed_client("budget-client", "Budget Co", "budget.com", "admin@budget.com", "decap_cms_tier")
+        # Or specify different CMS tier with custom provider
+        client = tier1_self_managed_client(
+            "budget-client", "Budget Co", "budget.com", "admin@budget.com",
+            "decap_cms_tier", "decap", "budget-site", "budget-co"
+        )
     """
+    from models.cms_config import CMSIntegrationConfig, CMSConfig
+
+    # Create CMS configuration if parameters provided
+    cms_config = None
+    if stack_type.endswith("_cms_tier"):
+        # Infer CMS provider from stack type if not specified
+        if not cms_provider:
+            provider_mapping = {
+                "decap_cms_tier": "decap",
+                "tina_cms_tier": "tina",
+                "sanity_cms_tier": "sanity",
+                "contentful_cms_tier": "contentful"
+            }
+            cms_provider = provider_mapping.get(stack_type, "tina")
+
+        # Create basic CMS configuration
+        cms_settings = {"admin_users": [contact_email]}
+
+        # Add git-based settings if provided
+        if repository and repository_owner:
+            cms_settings.update({
+                "repository": repository,
+                "repository_owner": repository_owner,
+                "branch": "main",
+                "content_path": "content"
+            })
+
+        cms_config = CMSIntegrationConfig(
+            cms=CMSConfig(
+                provider=cms_provider,
+                admin_users=[contact_email],
+                content_settings=cms_settings
+            )
+        )
+
     return create_client_config(
         client_id=client_id,
         company_name=company_name,
@@ -598,7 +783,8 @@ def tier1_self_managed_client(client_id: str, company_name: str, domain: str, co
         stack_type=stack_type,
         domain=domain,
         contact_email=contact_email,
-        environment="prod"
+        environment="prod",
+        cms_config=cms_config
     )
 
 
