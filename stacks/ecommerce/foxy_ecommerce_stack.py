@@ -24,9 +24,14 @@ ADVANCED FEATURES:
 - Custom checkout flows
 - API access for integrations
 - Advanced analytics and reporting
+
+ARCHITECTURAL PATTERN:
+✅ Uses abstract FoxyProvider for proper separation of concerns
+✅ Eliminates code duplication through provider pattern
+✅ Enables consistent provider behavior across SSG engines
 """
 
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Any
 from constructs import Construct
 from aws_cdk import (
     aws_lambda as lambda_,
@@ -36,7 +41,8 @@ from aws_cdk import (
     RemovalPolicy
 )
 
-from stacks.shared.base_ecommerce_stack import BaseEcommerceStack
+from shared.base.base_ecommerce_stack import BaseEcommerceStack
+from shared.providers.ecommerce.foxy_provider import FoxyProvider
 
 
 class FoxyEcommerceStack(BaseEcommerceStack):
@@ -82,128 +88,43 @@ class FoxyEcommerceStack(BaseEcommerceStack):
         self.foxy_subdomain = foxy_subdomain or f"{client_id}-store"
         self.enable_subscriptions = enable_subscriptions
 
-        # Add Foxy-specific infrastructure
-        self._setup_foxy_integration()
-        self._setup_foxy_advanced_features()
+        # ✅ REFACTORED: Use FoxyProvider pattern instead of hardcoded logic
+        # Use the provided store_name parameter directly
+        effective_store_name = store_name or f"{client_id.title()} Store"
+        provider_config = {
+            "store_name": effective_store_name,
+            "currency": currency,
+            "mode": "live",  # Foxy.io default mode
+            "subscription_products": enable_subscriptions,
+            "customer_accounts": True,  # Foxy advanced feature
+            "multi_currency": False,  # Default, can be overridden
+            "advanced_shipping": True,  # Foxy advanced feature
+            "tax_calculation": False  # Default, can be overridden
+        }
+
+        self.foxy_provider = FoxyProvider(provider_config)
+
+        # Setup provider-based infrastructure
+        self._setup_provider_integration()
         self._create_foxy_parameters()
 
         if enable_subscriptions:
             self._setup_subscription_management()
 
-    def _setup_foxy_integration(self) -> None:
-        """Set up Foxy.io specific infrastructure and configuration"""
-
-        # Base Foxy configuration
-        foxy_vars = {
-            "FOXY_ENABLED": "true",
-            "FOXY_VERSION": "2.0",
-            "FOXY_SUBDOMAIN": self.foxy_subdomain,
-            "FOXY_CURRENCY": self.currency,
-            "FOXY_STORE_NAME": self.store_name,
-            "FOXY_SUBSCRIPTIONS_ENABLED": str(self.enable_subscriptions).lower()
-        }
-
-        # SSG-specific Foxy configuration
-        ssg_specific_vars = self._get_ssg_specific_foxy_config()
-        foxy_vars.update(ssg_specific_vars)
-
-        self.add_environment_variables(foxy_vars)
-
-    def _get_ssg_specific_foxy_config(self) -> Dict[str, str]:
+    def _setup_provider_integration(self) -> None:
         """
-        Get SSG-specific Foxy.io configuration.
+        ✅ REFACTORED: Use FoxyProvider pattern for integration setup.
 
-        Foxy.io's advanced features require more sophisticated integration
-        patterns that vary by SSG engine capabilities.
+        This eliminates code duplication and uses the abstract provider interface
+        for consistent behavior across all Foxy.io implementations.
         """
-        ssg_engine = self.ssg_config.ssg_engine
 
-        ssg_configs = {
-            "eleventy": {
-                "FOXY_TEMPLATES_PATH": "src/_includes/foxy",
-                "PRODUCT_DATA_PATH": "src/_data/products.json",
-                "SUBSCRIPTION_DATA_PATH": "src/_data/subscriptions.json",
-                "ELEVENTY_FOXY_INTEGRATION": "true",
-                "FOXY_CART_TYPE": "eleventy_data_driven"
-            },
-            "astro": {
-                "FOXY_COMPONENTS_PATH": "src/components/foxy",
-                "PRODUCT_DATA_PATH": "src/data/products.json",
-                "SUBSCRIPTION_DATA_PATH": "src/data/subscriptions.json",
-                "ASTRO_FOXY_INTEGRATION": "true",
-                "ASTRO_FOXY_ISLANDS": "true",
-                "FOXY_CART_TYPE": "astro_component_islands"
-            },
-            "hugo": {
-                "FOXY_LAYOUTS_PATH": "layouts/foxy",
-                "PRODUCT_DATA_PATH": "data/products.yaml",
-                "SUBSCRIPTION_DATA_PATH": "data/subscriptions.yaml",
-                "HUGO_FOXY_INTEGRATION": "true",
-                "FOXY_CART_TYPE": "hugo_shortcodes"
-            },
-            "gatsby": {
-                "FOXY_COMPONENTS_PATH": "src/components/foxy",
-                "PRODUCT_GRAPHQL_TYPE": "FoxyProduct",
-                "SUBSCRIPTION_GRAPHQL_TYPE": "FoxySubscription",
-                "GATSBY_FOXY_INTEGRATION": "true",
-                "FOXY_CART_TYPE": "gatsby_graphql_react"
-            }
-        }
+        # Get provider-specific environment variables (replaces hardcoded config)
+        provider_vars = self.foxy_provider.get_environment_variables()
+        self.add_environment_variables(provider_vars)
 
-        return ssg_configs.get(ssg_engine, {})
-
-    def _setup_foxy_advanced_features(self) -> None:
-        """Set up Foxy.io advanced features infrastructure"""
-
-        # Advanced webhook processing for Foxy events
-        self.foxy_webhook_processor = lambda_.Function(
-            self,
-            "FoxyWebhookProcessor",
-            function_name=f"{self.ssg_config.client_id}-foxy-webhook-processor",
-            runtime=lambda_.Runtime.PYTHON_3_9,
-            handler="foxy_webhook.handler",
-            code=lambda_.Code.from_asset("lambda/foxy-webhook"),
-            environment={
-                "ORDERS_TABLE": self.orders_table.table_name,
-                "FOXY_SUBDOMAIN": self.foxy_subdomain,
-                "STORE_NAME": self.store_name,
-                "SSG_ENGINE": self.ssg_config.ssg_engine,
-                "SUBSCRIPTIONS_ENABLED": str(self.enable_subscriptions).lower(),
-                "NOTIFICATION_FUNCTION": self.notification_processor.function_name
-            }
-        )
-
-        # Grant permissions
-        self.orders_table.grant_read_write_data(self.foxy_webhook_processor)
-        self.notification_processor.grant_invoke(self.foxy_webhook_processor)
-
-        # Add Foxy webhook endpoints to API Gateway
-        foxy_resource = self.webhook_api.root.add_resource("foxy")
-
-        # Foxy webhook integration
-        foxy_integration = apigateway.LambdaIntegration(
-            self.foxy_webhook_processor,
-            request_templates={
-                "application/json": '{"statusCode": "200"}'
-            }
-        )
-
-        # Foxy specific webhook endpoints
-        foxy_resource.add_method("POST", foxy_integration)
-
-        # Advanced Foxy event endpoints
-        transaction_events = foxy_resource.add_resource("transaction")
-        transaction_events.add_method("POST", foxy_integration)
-
-        subscription_events = foxy_resource.add_resource("subscription")
-        subscription_events.add_method("POST", foxy_integration)
-
-        customer_events = foxy_resource.add_resource("customer")
-        customer_events.add_method("POST", foxy_integration)
-
-        # Cart abandonment webhook
-        cart_events = foxy_resource.add_resource("cart")
-        cart_events.add_method("POST", foxy_integration)
+        # Setup provider-specific infrastructure (replaces manual webhook setup)
+        self.foxy_provider.setup_infrastructure(self)
 
     def _setup_subscription_management(self) -> None:
         """Set up subscription management infrastructure (Foxy advanced feature)"""
@@ -328,141 +249,45 @@ class FoxyEcommerceStack(BaseEcommerceStack):
 
         self.add_environment_variables(additional_vars)
 
-    def get_foxy_integration_guide(self) -> Dict[str, str]:
+    def get_foxy_integration_guide(self) -> Dict[str, Any]:
         """
-        Get SSG-specific integration guide for Foxy.io advanced features.
+        ✅ REFACTORED: Get integration guide from FoxyProvider.
 
-        Foxy.io's advanced capabilities require more sophisticated integration
-        patterns that vary significantly by SSG engine.
+        This uses the provider's centralized integration guide instead of
+        duplicating integration logic in the stack.
         """
-        ssg_engine = self.ssg_config.ssg_engine
+        return self.foxy_provider.get_client_integration_guide()
 
-        integration_guides = {
-            "eleventy": {
-                "setup_instructions": "Configure Foxy cart with Eleventy data cascade, advanced templating",
-                "template_location": "src/_includes/foxy/",
-                "data_format": "JSON with subscription schemas",
-                "build_integration": "Eleventy computed data with Foxy API integration",
-                "advanced_features": "Subscription templates, cart abandonment, customer portals",
-                "example_product": """
-                {
-                  "id": "subscription-1",
-                  "name": "Monthly Subscription",
-                  "price": 29.99,
-                  "frequency": "1m",
-                  "subscription_frequency": "monthly",
-                  "foxy_product_code": "SUB001"
-                }
-                """
-            },
-            "astro": {
-                "setup_instructions": "Use Astro islands for advanced Foxy features, subscription management",
-                "template_location": "src/components/foxy/",
-                "data_format": "JSON with TypeScript interfaces",
-                "build_integration": "Astro component islands with Foxy advanced cart functionality",
-                "advanced_features": "Subscription islands, customer portal components, cart abandonment",
-                "example_product": """
-                <FoxySubscriptionProduct
-                  id="subscription-1"
-                  name="Monthly Subscription"
-                  price={29.99}
-                  frequency="1m"
-                  client:load
-                />
-                """
-            },
-            "hugo": {
-                "setup_instructions": "Hugo shortcodes and partials for Foxy advanced integration",
-                "template_location": "layouts/foxy/",
-                "data_format": "YAML with subscription schemas",
-                "build_integration": "Hugo data templates with Foxy API calls during build",
-                "advanced_features": "Subscription shortcodes, customer portal partials",
-                "example_product": """
-                - id: subscription-1
-                  name: Monthly Subscription
-                  price: 29.99
-                  frequency: 1m
-                  subscription_frequency: monthly
-                  foxy_product_code: SUB001
-                """
-            },
-            "gatsby": {
-                "setup_instructions": "GraphQL schema extensions for Foxy advanced features with React",
-                "template_location": "src/components/foxy/",
-                "data_format": "GraphQL with subscription types",
-                "build_integration": "Gatsby GraphQL with Foxy API source plugin, React components",
-                "advanced_features": "Subscription GraphQL queries, customer portal pages, cart state management",
-                "example_product": """
-                query FoxySubscriptions {
-                  allFoxySubscription {
-                    nodes {
-                      id
-                      name
-                      price
-                      frequency
-                      subscriptionFrequency
-                      foxyProductCode
-                      customerPortalUrl
-                    }
-                  }
-                }
-                """
-            }
-        }
+    def get_foxy_advanced_features(self) -> List[str]:
+        """
+        ✅ REFACTORED: Get advanced features from FoxyProvider metadata.
 
-        return integration_guides.get(ssg_engine, {})
-
-    def get_foxy_advanced_features(self) -> List[Dict[str, str]]:
-        """Get list of Foxy.io advanced features available with this stack"""
-        return [
-            {
-                "name": "Subscription Management",
-                "description": "Recurring billing and subscription lifecycle management",
-                "ssg_integration": f"Integrated with {self.ssg_config.ssg_engine} templates and data"
-            },
-            {
-                "name": "Advanced Cart Rules",
-                "description": "Complex pricing rules, discounts, and cart behavior customization",
-                "ssg_integration": f"Template-driven cart configuration for {self.ssg_config.ssg_engine}"
-            },
-            {
-                "name": "Customer Portal",
-                "description": "Self-service customer account management and subscription control",
-                "ssg_integration": f"Embedded in {self.ssg_config.ssg_engine} site with SSO integration"
-            },
-            {
-                "name": "Advanced Analytics",
-                "description": "Detailed customer behavior tracking and business intelligence",
-                "ssg_integration": f"Data integration with {self.ssg_config.ssg_engine} build process"
-            },
-            {
-                "name": "API Access",
-                "description": "Full REST API access for custom integrations and automation",
-                "ssg_integration": f"Build-time API integration with {self.ssg_config.ssg_engine}"
-            },
-            {
-                "name": "Multi-Currency Support",
-                "description": "International commerce with automatic currency conversion",
-                "ssg_integration": f"Locale-aware templates in {self.ssg_config.ssg_engine}"
-            }
-        ]
+        This uses the provider's feature list instead of hardcoding features
+        in the stack.
+        """
+        provider_metadata = self.foxy_provider.get_configuration_metadata()
+        return provider_metadata.get("features", [])
 
     @property
-    def foxy_outputs(self) -> Dict[str, str]:
-        """Foxy.io-specific outputs for client integration"""
+    def foxy_outputs(self) -> Dict[str, Any]:
+        """
+        ✅ REFACTORED: Foxy.io-specific outputs using provider metadata.
+
+        This uses provider methods to get consistent output information
+        instead of hardcoding stack-specific values.
+        """
         base_outputs = self.ecommerce_outputs
+        provider_metadata = self.foxy_provider.get_configuration_metadata()
 
         foxy_outputs = {
             **base_outputs,
             "foxy_subdomain": self.foxy_subdomain,
-            "foxy_store_url": f"https://{self.foxy_subdomain}.foxycart.com",
-            "foxy_webhook_url": f"{self.webhook_api.url}foxy",
-            "foxy_transaction_webhook_url": f"{self.webhook_api.url}foxy/transaction",
-            "foxy_subscription_webhook_url": f"{self.webhook_api.url}foxy/subscription",
-            "foxy_customer_webhook_url": f"{self.webhook_api.url}foxy/customer",
             "subscriptions_enabled": str(self.enable_subscriptions),
-            "integration_guide": str(self.get_foxy_integration_guide()),
-            "advanced_features": str(self.get_foxy_advanced_features()),
+            "provider_metadata": provider_metadata,
+            "integration_guide": self.get_foxy_integration_guide(),
+            "advanced_features": self.get_foxy_advanced_features(),
+            "webhook_endpoint": self.foxy_provider.get_webhook_endpoint_name(),
+            "required_aws_services": self.foxy_provider.get_required_aws_services(),
             "template_variant": self.ssg_config.template_variant,
             "ssg_engine_choice": self.ssg_config.ssg_engine
         }

@@ -17,7 +17,7 @@ from aws_cdk import (
     CfnOutput
 )
 
-from stacks.shared.base_ssg_stack import BaseSSGStack
+from shared.base.base_ssg_stack import BaseSSGStack
 from shared.ssg import StaticSiteConfig
 
 

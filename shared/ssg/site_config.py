@@ -331,7 +331,7 @@ class StaticSiteConfig(BaseModel):
             
         # Import here to avoid circular imports
         try:
-            from stacks.shared.theme_registry import ThemeRegistry
+            from shared.theme_registry import ThemeRegistry
             theme = ThemeRegistry.get_theme(self.theme_id)
             if not theme:
                 return None

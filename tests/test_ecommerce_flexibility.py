@@ -21,7 +21,7 @@ import pytest
 from typing import Dict, Any
 from unittest.mock import Mock, patch
 
-from stacks.shared.ecommerce_stack_factory import EcommerceStackFactory
+from shared.factories.ecommerce_stack_factory import EcommerceStackFactory
 from stacks.ecommerce.snipcart_ecommerce_stack import SnipcartEcommerceStack
 from stacks.ecommerce.foxy_ecommerce_stack import FoxyEcommerceStack
 

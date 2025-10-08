@@ -10,7 +10,7 @@ from aws_cdk import App
 from pydantic import ValidationError
 
 from shared.ssg import StaticSiteConfig, SSGEngineFactory
-from shared.factories.ssg_stack_factory import SSGStackFactory
+from stacks.hosted_only.tier1.eleventy_marketing_stack import EleventyMarketingStack
 
 
 class TestSSGIntegration:
@@ -33,11 +33,11 @@ class TestSSGIntegration:
 
         # Validate CDK stack can be created
         app = App()
-        stack = SSGStackFactory.create_ssg_stack(
-            scope=app,
+        stack = EleventyMarketingStack(
+            app,
+            "TestEleventyStack",
             client_id="test-client",
-            domain="test.example.com",
-            stack_type="marketing"
+            domain="test.example.com"
         )
 
         # Validate stack outputs
@@ -203,11 +203,11 @@ class TestRevenueCriticalStacks:
         assert len(base_stack.outputs) >= 4
 
         # Test Eleventy marketing stack (first revenue-critical implementation)
-        eleventy_stack = SSGStackFactory.create_ssg_stack(
-            scope=app,
+        eleventy_stack = EleventyMarketingStack(
+            app,
+            "TestEleventyMarketing",
             client_id="marketing-test",
-            domain="marketing.example.com",
-            stack_type="marketing"
+            domain="marketing.example.com"
         )
 
         assert eleventy_stack.ssg_config.ssg_engine == "eleventy"

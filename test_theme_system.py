@@ -15,7 +15,7 @@ def test_theme_registry():
     """Test basic theme registry functionality"""
     print("🧪 Testing Theme Registry...")
     
-    from stacks.shared.theme_registry import ThemeRegistry
+    from shared.theme_registry import ThemeRegistry
     
     # Test getting Jekyll themes
     jekyll_themes = ThemeRegistry.get_themes("jekyll")

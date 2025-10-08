@@ -468,14 +468,14 @@ The Jekyll stack now includes professional theme integration with the popular mi
 
 ```python
 from shared.ssg import StaticSiteConfig
-from stacks.hosted_only.tier1.jekyll_github_stack import JekyllGitHubStack
+from shared.factories.ssg_stack_factory import SSGStackFactory
 
-# Create Jekyll site with minimal-mistakes theme
+# Create Jekyll site with minimal-mistakes theme using SSG Stack Factory
 jekyll_config = StaticSiteConfig(
     client_id="professional-docs",
     domain="docs.professional.com",
     ssg_engine="jekyll",
-    template_variant="simple_blog", 
+    template_variant="simple_blog",
     performance_tier="basic",
     theme_id="minimal-mistakes",  # Professional theme
     theme_config={
@@ -489,12 +489,12 @@ jekyll_config = StaticSiteConfig(
     }
 )
 
-# Deploy Jekyll stack with theme
-jekyll_stack = JekyllGitHubStack(
-    app,
-    "Professional-Jekyll-Stack", 
+# ✅ UPDATED: Deploy Jekyll stack using SSG Stack Factory
+jekyll_stack = SSGStackFactory.create_ssg_stack(
+    scope=app,
     client_id="professional-docs",
     domain="docs.professional.com",
+    stack_type="developer",  # Uses JekyllGitHubStack internally
     theme_id="minimal-mistakes",
     theme_config=jekyll_config.theme_config
 )

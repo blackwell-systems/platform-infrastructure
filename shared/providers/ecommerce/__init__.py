@@ -6,7 +6,7 @@ Provides consistent interfaces for integrating various e-commerce
 platforms (Snipcart, Foxy.io, Shopify, etc.) with SSG stacks.
 
 Usage:
-    from shared.ssg.ecommerce import EcommerceProviderFactory, EcommerceProvider
+    from shared.providers.ecommerce import EcommerceProviderFactory, EcommerceProvider
 
     # Create a provider instance
     provider = EcommerceProviderFactory.create_provider("snipcart", config)

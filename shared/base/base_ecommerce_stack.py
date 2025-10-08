@@ -31,7 +31,7 @@ from aws_cdk import (
 )
 from constructs import Construct
 
-from stacks.shared.base_ssg_stack import BaseSSGStack
+from shared.base.base_ssg_stack import BaseSSGStack
 from shared.ssg import StaticSiteConfig
 
 
@@ -182,9 +182,14 @@ class BaseEcommerceStack(BaseSSGStack):
         return variant
 
     def _setup_ecommerce_integration(self) -> None:
-        """Set up e-commerce provider integration infrastructure"""
+        """
+        ✅ UPDATED: Set up base e-commerce integration (provider-aware).
 
-        # Base e-commerce environment variables
+        This method now focuses on shared infrastructure that all providers need,
+        while provider-specific infrastructure is handled by the provider classes.
+        """
+
+        # Base e-commerce environment variables (shared across all providers)
         ecommerce_vars = {
             "ECOMMERCE_PROVIDER": self.ecommerce_provider,
             "STORE_NAME": self.store_name,
@@ -192,16 +197,16 @@ class BaseEcommerceStack(BaseSSGStack):
             "SSG_ENGINE": self.ssg_config.ssg_engine
         }
 
-        # Add SSG-specific e-commerce configuration
+        # Add SSG-specific e-commerce configuration (generic patterns)
         ssg_specific_vars = self._get_ssg_specific_ecommerce_config()
         ecommerce_vars.update(ssg_specific_vars)
 
         self.add_environment_variables(ecommerce_vars)
 
-        # Create e-commerce infrastructure components
-        self._create_order_processing_infrastructure()
-        self._create_webhook_infrastructure()
-        self._create_notification_infrastructure()
+        # ✅ REFACTORED: Create only shared infrastructure
+        # Provider-specific infrastructure (webhooks, etc.) is now handled by providers
+        self._create_shared_order_processing_infrastructure()
+        self._create_shared_notification_infrastructure()
 
     def _get_ssg_specific_ecommerce_config(self) -> Dict[str, str]:
         """
@@ -250,10 +255,15 @@ class BaseEcommerceStack(BaseSSGStack):
 
         return ssg_configs.get(ssg_engine, {})
 
-    def _create_order_processing_infrastructure(self) -> None:
-        """Create infrastructure for order processing and management"""
+    def _create_shared_order_processing_infrastructure(self) -> None:
+        """
+        ✅ UPDATED: Create shared order processing infrastructure.
 
-        # Orders table for tracking e-commerce transactions
+        This creates base infrastructure that all e-commerce providers need,
+        such as order tracking tables that providers can use.
+        """
+
+        # Orders table for tracking e-commerce transactions (shared by all providers)
         self.orders_table = dynamodb.Table(
             self,
             "OrdersTable",
@@ -271,7 +281,7 @@ class BaseEcommerceStack(BaseSSGStack):
             point_in_time_recovery=True
         )
 
-        # Add GSI for customer queries
+        # Add GSI for customer queries (useful for all providers)
         self.orders_table.add_global_secondary_index(
             index_name="customer-index",
             partition_key=dynamodb.Attribute(
@@ -284,55 +294,13 @@ class BaseEcommerceStack(BaseSSGStack):
             )
         )
 
-    def _create_webhook_infrastructure(self) -> None:
-        """Create webhook infrastructure for e-commerce provider integration"""
+    def _create_shared_notification_infrastructure(self) -> None:
+        """
+        ✅ UPDATED: Create shared notification infrastructure.
 
-        # Webhook processing Lambda function
-        self.webhook_processor = lambda_.Function(
-            self,
-            "WebhookProcessor",
-            function_name=f"{self.ssg_config.client_id}-{self.ecommerce_provider}-webhook",
-            runtime=lambda_.Runtime.PYTHON_3_9,
-            handler="webhook.handler",
-            code=lambda_.Code.from_asset("lambda/ecommerce-webhook"),
-            environment={
-                "ORDERS_TABLE": self.orders_table.table_name,
-                "ECOMMERCE_PROVIDER": self.ecommerce_provider,
-                "STORE_NAME": self.store_name,
-                "SSG_ENGINE": self.ssg_config.ssg_engine
-            }
-        )
-
-        # Grant permissions to webhook processor
-        self.orders_table.grant_read_write_data(self.webhook_processor)
-
-        # API Gateway for webhook endpoints
-        self.webhook_api = apigateway.RestApi(
-            self,
-            "WebhookAPI",
-            rest_api_name=f"{self.ssg_config.client_id}-{self.ecommerce_provider}-webhooks",
-            description=f"Webhook API for {self.ecommerce_provider} e-commerce integration",
-            deploy_options=apigateway.StageOptions(
-                stage_name="prod",
-                throttling_rate_limit=100,
-                throttling_burst_limit=200
-            )
-        )
-
-        # Webhook endpoint integration
-        webhook_integration = apigateway.LambdaIntegration(
-            self.webhook_processor,
-            request_templates={
-                "application/json": '{"statusCode": "200"}'
-            }
-        )
-
-        # Add webhook resource and method
-        webhook_resource = self.webhook_api.root.add_resource("webhook")
-        webhook_resource.add_method("POST", webhook_integration)
-
-    def _create_notification_infrastructure(self) -> None:
-        """Create notification infrastructure for order updates"""
+        This creates base notification infrastructure that providers can use,
+        while provider-specific webhook logic is handled by the providers themselves.
+        """
 
         # SES for order confirmation emails
         self.notification_processor = lambda_.Function(
@@ -397,15 +365,20 @@ class BaseEcommerceStack(BaseSSGStack):
 
     @property
     def ecommerce_outputs(self) -> Dict[str, Any]:
-        """E-commerce specific outputs for client integration"""
+        """
+        ✅ UPDATED: E-commerce specific outputs (provider-aware).
+
+        Now focuses on shared infrastructure outputs while provider-specific
+        outputs (like webhook URLs) are handled by the provider implementations.
+        """
         base_outputs = self.outputs
 
         ecommerce_outputs = {
             **base_outputs,
             "ecommerce_provider": self.ecommerce_provider,
             "store_name": self.store_name,
-            "webhook_url": f"{self.webhook_api.url}webhook",
             "orders_table_name": self.orders_table.table_name,
+            "notification_processor_function": self.notification_processor.function_name,
             "compatible_ssg_engines": self.get_compatible_ssg_engines(),
             "provider_info": self.get_ecommerce_provider_info(),
             "setup_cost_estimate": self.estimate_setup_cost()

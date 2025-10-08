@@ -469,7 +469,7 @@ recommendation = recommend_cms_setup(modern_business)
 # Flexible e-commerce provider approach - client chooses provider tier then SSG engine
 from stacks.ecommerce.snipcart_ecommerce_stack import SnipcartEcommerceStack
 from stacks.ecommerce.foxy_ecommerce_stack import FoxyEcommerceStack
-from stacks.shared.ecommerce_stack_factory import EcommerceStackFactory
+from shared.factories.ecommerce_stack_factory import EcommerceStackFactory
 
 # Example 1: Budget-conscious technical client
 # Chooses Snipcart tier ($85-125/month) with Hugo for fast builds
@@ -514,7 +514,7 @@ def recommend_ecommerce_setup(client_requirements):
     """Recommend e-commerce provider tier and SSG engine based on client needs"""
 
     # Import the factory for recommendations
-    from stacks.shared.ecommerce_stack_factory import EcommerceStackFactory
+    from shared.factories.ecommerce_stack_factory import EcommerceStackFactory
 
     # Get recommendations based on requirements
     recommendations = EcommerceStackFactory.get_ecommerce_recommendations(client_requirements)
@@ -988,7 +988,7 @@ print('Monthly cost: $85-125 (same tier, different SSG complexity)')
 
 # E-commerce provider recommendation system
 uv run python -c "
-from stacks.shared.ecommerce_stack_factory import EcommerceStackFactory
+from shared.factories.ecommerce_stack_factory import EcommerceStackFactory
 requirements = {'budget_conscious': True, 'technical_team': True}
 recommendations = EcommerceStackFactory.get_ecommerce_recommendations(requirements)
 print(f'E-commerce Recommendation: {recommendations[0]['ecommerce_provider']} + {recommendations[0]['recommended_ssg']}')

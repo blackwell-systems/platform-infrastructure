@@ -23,7 +23,7 @@ Technical Features:
 from typing import Dict, Any, Optional
 from constructs import Construct
 
-from stacks.shared.base_ssg_stack import BaseSSGStack
+from shared.base.base_ssg_stack import BaseSSGStack
 from shared.ssg import StaticSiteConfig
 
 

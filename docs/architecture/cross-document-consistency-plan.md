@@ -153,7 +153,7 @@
 ```bash
 # E-commerce provider recommendation system
 uv run python -c "
-from stacks.shared.ecommerce_stack_factory import EcommerceStackFactory
+from shared.factories.ecommerce_stack_factory import EcommerceStackFactory
 recommendations = EcommerceStackFactory.get_ecommerce_recommendations(requirements)
 print(f'E-commerce Recommendation: {recommendations[0]['ecommerce_provider']} + {recommendations[0]['recommended_ssg']}')
 "

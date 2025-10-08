@@ -23,6 +23,39 @@ The Jekyll SSG system provides **GitHub Pages compatible static site generation*
 
 ---
 
+## 🏭 Recommended Usage: SSG Stack Factory
+
+**⚠️ IMPORTANT UPDATE**: The recommended way to create Jekyll stacks is now using the **SSG Stack Factory** pattern for better consistency and maintainability.
+
+### ✅ Recommended Factory Pattern
+```python
+from shared.factories.ssg_stack_factory import SSGStackFactory
+
+# Create Jekyll stack using factory (recommended)
+jekyll_stack = SSGStackFactory.create_ssg_stack(
+    scope=app,
+    client_id="tech-docs",
+    domain="docs.yourcompany.com",
+    stack_type="developer"  # Automatically selects JekyllGitHubStack
+)
+```
+
+### 📝 Legacy Direct Import (for reference)
+```python
+from stacks.hosted_only.tier1.jekyll_github_stack import JekyllGitHubStack
+
+# Direct instantiation (legacy pattern - shown for reference)
+jekyll_stack = JekyllGitHubStack(...)
+```
+
+**Benefits of Factory Pattern:**
+- 🎯 **Intelligent Selection**: Automatically chooses the right stack type for your use case
+- 🔧 **Consistent Interface**: Same API across all SSG types (Eleventy, Jekyll, Astro)
+- 📊 **Built-in Recommendations**: Get suggestions based on your requirements
+- 🧪 **Better Testing**: Simplified testing and mocking capabilities
+
+---
+
 ## Quick Start
 
 ### 1. Basic Jekyll Configuration

@@ -17,9 +17,14 @@ CLIENT CHOICE EXAMPLES:
 - Intermediate client: Eleventy + Snipcart (balanced complexity)
 - Modern client: Astro + Snipcart (component islands, modern features)
 - Advanced client: Gatsby + Snipcart (React ecosystem, GraphQL)
+
+ARCHITECTURAL PATTERN:
+✅ Uses abstract SnipcartProvider for proper separation of concerns
+✅ Eliminates code duplication through provider pattern
+✅ Enables consistent provider behavior across SSG engines
 """
 
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 from constructs import Construct
 from aws_cdk import (
     aws_lambda as lambda_,
@@ -27,7 +32,8 @@ from aws_cdk import (
     CfnParameter
 )
 
-from stacks.shared.base_ecommerce_stack import BaseEcommerceStack
+from shared.base.base_ecommerce_stack import BaseEcommerceStack
+from shared.providers.ecommerce.snipcart_provider import SnipcartProvider
 
 
 class SnipcartEcommerceStack(BaseEcommerceStack):
@@ -71,112 +77,35 @@ class SnipcartEcommerceStack(BaseEcommerceStack):
 
         self.snipcart_mode = snipcart_mode
 
-        # Add Snipcart-specific infrastructure
-        self._setup_snipcart_integration()
-        self._setup_snipcart_webhooks()
+        # ✅ REFACTORED: Use SnipcartProvider pattern instead of hardcoded logic
+        # Use the provided store_name parameter directly
+        effective_store_name = store_name or f"{client_id.title()} Store"
+        provider_config = {
+            "store_name": effective_store_name,
+            "currency": currency,
+            "mode": snipcart_mode
+        }
+
+        self.snipcart_provider = SnipcartProvider(provider_config)
+
+        # Setup provider-based infrastructure
+        self._setup_provider_integration()
         self._create_snipcart_parameters()
 
-    def _setup_snipcart_integration(self) -> None:
-        """Set up Snipcart specific infrastructure and configuration"""
-
-        # Base Snipcart configuration
-        snipcart_vars = {
-            "SNIPCART_ENABLED": "true",
-            "SNIPCART_VERSION": "3.7.1",
-            "SNIPCART_MODE": self.snipcart_mode,
-            "SNIPCART_CURRENCY": self.currency,
-            "SNIPCART_STORE_NAME": self.store_name
-        }
-
-        # SSG-specific Snipcart configuration
-        ssg_specific_vars = self._get_ssg_specific_snipcart_config()
-        snipcart_vars.update(ssg_specific_vars)
-
-        self.add_environment_variables(snipcart_vars)
-
-    def _get_ssg_specific_snipcart_config(self) -> Dict[str, str]:
+    def _setup_provider_integration(self) -> None:
         """
-        Get SSG-specific Snipcart configuration.
+        ✅ REFACTORED: Use SnipcartProvider pattern for integration setup.
 
-        This allows Snipcart to integrate optimally with different SSG engines
-        while maintaining consistent e-commerce functionality.
+        This eliminates code duplication and uses the abstract provider interface
+        for consistent behavior across all Snipcart implementations.
         """
-        ssg_engine = self.ssg_config.ssg_engine
 
-        ssg_configs = {
-            "eleventy": {
-                "SNIPCART_TEMPLATES_PATH": "src/_includes/snipcart",
-                "PRODUCT_DATA_PATH": "src/_data/products.json",
-                "ELEVENTY_SNIPCART_INTEGRATION": "true",
-                "BUILD_COMMAND_OVERRIDE": "npx @11ty/eleventy"
-            },
-            "astro": {
-                "SNIPCART_COMPONENTS_PATH": "src/components/snipcart",
-                "PRODUCT_DATA_PATH": "src/data/products.json",
-                "ASTRO_SNIPCART_INTEGRATION": "true",
-                "ASTRO_ECOMMERCE_ISLANDS": "true",
-                "BUILD_COMMAND_OVERRIDE": "npm run build"
-            },
-            "hugo": {
-                "SNIPCART_LAYOUTS_PATH": "layouts/snipcart",
-                "PRODUCT_DATA_PATH": "data/products.yaml",
-                "HUGO_SNIPCART_INTEGRATION": "true",
-                "BUILD_COMMAND_OVERRIDE": "hugo --minify"
-            },
-            "gatsby": {
-                "SNIPCART_COMPONENTS_PATH": "src/components/snipcart",
-                "PRODUCT_GRAPHQL_TYPE": "SnipcartProduct",
-                "GATSBY_SNIPCART_INTEGRATION": "true",
-                "BUILD_COMMAND_OVERRIDE": "npm run build"
-            }
-        }
+        # Get provider-specific environment variables (replaces hardcoded config)
+        provider_vars = self.snipcart_provider.get_environment_variables()
+        self.add_environment_variables(provider_vars)
 
-        return ssg_configs.get(ssg_engine, {})
-
-    def _setup_snipcart_webhooks(self) -> None:
-        """Set up Snipcart-specific webhook processing"""
-
-        # Snipcart webhook processor (extends base webhook infrastructure)
-        self.snipcart_webhook_processor = lambda_.Function(
-            self,
-            "SnipcartWebhookProcessor",
-            function_name=f"{self.ssg_config.client_id}-snipcart-webhook-processor",
-            runtime=lambda_.Runtime.PYTHON_3_9,
-            handler="snipcart_webhook.handler",
-            code=lambda_.Code.from_asset("lambda/snipcart-webhook"),
-            environment={
-                "ORDERS_TABLE": self.orders_table.table_name,
-                "SNIPCART_MODE": self.snipcart_mode,
-                "STORE_NAME": self.store_name,
-                "SSG_ENGINE": self.ssg_config.ssg_engine,
-                "NOTIFICATION_FUNCTION": self.notification_processor.function_name
-            }
-        )
-
-        # Grant permissions
-        self.orders_table.grant_read_write_data(self.snipcart_webhook_processor)
-        self.notification_processor.grant_invoke(self.snipcart_webhook_processor)
-
-        # Add Snipcart webhook endpoint to API Gateway
-        snipcart_resource = self.webhook_api.root.add_resource("snipcart")
-
-        # Snipcart webhook integration
-        snipcart_integration = lambda_.LambdaIntegration(
-            self.snipcart_webhook_processor,
-            request_templates={
-                "application/json": '{"statusCode": "200"}'
-            }
-        )
-
-        # Snipcart webhook endpoints
-        snipcart_resource.add_method("POST", snipcart_integration)  # Order events
-
-        # Add specific Snipcart event endpoints
-        order_events = snipcart_resource.add_resource("order")
-        order_events.add_method("POST", snipcart_integration)
-
-        customer_events = snipcart_resource.add_resource("customer")
-        customer_events.add_method("POST", snipcart_integration)
+        # Setup provider-specific infrastructure (replaces manual webhook setup)
+        self.snipcart_provider.setup_infrastructure(self)
 
     def _create_snipcart_parameters(self) -> None:
         """Create CDK parameters for Snipcart configuration"""
@@ -218,96 +147,33 @@ class SnipcartEcommerceStack(BaseEcommerceStack):
 
         self.add_environment_variables(additional_vars)
 
-    def get_snipcart_integration_guide(self) -> Dict[str, str]:
+    def get_snipcart_integration_guide(self) -> Dict[str, Any]:
         """
-        Get SSG-specific integration guide for Snipcart.
+        ✅ REFACTORED: Get integration guide from SnipcartProvider.
 
-        This provides developers with clear instructions for integrating
-        Snipcart with their chosen SSG engine.
+        This uses the provider's centralized integration guide instead of
+        duplicating integration logic in the stack.
         """
-        ssg_engine = self.ssg_config.ssg_engine
-
-        integration_guides = {
-            "eleventy": {
-                "setup_instructions": "Add Snipcart script to base template, configure data files",
-                "template_location": "src/_includes/snipcart/",
-                "data_format": "JSON",
-                "build_integration": "Eleventy data cascade with Snipcart product data",
-                "example_product": """
-                {
-                  "id": "product-1",
-                  "name": "Example Product",
-                  "price": 29.99,
-                  "data-item-id": "product-1",
-                  "data-item-price": "29.99",
-                  "data-item-name": "Example Product"
-                }
-                """
-            },
-            "astro": {
-                "setup_instructions": "Use Astro components for Snipcart integration, leverage islands",
-                "template_location": "src/components/snipcart/",
-                "data_format": "JSON",
-                "build_integration": "Astro component islands for cart functionality",
-                "example_product": """
-                <SnipcartProduct
-                  id="product-1"
-                  name="Example Product"
-                  price={29.99}
-                  client:load
-                />
-                """
-            },
-            "hugo": {
-                "setup_instructions": "Use Hugo partials and data files for Snipcart integration",
-                "template_location": "layouts/snipcart/",
-                "data_format": "YAML",
-                "build_integration": "Hugo data templates with Snipcart product generation",
-                "example_product": """
-                - id: product-1
-                  name: Example Product
-                  price: 29.99
-                  data_item_id: product-1
-                  data_item_price: "29.99"
-                  data_item_name: Example Product
-                """
-            },
-            "gatsby": {
-                "setup_instructions": "Use Gatsby GraphQL and React components for Snipcart",
-                "template_location": "src/components/snipcart/",
-                "data_format": "GraphQL",
-                "build_integration": "GraphQL product queries with Snipcart React components",
-                "example_product": """
-                query SnipcartProducts {
-                  allSnipcartProduct {
-                    nodes {
-                      id
-                      name
-                      price
-                      dataItemId
-                      dataItemPrice
-                      dataItemName
-                    }
-                  }
-                }
-                """
-            }
-        }
-
-        return integration_guides.get(ssg_engine, {})
+        return self.snipcart_provider.get_client_integration_guide()
 
     @property
-    def snipcart_outputs(self) -> Dict[str, str]:
-        """Snipcart-specific outputs for client integration"""
+    def snipcart_outputs(self) -> Dict[str, Any]:
+        """
+        ✅ REFACTORED: Snipcart-specific outputs using provider metadata.
+
+        This uses provider methods to get consistent output information
+        instead of hardcoding stack-specific values.
+        """
         base_outputs = self.ecommerce_outputs
+        provider_metadata = self.snipcart_provider.get_configuration_metadata()
 
         snipcart_outputs = {
             **base_outputs,
             "snipcart_mode": self.snipcart_mode,
-            "snipcart_webhook_url": f"{self.webhook_api.url}snipcart",
-            "snipcart_order_webhook_url": f"{self.webhook_api.url}snipcart/order",
-            "snipcart_customer_webhook_url": f"{self.webhook_api.url}snipcart/customer",
-            "integration_guide": str(self.get_snipcart_integration_guide()),
+            "provider_metadata": provider_metadata,
+            "integration_guide": self.get_snipcart_integration_guide(),
+            "webhook_endpoint": self.snipcart_provider.get_webhook_endpoint_name(),
+            "required_aws_services": self.snipcart_provider.get_required_aws_services(),
             "template_variant": self.ssg_config.template_variant,
             "ssg_engine_choice": self.ssg_config.ssg_engine
         }

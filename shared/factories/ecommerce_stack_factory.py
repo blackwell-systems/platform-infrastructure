@@ -27,7 +27,7 @@ from constructs import Construct
 
 from stacks.ecommerce.snipcart_ecommerce_stack import SnipcartEcommerceStack
 from stacks.ecommerce.foxy_ecommerce_stack import FoxyEcommerceStack
-from stacks.shared.base_ecommerce_stack import BaseEcommerceStack
+from shared.base.base_ecommerce_stack import BaseEcommerceStack
 
 
 class EcommerceStackFactory:
