@@ -155,10 +155,10 @@ class SharedInfraStack(Stack):
                 markdown="## Stack Deployment Tracking\n\n" +
                         "### Tier 1 (Essential): $360-3,000 setup | $0-150/month\n" +
                         "- **Static Sites**: `eleventy_marketing_stack`, `astro_portfolio_stack`, `jekyll_github_stack`\n" +
-                        "- **Static + CMS**: `eleventy_decap_cms_stack`, `astro_tina_cms_stack`, `astro_sanity_stack`, `gatsby_contentful_stack`\n" +
                         "- **Featured**: `astro_template_basic_stack` - Modern performance with flexibility\n" +
-                        "- **E-commerce**: `eleventy_snipcart_stack`, `astro_foxy_stack`\n" +
-                        "- **Shopify**: `shopify_standard_dns_stack` - DNS-only setup\n\n" +
+                        "- **✅ CMS Flexibility**: `decap_cms_tier`, `tina_cms_tier`, `sanity_cms_tier`, `contentful_cms_tier` (client chooses SSG)\n" +
+                        "- **✅ E-commerce Flexibility**: `snipcart_ecommerce_tier`, `foxy_ecommerce_tier`, `shopify_basic_tier` (client chooses SSG)\n" +
+                        "- **Shopify DNS**: `shopify_standard_dns_stack` - DNS-only setup\n\n" +
                         "### Tier 2 (Professional): $2,400-9,600 setup | $50-400/month\n" +
                         "- **Advanced CMS**: `astro_advanced_cms_stack`, `gatsby_headless_cms_stack`\n" +
                         "- **Professional Frameworks**: `nextjs_professional_headless_cms_stack`, `nuxtjs_professional_headless_cms_stack`\n" +
@@ -427,17 +427,21 @@ class SharedInfraStack(Stack):
             },
             "supported_stack_variants": [
                 # Tier 1 Hosted-Only Stacks
+                # Tier 1 Static Sites (individual stacks)
                 "eleventy_marketing_stack",
                 "astro_portfolio_stack",
                 "jekyll_github_stack",
-                "eleventy_decap_cms_stack",
-                "astro_tina_cms_stack",
-                "astro_sanity_stack",
-                "gatsby_contentful_stack",
                 "astro_template_basic_stack",
-                "eleventy_snipcart_stack",
-                "astro_foxy_stack",
-                "shopify_standard_dns_stack",
+
+                # Tier 1 Flexible Service Tiers (factory-based)
+                "decap_cms_tier",           # CMS: Hugo/Eleventy/Astro/Gatsby choice
+                "tina_cms_tier",            # CMS: Astro/Eleventy/Next.js/Nuxt choice
+                "sanity_cms_tier",          # CMS: Astro/Gatsby/Next.js/Nuxt choice
+                "contentful_cms_tier",      # CMS: Gatsby/Astro/Next.js/Nuxt choice
+                "snipcart_ecommerce_tier",  # E-commerce: Hugo/Eleventy/Astro/Gatsby choice
+                "foxy_ecommerce_tier",      # E-commerce: Hugo/Eleventy/Astro/Gatsby choice
+                "shopify_basic_tier",       # E-commerce: Eleventy/Astro/Next.js/Nuxt choice
+                "shopify_standard_dns_stack",  # DNS-only (no SSG choice needed)
 
                 # Tier 2 Hosted-Only Stacks
                 "astro_advanced_cms_stack",

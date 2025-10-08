@@ -103,19 +103,32 @@ except ValidationError as e:
 
 **Tier 1 (Essential) - 11 Stack Variants:**
 ```python
-tier1_stacks = [
-    "eleventy_marketing_stack",        # Static marketing sites
-    "astro_portfolio_stack",           # Portfolio/showcase sites  
-    "jekyll_github_stack",             # ✅ COMPLETED - GitHub Pages compatible with minimal-mistakes theme
-    "eleventy_decap_cms_stack",        # Static + Decap CMS
-    "astro_tina_cms_stack",            # Astro + Tina CMS
-    "astro_sanity_stack",              # Astro + Sanity CMS
-    "gatsby_contentful_stack",         # Gatsby + Contentful
-    "astro_template_basic_stack",      # Basic Astro template
-    "eleventy_snipcart_stack",         # Eleventy + Snipcart ($29-99/month, 2% fee)
-    "astro_foxy_stack",                # Astro + Foxy.io ($75-300/month, 1.5% fee)
-    "shopify_standard_dns_stack"       # Shopify DNS-only setup
-]
+# ✅ UPDATED: Flexible Architecture - Client Choice Within Service Types
+tier1_service_types = {
+    # Static Sites (No CMS)
+    "static_sites": [
+        "eleventy_marketing_stack",     # Static marketing sites
+        "astro_portfolio_stack",        # Portfolio/showcase sites
+        "jekyll_github_stack",          # ✅ COMPLETED - GitHub Pages compatible
+        "astro_template_basic_stack"    # Basic Astro template
+    ],
+
+    # CMS-Enabled Sites (Client Choice: CMS tier → SSG engine)
+    "cms_sites": {
+        "decap_cms_tier": ["hugo", "eleventy", "astro", "gatsby"],           # $50-75/month
+        "tina_cms_tier": ["astro", "eleventy", "nextjs", "nuxt"],            # $60-85/month
+        "sanity_cms_tier": ["astro", "gatsby", "nextjs", "nuxt"],            # $65-90/month
+        "contentful_cms_tier": ["gatsby", "astro", "nextjs", "nuxt"]         # $75-125/month
+    },
+
+    # E-commerce Sites (Client Choice: Provider tier → SSG engine)
+    "ecommerce_sites": {
+        "snipcart_ecommerce_tier": ["hugo", "eleventy", "astro", "gatsby"],  # $85-125/month
+        "foxy_ecommerce_tier": ["hugo", "eleventy", "astro", "gatsby"],      # $100-150/month
+        "shopify_basic_tier": ["eleventy", "astro", "nextjs", "nuxt"],       # $75-125/month
+        "shopify_standard_dns_stack": []  # DNS-only, no SSG choice needed
+    }
+}
 ```
 
 #### E-commerce Stack Details
@@ -724,13 +737,16 @@ def validate_client_config(config_data: dict) -> ClientConfig:
 def validate_stack_type(stack_type: str, service_tier: str) -> bool:
     """Validate stack type is appropriate for service tier."""
     
+    # ✅ UPDATED: Flexible Architecture Validation
     tier_mappings = {
         "tier1": [
-            "eleventy_marketing_stack", "astro_portfolio_stack", 
-            "jekyll_github_stack", "eleventy_decap_cms_stack",
-            "astro_tina_cms_stack", "astro_sanity_stack",
-            "gatsby_contentful_stack", "astro_template_basic_stack",
-            "eleventy_snipcart_stack", "astro_foxy_stack", 
+            # Static Sites
+            "eleventy_marketing_stack", "astro_portfolio_stack",
+            "jekyll_github_stack", "astro_template_basic_stack",
+            # CMS Tiers (via factory patterns)
+            "decap_cms_tier", "tina_cms_tier", "sanity_cms_tier", "contentful_cms_tier",
+            # E-commerce Provider Tiers (via factory patterns)
+            "snipcart_ecommerce_tier", "foxy_ecommerce_tier", "shopify_basic_tier",
             "shopify_standard_dns_stack"
         ],
         "tier2": [

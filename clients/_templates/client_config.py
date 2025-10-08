@@ -6,7 +6,7 @@ Supports the complete service delivery model:
 - Dual-Delivery Solutions: Support both hosted mode and consulting template delivery
 - Migration Services: Legacy platform migrations to modern solutions
 
-Aligned with 30 hosted stack variants across Tier 1, Tier 2, and Dual-Delivery service tiers.
+✅ UPDATED: Supports flexible architecture with CMS tiers and e-commerce provider tiers enabling client SSG engine choice.
 """
 
 from typing import Dict, Literal, Optional
@@ -26,14 +26,34 @@ class ClientConfig(BaseModel):
         str_strip_whitespace=True,
         validate_assignment=True,
         json_schema_extra={
-            "examples": [{
-                "client_id": "acme-corp",
-                "company_name": "Acme Corporation",
-                "service_tier": "tier2",
-                "stack_type": "wordpress_ecs_professional_stack",
-                "domain": "acme.com",
-                "contact_email": "admin@acme.com"
-            }]
+            "examples": [
+                {
+                    "client_id": "content-business",
+                    "company_name": "Content Business Co",
+                    "service_tier": "tier1",
+                    "stack_type": "tina_cms_tier",
+                    "ssg_engine": "astro",
+                    "domain": "contentbiz.com",
+                    "contact_email": "admin@contentbiz.com"
+                },
+                {
+                    "client_id": "tech-store",
+                    "company_name": "Tech Store LLC",
+                    "service_tier": "tier1",
+                    "stack_type": "snipcart_ecommerce_tier",
+                    "ssg_engine": "hugo",
+                    "domain": "techstore.com",
+                    "contact_email": "orders@techstore.com"
+                },
+                {
+                    "client_id": "acme-corp",
+                    "company_name": "Acme Corporation",
+                    "service_tier": "tier2",
+                    "stack_type": "wordpress_ecs_professional_stack",
+                    "domain": "acme.com",
+                    "contact_email": "admin@acme.com"
+                }
+            ]
         }
     )
 
@@ -72,7 +92,12 @@ class ClientConfig(BaseModel):
 
     stack_type: str = Field(
         ...,
-        description="Technology stack variant from CDK strategy (30 hosted variants)"
+        description="Service type: static sites, CMS tiers (decap_cms_tier, tina_cms_tier, etc.), or e-commerce tiers (snipcart_ecommerce_tier, etc.)"
+    )
+
+    ssg_engine: Optional[str] = Field(
+        default=None,
+        description="SSG engine choice for flexible tiers (hugo, eleventy, astro, gatsby, nextjs, nuxt). Required for CMS/e-commerce tiers, ignored for static sites."
     )
 
     domain: str = Field(..., description="Primary domain where website will be hosted")
@@ -169,23 +194,46 @@ class ClientConfig(BaseModel):
     def validate_stack_service_alignment(self):
         """Validate stack type matches service tier and management model."""
         
-        # Define stack categories (same as in stack_type validator)
-        tier1_developer_managed = {"eleventy_marketing_stack", "astro_portfolio_stack", "jekyll_github_stack", "eleventy_snipcart_stack"}
-        tier1_self_managed = {"eleventy_decap_cms_stack", "astro_tina_cms_stack", "astro_sanity_stack", "gatsby_contentful_stack", "astro_template_basic_stack"}
-        tier1_technical = {"jekyll_github_stack", "astro_foxy_stack"}
+        # ✅ UPDATED: Flexible Architecture - Service Types & Tiers (not hardcoded stacks)
+        # Static Sites (implemented as individual stacks)
+        tier1_developer_managed = {"eleventy_marketing_stack", "astro_portfolio_stack", "jekyll_github_stack"}
+        tier1_self_managed = {"astro_template_basic_stack"}  # Basic Astro template
+        tier1_technical = {"jekyll_github_stack"}
+
+        # Flexible Service Tiers (implemented via factory patterns)
+        tier1_cms_tiers = {"decap_cms_tier", "tina_cms_tier", "sanity_cms_tier", "contentful_cms_tier"}
+        tier1_ecommerce_tiers = {"snipcart_ecommerce_tier", "foxy_ecommerce_tier", "shopify_basic_tier", "shopify_standard_dns_stack"}
+
+        # All valid tier1 stack types (combine static + flexible tiers)
+        all_tier1_stacks = tier1_developer_managed | tier1_self_managed | tier1_technical | tier1_cms_tiers | tier1_ecommerce_tiers
         tier2_stacks = {"astro_advanced_cms_stack", "gatsby_headless_cms_stack", "nextjs_professional_headless_cms_stack", "nuxtjs_professional_headless_cms_stack", "wordpress_lightsail_stack", "wordpress_ecs_professional_stack", "shopify_aws_basic_integration_stack", "fastapi_pydantic_api_stack"}
         tier3_dual_delivery = {"shopify_advanced_aws_integration_stack", "headless_shopify_custom_frontend_stack", "amplify_custom_development_stack", "fastapi_pydantic_api_stack", "fastapi_react_vue_stack"}
         tier3_migration = {"migration_assessment_stack", "magento_migration_stack", "prestashop_migration_stack", "opencart_migration_stack", "wordpress_migration_stack", "legacy_cms_migration_stack", "custom_platform_migration_stack"}
         tier3_consultation = {"fastapi_react_vue_stack", "amplify_custom_development_stack", "nextjs_enterprise_applications_stack", "nuxtjs_enterprise_applications_stack", "wordpress_custom_development_stack", "aws_serverless_custom_stack"}
         
-        # Validate tier1 stack matches management model
+        # ✅ UPDATED: Flexible Architecture Validation
         if self.service_tier == 'tier1':
-            if self.management_model == 'developer_managed' and self.stack_type not in tier1_developer_managed:
-                raise ValueError(f"Stack '{self.stack_type}' not compatible with developer_managed model. Use: {list(tier1_developer_managed)}")
-            elif self.management_model == 'self_managed' and self.stack_type not in tier1_self_managed:
-                raise ValueError(f"Stack '{self.stack_type}' not compatible with self_managed model. Use: {list(tier1_self_managed)}")
-            elif self.management_model == 'technical' and self.stack_type not in tier1_technical:
-                raise ValueError(f"Stack '{self.stack_type}' not compatible with technical model. Use: {list(tier1_technical)}")
+            # Validate stack type is valid for tier1
+            if self.stack_type not in all_tier1_stacks:
+                raise ValueError(f"Stack '{self.stack_type}' not valid for tier1. Available: {list(all_tier1_stacks)}")
+
+            # Validate management model compatibility
+            if self.management_model == 'developer_managed':
+                # Developer-managed: static sites + any CMS/e-commerce tier (we manage content)
+                valid_for_developer = tier1_developer_managed | tier1_cms_tiers | tier1_ecommerce_tiers
+                if self.stack_type not in valid_for_developer:
+                    raise ValueError(f"Stack '{self.stack_type}' not compatible with developer_managed model")
+
+            elif self.management_model == 'self_managed':
+                # Self-managed: CMS tiers only (client manages content via CMS interface)
+                valid_for_self = tier1_self_managed | tier1_cms_tiers
+                if self.stack_type not in valid_for_self:
+                    raise ValueError(f"Stack '{self.stack_type}' requires CMS interface for self_managed model")
+
+            elif self.management_model == 'technical':
+                # Technical: static sites only (client manages code directly)
+                if self.stack_type not in tier1_technical:
+                    raise ValueError(f"Stack '{self.stack_type}' not compatible with technical model. Use: {list(tier1_technical)}")
         
         # Validate tier2 stacks
         elif self.service_tier == 'tier2' and self.stack_type not in tier2_stacks:
@@ -202,31 +250,80 @@ class ClientConfig(BaseModel):
         
         return self
 
+    @model_validator(mode='after')
+    def validate_ssg_engine_compatibility(self):
+        """Validate SSG engine choice is compatible with selected stack type."""
+
+        # Define SSG compatibility for flexible tiers
+        flexible_tier_ssg_compatibility = {
+            # CMS Tiers
+            "decap_cms_tier": ["hugo", "eleventy", "astro", "gatsby"],
+            "tina_cms_tier": ["astro", "eleventy", "nextjs", "nuxt"],
+            "sanity_cms_tier": ["astro", "gatsby", "nextjs", "nuxt"],
+            "contentful_cms_tier": ["gatsby", "astro", "nextjs", "nuxt"],
+
+            # E-commerce Provider Tiers
+            "snipcart_ecommerce_tier": ["hugo", "eleventy", "astro", "gatsby"],
+            "foxy_ecommerce_tier": ["hugo", "eleventy", "astro", "gatsby"],
+            "shopify_basic_tier": ["eleventy", "astro", "nextjs", "nuxt"],
+            "shopify_advanced_tier": ["astro", "nextjs", "nuxt", "gatsby"]
+        }
+
+        # Static sites don't need SSG engine specification
+        static_sites = {"eleventy_marketing_stack", "astro_portfolio_stack", "jekyll_github_stack", "astro_template_basic_stack", "shopify_standard_dns_stack"}
+
+        if self.stack_type in flexible_tier_ssg_compatibility:
+            # Flexible tiers REQUIRE SSG engine specification
+            if not self.ssg_engine:
+                raise ValueError(f"SSG engine required for '{self.stack_type}'. Choose from: {flexible_tier_ssg_compatibility[self.stack_type]}")
+
+            # Validate SSG engine is compatible with the tier
+            if self.ssg_engine not in flexible_tier_ssg_compatibility[self.stack_type]:
+                raise ValueError(f"SSG engine '{self.ssg_engine}' not compatible with '{self.stack_type}'. Choose from: {flexible_tier_ssg_compatibility[self.stack_type]}")
+
+        elif self.stack_type in static_sites:
+            # Static sites ignore SSG engine (warn if specified)
+            if self.ssg_engine:
+                print(f"⚠️  Warning: SSG engine '{self.ssg_engine}' ignored for static site '{self.stack_type}'")
+
+        else:
+            # Other stack types (tier2, tier3) ignore SSG engine for now
+            if self.ssg_engine:
+                print(f"⚠️  Warning: SSG engine '{self.ssg_engine}' ignored for '{self.stack_type}'")
+
+        return self
+
     @field_validator('stack_type')
     @classmethod
     def validate_stack_type(cls, v):
         """Validate stack type against service tier and management model."""
         
-        # Tier 1 stack variants organized by management model
-        tier1_developer_managed = {
+        # ✅ UPDATED: Flexible Architecture - Tier 1 stack variants
+        # Static Sites (implemented as individual stacks)
+        tier1_static_sites = {
             "eleventy_marketing_stack",      # Static Marketing Sites
-            "astro_portfolio_stack",         # Portfolio/Business Sites  
+            "astro_portfolio_stack",         # Portfolio/Business Sites
             "jekyll_github_stack",           # Documentation Sites
-            "eleventy_snipcart_stack",       # Simple E-commerce
-        }
-        
-        tier1_self_managed = {
-            "eleventy_decap_cms_stack",      # Static + Decap CMS (FREE)
-            "astro_tina_cms_stack",          # Static + Tina CMS
-            "astro_sanity_stack",            # Static + Sanity
-            "gatsby_contentful_stack",       # Static + Contentful
             "astro_template_basic_stack",    # Astro + Basic Headless CMS
         }
-        
-        tier1_technical = {
-            "jekyll_github_stack",           # Jekyll + GitHub Pages
-            "astro_foxy_stack",              # Static Templates
+
+        # Flexible Service Tiers (implemented via factory patterns)
+        tier1_flexible_tiers = {
+            # CMS Tiers (client chooses SSG engine)
+            "decap_cms_tier",                # Hugo/Eleventy/Astro/Gatsby choice
+            "tina_cms_tier",                 # Astro/Eleventy/Next.js/Nuxt choice
+            "sanity_cms_tier",               # Astro/Gatsby/Next.js/Nuxt choice
+            "contentful_cms_tier",           # Gatsby/Astro/Next.js/Nuxt choice
+
+            # E-commerce Provider Tiers (client chooses SSG engine)
+            "snipcart_ecommerce_tier",       # Hugo/Eleventy/Astro/Gatsby choice
+            "foxy_ecommerce_tier",           # Hugo/Eleventy/Astro/Gatsby choice
+            "shopify_basic_tier",            # Eleventy/Astro/Next.js/Nuxt choice
+            "shopify_standard_dns_stack",    # DNS-only (no SSG choice needed)
         }
+
+        # Combined Tier 1 stacks
+        tier1_all_stacks = tier1_static_sites.union(tier1_flexible_tiers)
 
         # Tier 2 stack variants
         tier2_stacks = {
@@ -270,9 +367,8 @@ class ClientConfig(BaseModel):
         
         tier3_standard = tier3_dual_delivery.union(tier3_migration).union(tier3_consultation)
 
-        # All valid stacks
-        all_stacks = (tier1_developer_managed.union(tier1_self_managed).union(tier1_technical)
-                     .union(tier2_stacks).union(tier3_standard))
+        # All valid stacks (updated for flexible architecture)
+        all_stacks = (tier1_all_stacks.union(tier2_stacks).union(tier3_standard))
 
         if v not in all_stacks:
             raise ValueError(f"Unknown stack type: {v}. Must be one of the documented stack variants.")
@@ -477,15 +573,22 @@ def tier1_developer_managed_client(client_id: str, company_name: str, domain: st
 
 
 def tier1_self_managed_client(client_id: str, company_name: str, domain: str, contact_email: str,
-                             stack_type: str = "astro_tina_cms_stack") -> ClientConfig:
+                             stack_type: str = "tina_cms_tier") -> ClientConfig:
     """
     Template for Tier 1B: Self-Managed clients ($720-2,400 setup | $50-75/month).
-    
+
     For clients comfortable with CMS editing who want complete control over their content
     through easy-to-use web-based editing tools.
 
+    ✅ UPDATED: Uses flexible CMS tier architecture - client chooses SSG engine within tier.
+    Default: Tina CMS tier supports Astro/Eleventy/Next.js/Nuxt client choice.
+
     Example:
+        # Uses Tina CMS tier (client can choose Astro, Eleventy, Next.js, or Nuxt)
         client = tier1_self_managed_client("content-biz", "Content Business", "contentbiz.com", "admin@contentbiz.com")
+
+        # Or specify different CMS tier
+        client = tier1_self_managed_client("budget-client", "Budget Co", "budget.com", "admin@budget.com", "decap_cms_tier")
     """
     return create_client_config(
         client_id=client_id,
