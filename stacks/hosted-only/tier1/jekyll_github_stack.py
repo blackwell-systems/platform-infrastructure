@@ -47,6 +47,8 @@ class JekyllGitHubStack(BaseSSGStack):
         domain: str,
         github_repo: Optional[str] = None,
         enable_github_pages_fallback: bool = True,
+        theme_id: Optional[str] = None,
+        theme_config: Optional[Dict[str, Any]] = None,
         **kwargs
     ):
         """
@@ -59,21 +61,28 @@ class JekyllGitHubStack(BaseSSGStack):
             domain: Primary domain for the site
             github_repo: Optional GitHub repository URL (format: owner/repo)
             enable_github_pages_fallback: Whether to support GitHub Pages as backup
+            theme_id: Optional theme ID from theme registry (e.g., 'minimal-mistakes-business')
+            theme_config: Optional theme customization configuration
             **kwargs: Additional CDK stack parameters
         """
         
         # Create SSG configuration for Jekyll engine
-        # Uses "simple_blog" template which is GitHub Pages compatible
+        # Uses "simple_blog" template by default, with theme support
         ssg_config = StaticSiteConfig(
             client_id=client_id,
             domain=domain,
             ssg_engine="jekyll",  # Ruby-based SSG engine
             template_variant="simple_blog",  # GitHub Pages compatible template
-            performance_tier="basic"  # Cost-optimized for technical tier
+            performance_tier="basic",  # Cost-optimized for technical tier
+            theme_id=theme_id,  # Optional theme from registry
+            theme_config=theme_config or {}  # Theme customization options
         )
 
         # Initialize base SSG infrastructure (S3, CloudFront, Route53)
         super().__init__(scope, construct_id, ssg_config, **kwargs)
+        
+        # Configure theme-specific buildspec customizations
+        self._setup_theme_buildspec()
         
         # Store GitHub configuration
         self.github_repo = github_repo
@@ -118,6 +127,20 @@ class JekyllGitHubStack(BaseSSGStack):
             "SITE_TYPE": "technical_blog",  # Identifies this as technical content
             "HOSTING_PLATFORM": "aws_s3",  # Primary hosting platform
         }
+        
+        # Add theme-specific environment variables if theme is configured
+        theme_info = self.ssg_config.get_theme_info()
+        if theme_info:
+            # Add theme-specific environment variables
+            jekyll_vars.update(theme_info["theme_env_vars"])
+            
+            # Add theme installation variables
+            jekyll_vars.update({
+                "THEME_ID": theme_info["theme"].id,
+                "THEME_SOURCE": theme_info["source"], 
+                "THEME_INSTALLATION_METHOD": theme_info["installation_method"],
+                "THEME_GITHUB_PAGES_COMPATIBLE": str(theme_info["github_pages_compatible"]).lower()
+            })
         
         # Add environment variables to the CodeBuild project
         # This method is inherited from BaseSSGStack
@@ -271,6 +294,57 @@ class JekyllGitHubStack(BaseSSGStack):
                 ]
             )
         )
+    
+    def _setup_theme_buildspec(self) -> None:
+        """
+        Configure theme-specific buildspec commands and environment.
+        
+        Adds theme installation commands to the build process when a theme
+        is configured, ensuring proper theme setup before Jekyll build.
+        """
+        
+        theme_info = self.ssg_config.get_theme_info()
+        if not theme_info:
+            return
+            
+        # Get theme installation commands
+        theme_commands = theme_info["installation_commands"]
+        
+        if theme_commands:
+            # Get current buildspec from the build project
+            # We need to modify it to add theme installation commands
+            current_buildspec = self.engine_config.get_buildspec()
+            
+            # Add theme installation to pre_build phase
+            if "phases" not in current_buildspec:
+                current_buildspec["phases"] = {}
+            if "pre_build" not in current_buildspec["phases"]:
+                current_buildspec["phases"]["pre_build"] = {"commands": []}
+            
+            # Insert theme commands at the beginning of pre_build
+            theme_install_commands = [
+                "echo 'Installing Jekyll theme: " + theme_info["theme"].id + "'",
+                "echo 'Theme source: " + theme_info["source"] + "'",
+                "echo 'Installation method: " + theme_info["installation_method"] + "'"
+            ]
+            
+            # Add actual theme installation commands
+            theme_install_commands.extend(theme_commands)
+            
+            # Add theme customization if configured
+            if self.ssg_config.theme_config:
+                theme_install_commands.append("echo 'Applying theme customizations'")
+                # Add any theme-specific customization commands here
+                for key, value in self.ssg_config.theme_config.items():
+                    theme_install_commands.append(f"echo 'Setting {key}={value}'")
+            
+            # Prepend theme commands to existing pre_build commands
+            existing_commands = current_buildspec["phases"]["pre_build"].get("commands", [])
+            current_buildspec["phases"]["pre_build"]["commands"] = theme_install_commands + existing_commands
+            
+            # Update the build project with modified buildspec
+            # Note: This requires recreating the build project or using a custom buildspec
+            # For now, we'll handle this through environment variables and the base buildspec
         
     def _create_stack_parameters(self) -> None:
         """

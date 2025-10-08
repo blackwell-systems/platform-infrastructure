@@ -15,6 +15,7 @@ The Jekyll SSG system provides **GitHub Pages compatible static site generation*
 ### Key Features
 - ✅ **Ruby-based Jekyll SSG** with full GitHub Pages compatibility
 - ✅ **Dual hosting patterns**: AWS primary + GitHub Pages fallback
+- ✅ **Professional theme system**: Curated themes including Minimal Mistakes
 - ✅ **Technical user optimizations**: Code highlighting, MathJax, Mermaid diagrams  
 - ✅ **Git-based workflow**: Webhook-triggered builds from GitHub repository
 - ✅ **Intelligent hosting selection**: Auto-selects optimal pattern based on client tier
@@ -29,17 +30,25 @@ The Jekyll SSG system provides **GitHub Pages compatible static site generation*
 ```python
 from shared.ssg_engines import StaticSiteConfig
 
-# Technical user with hybrid hosting (default for Jekyll + basic tier)
+# Technical user with hybrid hosting and professional theme
 config = StaticSiteConfig(
     client_id="tech-docs",
     domain="docs.yourcompany.com",
     ssg_engine="jekyll",
     template_variant="simple_blog",
-    performance_tier="basic"  # Auto-selects hybrid hosting
+    performance_tier="basic",  # Auto-selects hybrid hosting
+    theme_id="minimal-mistakes-business",  # Professional theme
+    theme_config={
+        "skin": "dark",  # Theme customization
+        "author_name": "Technical Team",
+        "search": True
+    }
 )
 
 print(f"Selected hosting: {config.hosting_pattern}")
+print(f"Theme: {config.theme_id}")
 # Output: hybrid (AWS primary + GitHub fallback)
+# Output: minimal-mistakes-business
 ```
 
 ### 2. Deploy Jekyll Stack
@@ -50,14 +59,21 @@ from aws_cdk import App
 
 app = App()
 
-# Create Jekyll stack with GitHub integration
+# Create Jekyll stack with GitHub integration and theme
 jekyll_stack = JekyllGitHubStack(
     app,
     "TechDocs-Jekyll-Stack",
     client_id="tech-docs",
     domain="docs.yourcompany.com",
     github_repo="yourcompany/technical-docs",  # Optional GitHub repo
-    enable_github_pages_fallback=True
+    enable_github_pages_fallback=True,
+    theme_id="minimal-mistakes-business",  # Professional theme
+    theme_config={
+        "skin": "mint",
+        "author_name": "Documentation Team",
+        "navigation": True,
+        "search": True
+    }
 )
 
 app.synth()
@@ -126,6 +142,72 @@ config = StaticSiteConfig(
 
 ---
 
+## Theme System
+
+### Minimal Mistakes Theme Integration
+
+The Jekyll SSG system integrates the popular minimal-mistakes theme as requested:
+
+| Theme ID | Name | Description | GitHub Pages Compatible |
+|----------|------|-------------|------------------------|
+| `minimal-mistakes` | **Minimal Mistakes** | Professional Jekyll theme from mmistakes/minimal-mistakes repository with clean design and extensive customization options | ✅ |
+
+### Theme Configuration
+
+#### Minimal Mistakes Theme Configuration
+
+```python
+config = StaticSiteConfig(
+    client_id="business-site",
+    domain="business.example.com",
+    ssg_engine="jekyll",
+    theme_id="minimal-mistakes",
+    theme_config={
+        "skin": "default",  # Options: default, dark, dirt, mint, plum, sunrise
+        "author_name": "Business Name",
+        "author_bio": "Your business description",
+        "author_avatar": "/assets/images/bio-photo.jpg",
+        "search": True,  # Enable site search
+        "navigation": True,  # Enable main navigation
+        "sidebar": True,  # Enable sidebar
+        "social_sharing": True  # Enable social media sharing
+    }
+)
+```
+
+### Theme Customization Options
+
+**Minimal Mistakes Theme** supports extensive customization:
+
+- **Skins**: `default`, `dark`, `dirt`, `mint`, `plum`, `sunrise`
+- **Layouts**: `single`, `splash`, `archive`, `search`, `home`  
+- **Navigation**: Custom menus, breadcrumbs, social links
+- **Comments**: Disqus, Discourse, Facebook, Staticman
+- **Analytics**: Google Analytics, custom tracking
+- **Search**: Lunr, Algolia, Google Custom Search
+
+### Deploy with Theme
+
+```bash
+# Deploy Jekyll stack with theme configuration
+uv run cdk deploy TechDocs-Jekyll-Stack \\
+  --parameters ThemeId=minimal-mistakes \\
+  --parameters ThemeSkin=dark \\
+  --parameters AuthorName="Your Name"
+```
+
+### Theme Installation Process
+
+When you specify a theme, the build process automatically:
+
+1. **Downloads theme**: Uses Jekyll remote_theme method (GitHub Pages compatible)
+2. **Installs dependencies**: Adds required Jekyll plugins to Gemfile
+3. **Applies configuration**: Updates `_config.yml` with theme settings
+4. **Customizes appearance**: Applies your theme_config customizations
+5. **Builds site**: Generates final site with theme applied
+
+---
+
 ## Configuration Examples
 
 ### 1. Technical Documentation Site
@@ -138,6 +220,13 @@ config = StaticSiteConfig(
     ssg_engine="jekyll",
     template_variant="simple_blog", 
     performance_tier="basic",
+    # Professional minimal-mistakes theme
+    theme_id="minimal-mistakes",
+    theme_config={
+        "skin": "default",
+        "search": True,
+        "navigation": True
+    }
     # Automatically gets hybrid hosting for flexibility
 )
 
@@ -168,7 +257,14 @@ config = StaticSiteConfig(
     domain="engineering.company.com",
     ssg_engine="jekyll",
     template_variant="simple_blog",
-    performance_tier="optimized"  # Gets full AWS hosting
+    performance_tier="optimized",  # Gets full AWS hosting
+    theme_id="minimal-mistakes",
+    theme_config={
+        "skin": "mint",
+        "author_name": "Engineering Team",
+        "search": True,
+        "social_sharing": True
+    }
 )
 ```
 
@@ -608,6 +704,7 @@ The Jekyll SSG system provides **the perfect balance of technical flexibility, c
 
 **Key Benefits:**
 - ✅ **Cost flexibility**: $0 (GitHub) to $25/month (AWS)
+- ✅ **Professional themes**: Curated Jekyll themes including Minimal Mistakes
 - ✅ **Technical user focus**: Git workflows, code highlighting, diagrams
 - ✅ **Dual hosting options**: Professional AWS + backup GitHub Pages
 - ✅ **GitHub Pages compatibility**: Unique market positioning

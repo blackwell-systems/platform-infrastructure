@@ -1173,6 +1173,17 @@ class StaticSiteConfig(BaseModel):
     ecommerce_config: Dict[str, Any] = Field(
         default_factory=dict, description="E-commerce platform specific configuration"
     )
+    
+    # Theme system configuration
+    theme_id: Optional[str] = Field(
+        None,
+        description="Theme identifier from theme registry (e.g., 'minimal-mistakes-business'). If not specified, uses SSG engine default.",
+        pattern=r"^[a-z0-9-]+$"
+    )
+    theme_config: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Theme-specific customization options (colors, layouts, features, etc.)"
+    )
     requires_backend_api: bool = Field(
         default=False, description="Whether this configuration requires backend API services"
     )
@@ -1201,6 +1212,24 @@ class StaticSiteConfig(BaseModel):
             raise ValueError("Client ID must be between 3 and 50 characters")
         return v
 
+    @model_validator(mode="after")
+    def validate_theme_compatibility(self):
+        """Validate theme compatibility with SSG engine and hosting pattern"""
+        if self.theme_id:
+            theme_info = self.get_theme_info()
+            if not theme_info:
+                raise ValueError(f"Theme '{self.theme_id}' not found in theme registry")
+                
+            theme = theme_info["theme"]
+            
+            # Check hosting pattern compatibility
+            if self.hosting_pattern and not theme.is_compatible_with_hosting(self.hosting_pattern):
+                raise ValueError(
+                    f"Theme '{self.theme_id}' is not compatible with hosting pattern '{self.hosting_pattern}'"
+                )
+        
+        return self
+    
     @model_validator(mode="after")
     def validate_template_engine_compatibility(self):
         """Ensure template variant is compatible with selected engine and validate e-commerce config"""
@@ -1390,15 +1419,53 @@ class StaticSiteConfig(BaseModel):
             
         return list(set(base_services))  # Remove duplicates
     
+    def get_theme_info(self) -> Optional[Dict[str, Any]]:
+        """Get theme information from theme registry"""
+        if not self.theme_id:
+            return None
+            
+        # Import here to avoid circular imports
+        try:
+            from stacks.shared.theme_registry import ThemeRegistry
+            theme = ThemeRegistry.get_theme(self.theme_id)
+            if not theme:
+                return None
+                
+            # Validate theme compatibility with engine
+            if theme.engine != self.ssg_engine:
+                raise ValueError(
+                    f"Theme '{self.theme_id}' is for {theme.engine} but engine is {self.ssg_engine}"
+                )
+                
+            return {
+                "theme": theme,
+                "installation_method": theme.installation_method,
+                "source": theme.source,
+                "required_plugins": theme.required_plugins,
+                "github_pages_compatible": theme.github_pages_compatible,
+                "customization_options": theme.customization_options,
+                "installation_commands": theme.get_installation_commands(),
+                "theme_env_vars": theme.get_customization_env_vars(self.theme_config)
+            }
+        except ImportError:
+            # Theme registry not available
+            return None
+    
     def get_environment_variables(self) -> Dict[str, str]:
-        """Get all environment variables including e-commerce specific ones"""
+        """Get all environment variables including e-commerce and theme specific ones"""
         env_vars = self.environment_vars.copy()
         
+        # Add e-commerce environment variables
         ecommerce_integration = self.get_ecommerce_integration()
         if ecommerce_integration:
             for var in ecommerce_integration.required_environment_vars:
                 if var not in env_vars:
                     env_vars[var] = f"${{{var}}}"  # Placeholder for CDK parameter
+        
+        # Add theme environment variables
+        theme_info = self.get_theme_info()
+        if theme_info and "theme_env_vars" in theme_info:
+            env_vars.update(theme_info["theme_env_vars"])
         
         return env_vars
 
@@ -1410,7 +1477,14 @@ class StaticSiteConfig(BaseModel):
             "Template": self.template_variant,
             "PerformanceTier": self.performance_tier,
             "Environment": "production",  # Can be parameterized later
+            "HostingPattern": self.hosting_pattern or "aws"
         }
+        
+        if self.theme_id:
+            tags["ThemeId"] = self.theme_id
+            tags["HasTheme"] = "true"
+        else:
+            tags["HasTheme"] = "false"
         
         if self.ecommerce_provider:
             tags["ECommerceProvider"] = self.ecommerce_provider
