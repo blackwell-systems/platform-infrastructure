@@ -2,17 +2,19 @@
 import pytest
 from pydantic import ValidationError
 
-from shared.ssg_engines import (
-    AstroConfig,
+from shared.ssg import (
     BuildCommand,
+    SSGEngineFactory,
+    SSGTemplate,
+    StaticSiteConfig,
+)
+from shared.ssg.engines import (
+    AstroConfig,
     EleventyConfig,
     GatsbyConfig,
     HugoConfig,
     NextJSConfig,
     NuxtConfig,
-    SSGEngineFactory,
-    SSGTemplate,
-    StaticSiteConfig,
 )
 
 

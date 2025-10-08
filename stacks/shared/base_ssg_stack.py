@@ -1,13 +1,37 @@
 """
-Base SSG Stack - Foundation for all Static Site Generator deployments
+===============================================================================
+Base Static Site Generator (SSG) Infrastructure Stack
+===============================================================================
 
-Provides common infrastructure patterns for all SSG-based stacks:
-- S3 + CloudFront hosting
-- Route53 DNS integration
-- CodeBuild integration with SSG engines
-- Environment variable management
-- Tier-based resource allocation
+This module defines the foundational AWS CDK stack used by all Static Site
+Generator (SSG) deployments. It provides the shared infrastructure components
+and integration logic that enable automated site builds, hosting, and delivery
+through AWS services.
+
+Key Responsibilities:
+- Provision core hosting infrastructure (S3 + CloudFront + Route53 + ACM)
+- Integrate AWS CodeBuild for SSG engine compilation and deployment
+- Apply consistent tagging and environment metadata across all resources
+- Manage domain setup, SSL certificate validation, and DNS routing
+- Enforce caching, cost, and performance strategies based on the SSG engine
+- Provide extension hooks for higher-tier stacks (marketing, e-commerce, etc.)
+
+Integration Model:
+- Consumes a validated StaticSiteConfig (from ssg_engines.py)
+- Uses the associated SSGEngineConfig to generate CodeBuild buildspecs
+- Deploys S3 content and CloudFront distributions according to hosting pattern
+- Exposes standard outputs for downstream integrations or CI/CD pipelines
+
+Intended Usage:
+- Subclassed by specific product or client stacks (e.g., EleventyMarketingStack)
+- Serves as the common infrastructure foundation for the entire SSG ecosystem
+
+Author:  Dayna Blackwell
+Created: 2025
+License: Proprietary / Internal Use Only
+===============================================================================
 """
+
 
 from typing import Dict, Any, Optional
 from aws_cdk import (
@@ -22,7 +46,7 @@ from aws_cdk import (
 )
 from constructs import Construct
 
-from shared.ssg_engines import StaticSiteConfig, SSGEngineConfig
+from shared.ssg import StaticSiteConfig, SSGEngineConfig
 
 
 class BaseSSGStack(Stack):

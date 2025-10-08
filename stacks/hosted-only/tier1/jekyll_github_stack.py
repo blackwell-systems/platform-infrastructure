@@ -18,7 +18,7 @@ from aws_cdk import (
 )
 
 from stacks.shared.base_ssg_stack import BaseSSGStack
-from shared.ssg_engines import StaticSiteConfig
+from shared.ssg import StaticSiteConfig
 
 
 class JekyllGitHubStack(BaseSSGStack):

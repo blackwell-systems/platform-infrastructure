@@ -33,9 +33,10 @@ uv run cdk --version
 ### Core Components
 1. **ClientConfig**: Pydantic model for client configuration validation
 2. **SSGEngineFactory**: Static Site Generator management system
-3. **TechStackMatrix**: Dynamic pricing and suitability validation
-4. **SharedInfraStack**: Common operational infrastructure
-5. **Tier-specific Stacks**: Service tier implementations
+3. **ThemeRegistry**: ✅ NEW - Minimal Mistakes theme integration for Jekyll sites
+4. **TechStackMatrix**: Dynamic pricing and suitability validation
+5. **SharedInfraStack**: Common operational infrastructure
+6. **Tier-specific Stacks**: Service tier implementations
 
 ## 🚀 Creating a New Project
 
@@ -105,7 +106,7 @@ except ValidationError as e:
 tier1_stacks = [
     "eleventy_marketing_stack",        # Static marketing sites
     "astro_portfolio_stack",           # Portfolio/showcase sites  
-    "jekyll_github_stack",             # GitHub Pages compatible
+    "jekyll_github_stack",             # ✅ COMPLETED - GitHub Pages compatible with minimal-mistakes theme
     "eleventy_decap_cms_stack",        # Static + Decap CMS
     "astro_tina_cms_stack",            # Astro + Tina CMS
     "astro_sanity_stack",              # Astro + Sanity CMS
@@ -215,7 +216,7 @@ client = foxy_client(
 For static site stacks, configure the SSG engine:
 
 ```python
-from shared.ssg_engines import SSGEngineFactory, StaticSiteConfig
+from shared.ssg import SSGEngineFactory, StaticSiteConfig
 
 # Create SSG configuration
 ssg_config = StaticSiteConfig(
@@ -232,6 +233,22 @@ engine = ssg_config.get_ssg_config()
 print(f"Engine: {engine.engine_name}")
 print(f"Build commands: {[cmd.command for cmd in engine.build_commands]}")
 print(f"Output directory: {engine.output_directory}")
+
+# ✅ NEW: Jekyll with Minimal Mistakes Theme
+jekyll_config = StaticSiteConfig(
+    client_id="tech-docs",
+    domain="docs.client.com",
+    ssg_engine="jekyll",
+    template_variant="simple_blog",
+    performance_tier="basic",  # Auto-selects hybrid hosting (AWS + GitHub Pages)
+    theme_id="minimal-mistakes",  # Professional theme integration
+    theme_config={
+        "skin": "mint",
+        "author_name": "Technical Team", 
+        "search": True,
+        "navigation": True
+    }
+)
 ```
 
 ### Step 4b: Configure E-commerce Sites
@@ -430,6 +447,58 @@ cd clients/acme-corp
 uv run cdk deploy AcmeCorp-Prod-WordPressEcsProfessional
 ```
 
+## 🎨 Theme System Integration
+
+### ✅ Minimal Mistakes Theme for Jekyll
+
+The Jekyll stack now includes professional theme integration with the popular minimal-mistakes theme:
+
+```python
+from shared.ssg import StaticSiteConfig
+from stacks.hosted_only.tier1.jekyll_github_stack import JekyllGitHubStack
+
+# Create Jekyll site with minimal-mistakes theme
+jekyll_config = StaticSiteConfig(
+    client_id="professional-docs",
+    domain="docs.professional.com",
+    ssg_engine="jekyll",
+    template_variant="simple_blog", 
+    performance_tier="basic",
+    theme_id="minimal-mistakes",  # Professional theme
+    theme_config={
+        "skin": "mint",            # Theme color scheme
+        "author_name": "Company Name",
+        "author_bio": "Professional documentation",
+        "search": True,            # Enable site search
+        "navigation": True,        # Enable main navigation
+        "sidebar": True,           # Enable sidebar
+        "social_sharing": True     # Enable social media sharing
+    }
+)
+
+# Deploy Jekyll stack with theme
+jekyll_stack = JekyllGitHubStack(
+    app,
+    "Professional-Jekyll-Stack", 
+    client_id="professional-docs",
+    domain="docs.professional.com",
+    theme_id="minimal-mistakes",
+    theme_config=jekyll_config.theme_config
+)
+```
+
+### Theme Features
+- **GitHub Pages Compatible**: Uses remote_theme method
+- **Professional Design**: Clean, responsive layout from mmistakes/minimal-mistakes
+- **Customizable**: Multiple skins, layouts, and feature options
+- **Automatic Installation**: Theme setup integrated into build process
+- **Environment Variables**: Theme configuration via build environment
+
+### Theme Customization Options
+- **Skins**: `default`, `dark`, `dirt`, `mint`, `plum`, `sunrise`
+- **Layouts**: `single`, `splash`, `archive`, `search`, `home`
+- **Features**: Author profiles, navigation, search, social sharing, comments
+
 ## 🛒 E-commerce Configuration Examples
 
 ### Snipcart E-commerce Setup
@@ -506,7 +575,7 @@ print(f"Required webhooks: {foxy_store.webhook_endpoints}")
 ### E-commerce Recommendations Engine
 
 ```python
-from shared.ssg_engines import SSGEngineFactory
+from shared.ssg import SSGEngineFactory
 
 # Get recommendations by complexity level
 simple_recs = SSGEngineFactory.get_recommended_stack_for_ecommerce("snipcart", "simple")
@@ -790,7 +859,7 @@ uv run black .             # Format code
 uv run ruff check .        # Lint code
 
 # E-commerce specific testing
-uv run python -c "from shared.ssg_engines import SSGEngineFactory; print('E-commerce templates:', SSGEngineFactory.get_ecommerce_templates())"
+uv run python -c "from shared.ssg import SSGEngineFactory; print('E-commerce templates:', SSGEngineFactory.get_ecommerce_templates())"
 ```
 
 ### Migration and Updates

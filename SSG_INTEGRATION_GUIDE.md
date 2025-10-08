@@ -163,6 +163,72 @@ This guide explains how to integrate the existing SSG engine system with your CD
 
 **Current Status**: 🔨 **Phase 5 - 75% Complete** - Foundation ready, **3 critical revenue stacks missing**
 
+## 🆕 **LATEST UPDATE: SSG System Refactored for Better Developer Experience**
+
+### ✅ **SSG Directory Structure Refactored** (NEW)
+
+**Status**: ✅ **COMPLETED** - SSG system reorganized into browsable, maintainable modules
+
+The original monolithic `shared/ssg_engines.py` (1,552 lines) has been refactored into a clean, organized directory structure:
+
+```
+shared/ssg/                      # 🎯 Clean, browsable structure  
+├── __init__.py                  # Public API - import everything you need
+├── core_models.py               # Pydantic models (BuildCommand, ECommerceIntegration, SSGTemplate)
+├── base_engine.py               # Abstract SSGEngineConfig base class
+├── factory.py                   # SSGEngineFactory for engine creation
+├── site_config.py               # StaticSiteConfig (client integration)
+└── engines/                     # Individual SSG engine implementations
+    ├── __init__.py             # Engine exports
+    ├── eleventy.py            # EleventyConfig (4 templates)
+    ├── hugo.py                # HugoConfig (2 templates)
+    ├── astro.py               # AstroConfig (3 templates, includes e-commerce)
+    ├── jekyll.py              # JekyllConfig (2 templates)
+    ├── nextjs.py              # NextJSConfig (2 templates)
+    ├── nuxt.py                # NuxtConfig (2 templates)
+    └── gatsby.py              # GatsbyConfig (2 templates)
+```
+
+### **Updated Import Patterns**
+
+**✅ BEFORE** (Monolithic):
+```python
+from shared.ssg_engines import StaticSiteConfig, SSGEngineFactory, BuildCommand
+```
+
+**✅ AFTER** (Refactored):
+```python
+# Main imports - everything you need from the public API
+from shared.ssg import StaticSiteConfig, SSGEngineFactory, BuildCommand, SSGTemplate
+
+# Individual engine access (if needed)
+from shared.ssg.engines import EleventyConfig, HugoConfig, AstroConfig
+```
+
+### **Benefits of Refactoring**
+
+1. **🔍 Better Browsability**: Developers can easily navigate to specific SSG engines without scrolling through 1,500+ lines
+2. **📦 Focused Modules**: Each file has a single, clear responsibility 
+3. **🔧 Easier Maintenance**: Individual engines can be updated independently
+4. **🧪 Better Testing**: Smaller, focused modules are easier to test
+5. **📚 Clear Structure**: New developers can understand the system organization quickly
+
+### **Backward Compatibility**
+
+✅ **All existing functionality preserved** - no breaking changes to business logic:
+- All 7 SSG engines working (Eleventy, Hugo, Astro, Jekyll, NextJS, Nuxt, Gatsby) 
+- E-commerce integration system intact (Snipcart, Foxy.io, Shopify)
+- Hosting pattern logic maintained (AWS, GitHub, hybrid, aws_minimal)
+- Theme system fully functional (minimal-mistakes integration)
+- All 15+ templates across engines preserved
+
+✅ **All imports updated** in existing files:
+- `base_ssg_stack.py`
+- `jekyll_github_stack.py` 
+- `eleventy_marketing_stack.py`
+- All test files
+- `test_theme_system.py`
+
 ## Current State Analysis
 
 ### ✅ What's Working Well (COMPLETED)
@@ -531,7 +597,7 @@ from pydantic import BaseModel, Field, field_validator, computed_field, ConfigDi
 from typing import Optional, Dict, List, Literal
 from enum import Enum
 
-from shared.ssg_engines import SSGEngineFactory, SSGEngineType, SSGTemplate
+from shared.ssg import SSGEngineFactory, SSGEngineType, SSGTemplate
 
 class SSGClientTier(str, Enum):
     """SSG-specific client tiers mapping to your service tiers"""
@@ -752,7 +818,7 @@ from aws_cdk import (
 )
 from constructs import Construct
 
-from shared.ssg_engines import StaticSiteConfig, SSGEngineConfig
+from shared.ssg import StaticSiteConfig, SSGEngineConfig
 
 
 class BaseSSGStack(Stack):
@@ -977,7 +1043,7 @@ from constructs import Construct
 from aws_cdk import aws_codebuild as codebuild
 
 from stacks.shared.base_ssg_stack import BaseSSGStack
-from shared.ssg_engines import StaticSiteConfig
+from shared.ssg import StaticSiteConfig
 
 
 class EleventyMarketingStack(BaseSSGStack):
@@ -1356,7 +1422,7 @@ def _extract_repo_name(self, repo_url: str) -> str:
 # Start Phase 5 Implementation
 uv sync                                    # Install dependencies
 uv run pytest tests/test_ssg_engines.py   # Validate SSG foundation
-uv run python -c "from shared.ssg_engines import StaticSiteConfig; print('SSG system ready')"
+uv run python -c "from shared.ssg import StaticSiteConfig; print('SSG system ready')"
 
 # Create first CDK stack
 touch stacks/shared/base_ssg_stack.py
@@ -1364,7 +1430,7 @@ touch stacks/hosted-only/tier1/eleventy_marketing_stack.py
 
 # Test integration
 uv run python -c "
-from shared.ssg_engines import StaticSiteConfig
+from shared.ssg import StaticSiteConfig
 config = StaticSiteConfig(
     client_id='test', domain='test.com',
     ssg_engine='eleventy', template_variant='business_modern'

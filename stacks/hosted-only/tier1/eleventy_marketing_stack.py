@@ -10,7 +10,7 @@ from constructs import Construct
 from aws_cdk import aws_codebuild as codebuild
 
 from stacks.shared.base_ssg_stack import BaseSSGStack
-from shared.ssg_engines import StaticSiteConfig
+from shared.ssg import StaticSiteConfig
 
 
 class EleventyMarketingStack(BaseSSGStack):

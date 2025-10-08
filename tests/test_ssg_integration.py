@@ -9,7 +9,7 @@ import pytest
 from aws_cdk import App
 from pydantic import ValidationError
 
-from shared.ssg_engines import StaticSiteConfig, SSGEngineFactory
+from shared.ssg import StaticSiteConfig, SSGEngineFactory
 from stacks.hosted_only.tier1.eleventy_marketing_stack import EleventyMarketingStack
 
 

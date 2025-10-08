@@ -23,6 +23,7 @@ This repository provides a complete **multi-client web services infrastructure p
 
 - **30 Pre-configured Stack Variants** across 3 service tiers (Tier 1: $360-3K setup, Tier 2: $2.4K-9.6K setup, Dual-delivery: Custom pricing)
 - **7 Static Site Generators** (Eleventy, Hugo, Astro, Jekyll, Next.js, Nuxt, Gatsby) with optimized configurations
+- **Jekyll Theme Integration**: Professional minimal-mistakes theme with GitHub Pages compatibility
 - **E-commerce Integration**: Built-in support for Snipcart, Foxy.io, Shopify (3 tiers), with cost transparency
 - **Dual-Delivery Service Models**: Deploy in your AWS account (hosted) OR deliver infrastructure code to clients (template)
 - **Migration Specialization**: 7 specialized stacks for legacy platform migrations
@@ -173,7 +174,7 @@ platform-infrastructure/
 |------------|-------------|-----------|
 | `eleventy_marketing_stack` | Static marketing sites with Eleventy SSG | Marketing sites, landing pages |
 | `astro_portfolio_stack` | Portfolio/showcase sites with Astro | Creative portfolios, agencies |
-| `jekyll_github_stack` | GitHub Pages compatible Jekyll sites | Documentation, simple blogs |
+| `jekyll_github_stack` | ✅ GitHub Pages compatible Jekyll sites with minimal-mistakes theme | Documentation, technical blogs, professional sites |
 | `eleventy_decap_cms_stack` | Static sites with Decap CMS integration | Small business sites with CMS |
 | `astro_tina_cms_stack` | Astro with Tina CMS for content management | Content sites, blogs |
 | `astro_sanity_stack` | Astro with Sanity headless CMS | Media-rich content sites |
@@ -229,7 +230,7 @@ The platform supports 7 Static Site Generators with optimized configurations:
 | **Eleventy** | Marketing sites, flexibility | Very Good | Excellent |
 | **Hugo** | Large sites, speed | Excellent | Excellent |
 | **Astro** | Interactive sites, modern | Excellent | Very Good |
-| **Jekyll** | GitHub integration, simple | Good | Good |
+| **Jekyll** | ✅ GitHub Pages, minimal-mistakes theme | Good | Good |
 | **Next.js** | React apps, enterprise | Excellent | Good |
 | **Nuxt** | Vue apps, SSR | Excellent | Good |
 | **Gatsby** | React, GraphQL | Very Good | Fair |
@@ -322,7 +323,7 @@ prod_client = small_business_client(
 
 ```python
 # Static site with specific SSG engine
-from shared.ssg_engines import StaticSiteConfig
+from shared.ssg import StaticSiteConfig
 
 # Modern Astro site with CMS
 astro_config = StaticSiteConfig(

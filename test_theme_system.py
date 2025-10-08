@@ -38,7 +38,7 @@ def test_static_site_config_with_theme():
     """Test StaticSiteConfig with theme integration"""
     print("\n🧪 Testing StaticSiteConfig with Theme...")
     
-    from shared.ssg_engines import StaticSiteConfig
+    from shared.ssg import StaticSiteConfig
     
     try:
         # Test valid theme configuration
@@ -86,7 +86,7 @@ def test_invalid_theme_configuration():
     """Test that invalid theme configurations are caught"""
     print("\n🧪 Testing Invalid Theme Configuration...")
     
-    from shared.ssg_engines import StaticSiteConfig
+    from shared.ssg import StaticSiteConfig
     
     try:
         # Test invalid theme engine mismatch
@@ -134,7 +134,7 @@ def test_theme_hosting_compatibility():
     """Test theme hosting pattern compatibility"""
     print("\n🧪 Testing Theme Hosting Compatibility...")
     
-    from shared.ssg_engines import StaticSiteConfig
+    from shared.ssg import StaticSiteConfig
     
     try:
         # Test GitHub Pages compatible theme with GitHub hosting
