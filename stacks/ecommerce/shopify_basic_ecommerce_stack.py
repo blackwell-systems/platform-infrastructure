@@ -1,117 +1,87 @@
 """
-Shopify Basic E-commerce Stack
+Shopify Basic E-commerce Tier Stack
 
-Standard Shopify integration with flexible SSG engine support for enhanced performance,
-cost optimization, and superior customer experience. This stack provides enterprise-level
-performance at small business prices through static site generation with Shopify backend.
+Updated Shopify Basic implementation with optional event-driven integration support:
+- Direct Mode: Shopify webhooks → build pipeline (traditional, proven)
+- Event-Driven Mode: Shopify events → SNS → unified content system (composition-ready)
 
-SHOPIFY BASIC STACK FEATURES:
-- Shopify Basic plan integration with Storefront API
+Shopify Basic E-commerce Features:
+- Shopify Basic plan ($29/month) with Storefront API
 - High-performance static frontend with sub-2s page loads
 - Real-time product synchronization via webhooks
-- Flexible SSG engine choice (Eleventy, Astro, Next.js, Nuxt)
-- Automated build triggers on product/inventory changes
-- Professional e-commerce features without enterprise complexity
+- Professional e-commerce features without complexity
+- Proven platform reliability and PCI compliance
 - 80-90% cost reduction vs traditional Shopify agencies
 
-SUPPORTED SSG ENGINES:
-- Eleventy: Simple, fast builds ideal for straightforward product catalogs
-- Astro: Modern component architecture with optimal performance for brands
-- Next.js: React ecosystem with advanced Shopify SDK integration
-- Nuxt: Vue ecosystem with comprehensive e-commerce modules
+Target Market:
+- Small-medium stores needing proven e-commerce platform
+- Performance-focused brands wanting static site benefits
+- Businesses wanting Shopify reliability with custom frontend
+- Agency alternatives with professional results
+- Stores needing straightforward product catalog management
 
-BUSINESS POSITIONING:
-- Target Market: Small-medium stores, performance-focused brands, agency alternatives
-- Monthly Cost: $75-125/month (Shopify Basic + AWS + integration)
-- Setup Cost: $1,600-3,200 (80-90% less than traditional agencies)
-- Value Proposition: Enterprise performance at small business prices
-
-ARCHITECTURAL BENEFITS:
-- Shopify handles complex e-commerce logic (cart, checkout, payments, PCI compliance)
-- Static frontend provides superior performance, SEO, and mobile optimization
-- Automated infrastructure eliminates ongoing agency dependencies
-- Flexible SSG choice serves different technical comfort levels
+Pricing:
+- Shopify Basic: $29/month + 2.9% transaction fees
+- AWS Hosting: $50-75/month
+- Total Monthly: $80-105/month + 2.9% of sales
 """
 
 from typing import Dict, Any, Optional, List
 from aws_cdk import (
-    aws_lambda as lambda_,
-    aws_apigateway as apigateway,
-    aws_dynamodb as dynamodb,
-    aws_secretsmanager as secretsmanager,
-    aws_cloudwatch as cloudwatch,
+    Stack,
+    aws_s3 as s3,
+    aws_cloudfront as cloudfront,
+    aws_codebuild as codebuild,
     aws_iam as iam,
-    aws_events as events,
-    aws_events_targets as targets,
+    aws_apigateway as apigateway,
+    aws_lambda as lambda_,
+    aws_secretsmanager as secrets,
+    aws_dynamodb as dynamodb,
+    aws_cloudwatch as cloudwatch,
+    CfnOutput,
     Duration,
     RemovalPolicy
 )
 from constructs import Construct
 
 from stacks.shared.base_ssg_stack import BaseSSGStack
-from shared.providers.ecommerce.shopify_basic_provider import ShopifyBasicProvider
-from models.client_config import ClientConfig
+from models.service_config import ClientServiceConfig, IntegrationMode
+from shared.composition.integration_layer import EventDrivenIntegrationLayer
+from shared.providers.ecommerce.factory import EcommerceProviderFactory
 
 
 class ShopifyBasicEcommerceStack(BaseSSGStack):
     """
-    Shopify Basic e-commerce tier with flexible SSG engine support and performance optimization.
+    Shopify Basic E-commerce Tier Stack Implementation
 
-    ARCHITECTURE:
-    - Shopify backend handles all e-commerce functionality (proven, secure, PCI-compliant)
-    - Custom static frontend provides superior performance and SEO optimization
-    - Real-time synchronization between Shopify data and static site via webhooks
-    - AWS-hosted frontend with CDN optimization and global delivery
-    - Automated build triggers ensure content stays synchronized
+    Supports both integration modes:
+    - Direct: Shopify webhooks → CodeBuild → S3/CloudFront (traditional, proven)
+    - Event-Driven: Shopify events → SNS → unified content system (composition-ready)
 
-    PERFORMANCE BENEFITS:
-    - Static site delivery: 0.8-1.5s page loads vs 3-6s typical Shopify themes
-    - CDN optimization: Global content delivery with edge caching
-    - SEO excellence: Static HTML with perfect search engine optimization
-    - Mobile performance: Optimized responsive design and asset delivery
-
-    FLEXIBLE SSG ENGINE SUPPORT:
-    - Client chooses e-commerce tier (Shopify Basic) for proven platform reliability
-    - Client chooses SSG engine (Eleventy/Astro/Next.js/Nuxt) for technical preference
-    - Same monthly cost serves different technical comfort levels and team expertise
-    - Shopify handles complex e-commerce while frontend optimized for performance
-
-    BUSINESS VALUE:
-    - 80-90% cost reduction vs traditional Shopify agencies ($1,600-3,200 vs $8,000-25,000)
-    - Superior performance drives better conversion rates and customer satisfaction
-    - Automated infrastructure eliminates ongoing agency maintenance dependencies
-    - Professional e-commerce features without enterprise complexity or cost
+    The proven e-commerce solution with professional features and reliability.
     """
 
-    # SSG engine compatibility for Shopify Basic tier
+    # Supported SSG engines for Shopify Basic
     SUPPORTED_SSG_ENGINES = {
         "eleventy": {
             "compatibility": "excellent",
             "setup_complexity": "simple",
-            "build_time": "very_fast",
-            "features": ["fast_builds", "simple_templating", "shopify_integration"],
-            "cost_multiplier": 1.0
+            "features": ["fast_builds", "simple_templating", "shopify_integration"]
         },
         "astro": {
-            "compatibility": "perfect",
+            "compatibility": "excellent",
             "setup_complexity": "intermediate",
-            "build_time": "fast",
-            "features": ["component_islands", "performance_optimization", "modern_architecture"],
-            "cost_multiplier": 1.1
+            "features": ["component_islands", "performance_optimization", "shopify_components"]
         },
         "nextjs": {
             "compatibility": "excellent",
             "setup_complexity": "advanced",
-            "build_time": "medium",
-            "features": ["react_ecosystem", "shopify_hooks", "api_routes"],
-            "cost_multiplier": 1.2
+            "features": ["react_ecosystem", "shopify_hooks", "api_routes"]
         },
         "nuxt": {
             "compatibility": "good",
             "setup_complexity": "advanced",
-            "build_time": "medium",
-            "features": ["vue_ecosystem", "ssr_support", "shopify_modules"],
-            "cost_multiplier": 1.2
+            "features": ["vue_ecosystem", "ssr_support", "shopify_modules"]
         }
     }
 
@@ -119,94 +89,506 @@ class ShopifyBasicEcommerceStack(BaseSSGStack):
         self,
         scope: Construct,
         construct_id: str,
-        client_config: ClientConfig,
-        ssg_engine: str,
-        shopify_store_domain: str,
-        shopify_plan: str = "basic",
-        enable_webhooks: bool = True,
-        enable_analytics: bool = True,
+        client_config: ClientServiceConfig,
         **kwargs
     ):
-        # Validate SSG engine compatibility
-        if ssg_engine not in self.SUPPORTED_SSG_ENGINES:
-            raise ValueError(
-                f"SSG engine '{ssg_engine}' not supported by Shopify Basic tier. "
-                f"Supported engines: {list(self.SUPPORTED_SSG_ENGINES.keys())}"
-            )
-
         super().__init__(scope, construct_id, client_config, **kwargs)
 
-        self.ssg_engine = ssg_engine
-        self.shopify_store_domain = shopify_store_domain
-        self.shopify_plan = shopify_plan
-        self.enable_webhooks = enable_webhooks
-        self.enable_analytics = enable_analytics
+        # Validate Shopify Basic e-commerce configuration
+        self._validate_shopify_ecommerce_config()
 
-        # Create Shopify provider instance
-        self.shopify_provider = ShopifyBasicProvider(
-            store_domain=shopify_store_domain,
-            shopify_plan=shopify_plan,
-            ssg_engine=ssg_engine
+        # Initialize providers and integration
+        self.ecommerce_provider = self._initialize_ecommerce_provider()
+        self.integration_mode = client_config.service_integration.integration_mode
+
+        # Create infrastructure based on integration mode
+        if self.integration_mode == IntegrationMode.DIRECT:
+            self._create_direct_mode_infrastructure()
+        else:
+            self.integration_layer = EventDrivenIntegrationLayer(
+                self, "IntegrationLayer", client_config
+            )
+            self._create_event_driven_infrastructure()
+
+        # Create common infrastructure (both modes need these)
+        self._create_common_infrastructure()
+
+        # Output stack information
+        self._create_stack_outputs()
+
+    def _validate_shopify_ecommerce_config(self) -> None:
+        """Validate Shopify Basic e-commerce configuration"""
+        service_config = self.client_config.service_integration
+
+        if not service_config.ecommerce_config:
+            raise ValueError("Shopify Basic e-commerce tier requires ecommerce_config")
+
+        if service_config.ecommerce_config.provider != "shopify_basic":
+            raise ValueError(f"Expected Shopify Basic provider, got {service_config.ecommerce_config.provider}")
+
+        # Validate Shopify-specific settings
+        settings = service_config.ecommerce_config.settings
+        required = ["store_domain"]
+        for setting in required:
+            if not settings.get(setting):
+                raise ValueError(f"Shopify Basic requires '{setting}' in settings")
+
+        # Validate SSG compatibility
+        if service_config.ssg_engine not in self.SUPPORTED_SSG_ENGINES:
+            supported = list(self.SUPPORTED_SSG_ENGINES.keys())
+            raise ValueError(f"Shopify Basic supports: {supported}, got: {service_config.ssg_engine}")
+
+    def _initialize_ecommerce_provider(self):
+        """Initialize e-commerce provider instance"""
+        ecommerce_config = self.client_config.service_integration.ecommerce_config
+        return EcommerceProviderFactory.create_provider(
+            ecommerce_config.provider,
+            ecommerce_config.settings
         )
 
-        # Create Shopify Basic infrastructure
-        self._create_shopify_infrastructure()
+    def _create_direct_mode_infrastructure(self) -> None:
+        """Create infrastructure for direct integration mode"""
 
-    def _create_shopify_infrastructure(self) -> None:
-        """Create Shopify Basic e-commerce infrastructure"""
+        # Direct mode: Shopify webhook → CodeBuild pipeline
+        self.shopify_webhook_handler = self._create_shopify_webhook_handler()
+        self.build_project = self._create_direct_build_project()
 
-        # 1. Create base SSG infrastructure (S3, CloudFront, etc.)
-        self.create_content_bucket()
-        self.create_cloudfront_distribution(
-            origin_bucket=self.content_bucket,
-            custom_domain=self.client_config.domain,
-            enable_performance_optimization=True
-        )
+        # Shopify Basic configuration
+        self._create_shopify_configuration()
 
-        # 2. Create Shopify API credentials management
-        self._create_shopify_credentials()
+        # Shopify webhook integration
+        self._create_shopify_webhook_integration()
 
-        # 3. Create product synchronization infrastructure
+        print(f"✅ Created Shopify Basic direct mode infrastructure for {self.client_config.client_id}")
+
+    def _create_event_driven_infrastructure(self) -> None:
+        """Create infrastructure for event-driven integration mode"""
+
+        # Event-driven mode: Shopify events → Integration Layer → Unified Content
+        self._create_event_driven_ecommerce_integration()
+
+        # Shopify Basic configuration (same as direct mode)
+        self._create_shopify_configuration()
+
+        # Connect to event system
+        self._connect_shopify_to_event_system()
+
+        print(f"✅ Created Shopify Basic event-driven infrastructure for {self.client_config.client_id}")
+
+    def _create_common_infrastructure(self) -> None:
+        """Create infrastructure needed by both modes"""
+
+        # Both modes need these components:
+        self._create_content_storage()
+        self._create_shopify_secrets()
         self._create_product_sync_system()
+        self._create_shopify_analytics()
 
-        # 4. Create webhook handling infrastructure
-        if self.enable_webhooks:
-            self._create_webhook_infrastructure()
+    def _create_shopify_webhook_handler(self) -> lambda_.Function:
+        """Create Shopify webhook handler for direct mode"""
 
-        # 5. Create build pipeline with Shopify integration
-        self._create_shopify_build_pipeline()
+        return lambda_.Function(
+            self,
+            "ShopifyWebhookHandler",
+            runtime=lambda_.Runtime.NODEJS_18_X,
+            handler="index.handler",
+            code=lambda_.Code.from_inline("""
+const AWS = require('aws-sdk');
+const crypto = require('crypto');
 
-        # 6. Create analytics and monitoring
-        if self.enable_analytics:
-            self._create_shopify_analytics()
+const codebuild = new AWS.CodeBuild();
+const dynamodb = new AWS.DynamoDB.DocumentClient();
 
-        # 7. Create standard outputs
-        self.create_standard_outputs()
-        self._create_shopify_outputs()
+exports.handler = async (event) => {
+    console.log('Shopify webhook received:', JSON.stringify(event));
 
-    def _create_shopify_credentials(self) -> None:
-        """Create secure Shopify API credentials management"""
+    try {
+        const body = JSON.parse(event.body || '{}');
+        const headers = event.headers || {};
 
-        # Create Secrets Manager for Shopify API tokens
-        self.shopify_secrets = secretsmanager.Secret(
-            self, "ShopifySecrets",
-            secret_name=f"{self.client_config.resource_prefix}-shopify-secrets",
-            description="Shopify API tokens and configuration",
-            generate_secret_string=secretsmanager.SecretStringGenerator(
-                secret_string_template=f'{{"store_domain": "{self.shopify_store_domain}"}}',
-                generate_string_key="storefront_access_token",
-                exclude_characters=" %+~`#$&*()|[]{}:;<>?!'/\"",
-                password_length=32
-            ),
-            removal_policy=RemovalPolicy.DESTROY
+        // Validate Shopify webhook
+        const shopifyTopic = headers['X-Shopify-Topic'] || headers['x-shopify-topic'];
+        if (!shopifyTopic) {
+            console.warn('Missing Shopify topic header');
+            return { statusCode: 400, body: 'Invalid webhook' };
+        }
+
+        console.log('Shopify topic:', shopifyTopic);
+
+        // Handle different webhook events
+        if (shopifyTopic.startsWith('products/')) {
+            await handleProductWebhook(body, shopifyTopic);
+        } else if (shopifyTopic.startsWith('orders/')) {
+            await handleOrderWebhook(body, shopifyTopic);
+        } else if (shopifyTopic.startsWith('inventory_levels/')) {
+            await handleInventoryWebhook(body, shopifyTopic);
+        }
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ message: 'Webhook processed successfully' })
+        };
+
+    } catch (error) {
+        console.error('Webhook processing error:', error);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: error.message })
+        };
+    }
+};
+
+async function handleProductWebhook(productData, topic) {
+    console.log('Processing product webhook:', topic);
+
+    // Update product cache
+    if (topic === 'products/delete') {
+        await dynamodb.delete({
+            TableName: process.env.PRODUCT_CACHE_TABLE,
+            Key: {
+                product_id: productData.id.toString(),
+                handle: productData.handle
+            }
+        }).promise();
+    } else {
+        const cacheItem = {
+            product_id: productData.id.toString(),
+            handle: productData.handle,
+            title: productData.title,
+            description: productData.description,
+            vendor: productData.vendor,
+            product_type: productData.product_type,
+            tags: productData.tags,
+            images: productData.images,
+            variants: productData.variants,
+            status: productData.status,
+            created_at: productData.created_at,
+            updated_at: productData.updated_at,
+            synced_at: new Date().toISOString(),
+            ttl: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60) // 7 day TTL
+        };
+
+        await dynamodb.put({
+            TableName: process.env.PRODUCT_CACHE_TABLE,
+            Item: cacheItem
+        }).promise();
+    }
+
+    // Trigger site rebuild for product changes
+    await triggerSiteRebuild(`Product ${topic}`, productData);
+}
+
+async function handleOrderWebhook(orderData, topic) {
+    console.log('Processing order webhook:', topic);
+
+    // Orders don't typically require site rebuild, but could trigger for analytics
+    if (topic === 'orders/create') {
+        // Log order for analytics
+        console.log('New order created:', orderData.id);
+    }
+}
+
+async function handleInventoryWebhook(inventoryData, topic) {
+    console.log('Processing inventory webhook:', topic);
+
+    const inventoryItem = {
+        variant_id: inventoryData.inventory_item_id.toString(),
+        available: inventoryData.available,
+        location_id: inventoryData.location_id,
+        updated_at: inventoryData.updated_at,
+        ttl: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hour TTL
+    };
+
+    await dynamodb.put({
+        TableName: process.env.INVENTORY_CACHE_TABLE,
+        Item: inventoryItem
+    }).promise();
+
+    // Trigger site rebuild for inventory changes (less frequent)
+    if (Math.random() < 0.1) { // 10% chance to avoid too many rebuilds
+        await triggerSiteRebuild('Inventory update', inventoryData);
+    }
+}
+
+async function triggerSiteRebuild(reason, data) {
+    try {
+        const buildParams = {
+            projectName: process.env.BUILD_PROJECT_NAME,
+            environmentVariablesOverride: [
+                {
+                    name: 'SHOPIFY_SYNC_REASON',
+                    value: reason,
+                    type: 'PLAINTEXT'
+                },
+                {
+                    name: 'SHOPIFY_STORE_DOMAIN',
+                    value: process.env.SHOPIFY_STORE_DOMAIN,
+                    type: 'PLAINTEXT'
+                }
+            ]
+        };
+
+        console.log('Starting build:', buildParams.projectName);
+        const result = await codebuild.startBuild(buildParams).promise();
+        console.log('Build started:', result.build.id);
+
+    } catch (error) {
+        console.error('Build trigger error:', error);
+        throw error;
+    }
+}
+            """),
+            environment={
+                "BUILD_PROJECT_NAME": f"{self.client_config.resource_prefix}-shopify-build",
+                "SHOPIFY_STORE_DOMAIN": self.ecommerce_provider.settings.get("store_domain", ""),
+                "PRODUCT_CACHE_TABLE": f"{self.client_config.resource_prefix}-shopify-products",
+                "INVENTORY_CACHE_TABLE": f"{self.client_config.resource_prefix}-shopify-inventory"
+            },
+            timeout=Duration.seconds(60)
         )
 
-        # Create additional secret for admin API token (for webhooks and management)
-        self.shopify_admin_secrets = secretsmanager.Secret(
-            self, "ShopifyAdminSecrets",
-            secret_name=f"{self.client_config.resource_prefix}-shopify-admin-secrets",
-            description="Shopify Admin API tokens for webhook management",
-            removal_policy=RemovalPolicy.DESTROY
+    def _create_direct_build_project(self) -> codebuild.Project:
+        """Create CodeBuild project for direct mode"""
+
+        # Get Shopify settings for environment variables
+        shopify_settings = self.ecommerce_provider.settings
+
+        return codebuild.Project(
+            self,
+            "ShopifyDirectBuild",
+            project_name=f"{self.client_config.resource_prefix}-shopify-build",
+            source=codebuild.Source.no_source(),  # Shopify is API-based
+            environment=codebuild.BuildEnvironment(
+                build_image=codebuild.LinuxBuildImage.STANDARD_6_0,
+                compute_type=codebuild.ComputeType.SMALL,
+                environment_variables={
+                    "SHOPIFY_STORE_DOMAIN": codebuild.BuildEnvironmentVariable(
+                        value=shopify_settings["store_domain"]
+                    ),
+                    "SHOPIFY_PLAN": codebuild.BuildEnvironmentVariable(
+                        value=shopify_settings.get("plan", "basic")
+                    )
+                }
+            ),
+            build_spec=self._get_direct_mode_buildspec()
+        )
+
+    def _create_event_driven_ecommerce_integration(self) -> None:
+        """Create event-driven e-commerce integration"""
+
+        # Shopify Event Processor - transforms Shopify webhooks to unified content events
+        self.shopify_event_processor = lambda_.Function(
+            self,
+            "ShopifyEventProcessor",
+            runtime=lambda_.Runtime.NODEJS_18_X,
+            handler="index.handler",
+            code=lambda_.Code.from_inline("""
+const AWS = require('aws-sdk');
+
+const sns = new AWS.SNS();
+
+exports.handler = async (event) => {
+    console.log('Processing Shopify event for unified content system');
+
+    try {
+        const body = JSON.parse(event.body || '{}');
+        const headers = event.headers || {};
+        const shopifyTopic = headers['X-Shopify-Topic'] || headers['x-shopify-topic'];
+
+        if (!shopifyTopic) {
+            return { statusCode: 400, body: 'Invalid webhook' };
+        }
+
+        let unifiedEvent = null;
+
+        // Transform different Shopify events to unified format
+        if (shopifyTopic.startsWith('products/')) {
+            unifiedEvent = {
+                event_type: 'ecommerce_product_updated',
+                provider: 'shopify_basic',
+                content_id: body.id.toString(),
+                content_type: 'product',
+                timestamp: body.updated_at || new Date().toISOString(),
+                data: {
+                    shopify_product: body,
+                    product_title: body.title,
+                    product_handle: body.handle,
+                    vendor: body.vendor,
+                    product_type: body.product_type,
+                    tags: body.tags,
+                    status: body.status,
+                    action: shopifyTopic.split('/')[1] // create, update, delete
+                }
+            };
+        } else if (shopifyTopic.startsWith('orders/')) {
+            unifiedEvent = {
+                event_type: 'ecommerce_order_updated',
+                provider: 'shopify_basic',
+                content_id: body.id.toString(),
+                content_type: 'order',
+                timestamp: body.created_at || new Date().toISOString(),
+                data: {
+                    shopify_order: body,
+                    order_number: body.order_number,
+                    total_price: body.total_price,
+                    currency: body.currency,
+                    customer_email: body.email,
+                    financial_status: body.financial_status,
+                    fulfillment_status: body.fulfillment_status,
+                    line_items_count: body.line_items ? body.line_items.length : 0
+                }
+            };
+        } else if (shopifyTopic.startsWith('inventory_levels/')) {
+            unifiedEvent = {
+                event_type: 'ecommerce_inventory_updated',
+                provider: 'shopify_basic',
+                content_id: body.inventory_item_id.toString(),
+                content_type: 'inventory',
+                timestamp: body.updated_at || new Date().toISOString(),
+                data: {
+                    shopify_inventory: body,
+                    available_quantity: body.available,
+                    location_id: body.location_id,
+                    inventory_item_id: body.inventory_item_id
+                }
+            };
+        }
+
+        if (unifiedEvent) {
+            // Publish to content events topic
+            await sns.publish({
+                TopicArn: process.env.CONTENT_EVENTS_TOPIC_ARN,
+                Message: JSON.stringify(unifiedEvent),
+                Subject: `Shopify ${unifiedEvent.content_type} Updated: ${unifiedEvent.content_id}`
+            }).promise();
+
+            console.log('Published unified event:', unifiedEvent.event_type);
+        }
+
+        return { statusCode: 200, body: `Processed ${shopifyTopic}` };
+
+    } catch (error) {
+        console.error('Error processing Shopify event:', error);
+        return { statusCode: 500, body: `Error: ${error.message}` };
+    }
+};
+            """),
+            environment={
+                "CONTENT_EVENTS_TOPIC_ARN": self.integration_layer.content_events_topic.topic_arn
+            },
+            timeout=Duration.seconds(30)
+        )
+
+        # Grant SNS publish permissions
+        self.integration_layer.content_events_topic.grant_publish(self.shopify_event_processor)
+
+    def _create_shopify_configuration(self) -> None:
+        """Create Shopify configuration for the client"""
+
+        # Generate Shopify configuration for SSG integration
+        shopify_config = self._generate_shopify_config()
+
+        # Store configuration in Parameter Store for easy access
+        from aws_cdk import aws_ssm as ssm
+        self.shopify_config_param = ssm.StringParameter(
+            self,
+            "ShopifyConfig",
+            parameter_name=f"/{self.client_config.resource_prefix}/shopify/config",
+            string_value=json.dumps(shopify_config),
+            description="Shopify Basic configuration for SSG integration"
+        )
+
+    def _create_shopify_webhook_integration(self) -> None:
+        """Create Shopify webhook integration for direct mode"""
+
+        # Create API Gateway for Shopify webhooks
+        webhook_api = apigateway.RestApi(
+            self,
+            "ShopifyWebhookAPI",
+            rest_api_name=f"{self.client_config.resource_prefix}-shopify-webhooks",
+            description="Shopify webhook endpoint"
+        )
+
+        # Add webhook endpoint
+        webhook_resource = webhook_api.root.add_resource("webhook")
+        webhook_resource.add_method(
+            "POST",
+            apigateway.LambdaIntegration(self.shopify_webhook_handler)
+        )
+
+        # Add CORS for development
+        webhook_resource.add_cors_preflight(
+            allow_origins=["*"],
+            allow_methods=["POST", "OPTIONS"],
+            allow_headers=["Content-Type", "X-Shopify-Topic", "X-Shopify-Hmac-Sha256"]
+        )
+
+        # Output webhook URL
+        CfnOutput(
+            self,
+            "ShopifyWebhookUrl",
+            value=f"{webhook_api.url}webhook",
+            description="Webhook URL to configure in Shopify admin"
+        )
+
+    def _connect_shopify_to_event_system(self) -> None:
+        """Connect Shopify to event system for event-driven mode"""
+
+        # Create API Gateway for Shopify webhooks (event-driven version)
+        webhook_api = apigateway.RestApi(
+            self,
+            "ShopifyEventWebhookAPI",
+            rest_api_name=f"{self.client_config.resource_prefix}-shopify-event-webhooks"
+        )
+
+        # Add event webhook endpoint
+        event_resource = webhook_api.root.add_resource("events")
+        shopify_resource = event_resource.add_resource("shopify")
+
+        shopify_resource.add_method(
+            "POST",
+            apigateway.LambdaIntegration(self.shopify_event_processor)
+        )
+
+        # Output webhook URL for Shopify configuration
+        CfnOutput(
+            self,
+            "ShopifyEventWebhookUrl",
+            value=f"{webhook_api.url}events/shopify",
+            description="Event webhook URL to configure in Shopify admin"
+        )
+
+    def _create_content_storage(self) -> None:
+        """Create content storage (both modes)"""
+        # Content storage is handled by BaseSSGStack
+        # Additional Shopify-specific storage could be added here
+        pass
+
+    def _create_shopify_secrets(self) -> None:
+        """Create secrets for Shopify API credentials"""
+
+        # Shopify Storefront access token
+        self.shopify_storefront_token = secrets.Secret(
+            self,
+            "ShopifyStorefrontToken",
+            secret_name=f"{self.client_config.resource_prefix}-shopify-storefront-token",
+            description="Shopify Storefront API access token"
+        )
+
+        # Shopify Admin API token
+        self.shopify_admin_token = secrets.Secret(
+            self,
+            "ShopifyAdminToken",
+            secret_name=f"{self.client_config.resource_prefix}-shopify-admin-token",
+            description="Shopify Admin API access token for webhooks"
+        )
+
+        # Webhook secret
+        self.webhook_secret = secrets.Secret(
+            self,
+            "ShopifyWebhookSecret",
+            secret_name=f"{self.client_config.resource_prefix}-shopify-webhook-secret",
+            description="Secret for Shopify webhook signature verification"
         )
 
     def _create_product_sync_system(self) -> None:
@@ -214,7 +596,8 @@ class ShopifyBasicEcommerceStack(BaseSSGStack):
 
         # Create product cache table
         self.product_cache = dynamodb.Table(
-            self, "ShopifyProductCache",
+            self,
+            "ShopifyProductCache",
             table_name=f"{self.client_config.resource_prefix}-shopify-products",
             partition_key=dynamodb.Attribute(
                 name="product_id",
@@ -226,14 +609,13 @@ class ShopifyBasicEcommerceStack(BaseSSGStack):
             ),
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
             removal_policy=RemovalPolicy.DESTROY,
-            # Performance optimization
-            stream=dynamodb.StreamViewType.NEW_AND_OLD_IMAGES,
             time_to_live_attribute="ttl"
         )
 
         # Create inventory tracking table
         self.inventory_cache = dynamodb.Table(
-            self, "ShopifyInventoryCache",
+            self,
+            "ShopifyInventoryCache",
             table_name=f"{self.client_config.resource_prefix}-shopify-inventory",
             partition_key=dynamodb.Attribute(
                 name="variant_id",
@@ -244,124 +626,27 @@ class ShopifyBasicEcommerceStack(BaseSSGStack):
             time_to_live_attribute="ttl"
         )
 
-        # Create product synchronization Lambda
-        self.product_sync = lambda_.Function(
-            self, "ShopifyProductSync",
-            runtime=lambda_.Runtime.NODEJS_18_X,
-            handler="index.handler",
-            code=lambda_.Code.from_inline(self._get_product_sync_code()),
-            timeout=Duration.seconds(300),  # 5 minutes for large product catalogs
-            memory_size=512,  # Higher memory for product processing
-            environment={
-                **self.get_standard_environment_variables(),
-                "SSG_ENGINE": self.ssg_engine,
-                "SHOPIFY_STORE_DOMAIN": self.shopify_store_domain,
-                "PRODUCT_CACHE_TABLE": self.product_cache.table_name,
-                "INVENTORY_CACHE_TABLE": self.inventory_cache.table_name,
-                "SECRETS_ARN": self.shopify_secrets.secret_arn
-            }
-        )
-
-        # Grant permissions
-        self.product_cache.grant_read_write_data(self.product_sync)
-        self.inventory_cache.grant_read_write_data(self.product_sync)
-        self.shopify_secrets.grant_read(self.product_sync)
-
-    def _create_webhook_infrastructure(self) -> None:
-        """Create Shopify webhook handling infrastructure"""
-
-        # Create webhook handler Lambda
-        self.webhook_handler = lambda_.Function(
-            self, "ShopifyWebhookHandler",
-            runtime=lambda_.Runtime.NODEJS_18_X,
-            handler="index.handler",
-            code=lambda_.Code.from_inline(self._get_webhook_handler_code()),
-            timeout=Duration.seconds(60),
-            environment={
-                **self.get_standard_environment_variables(),
-                "SSG_ENGINE": self.ssg_engine,
-                "SHOPIFY_STORE_DOMAIN": self.shopify_store_domain,
-                "PRODUCT_CACHE_TABLE": self.product_cache.table_name,
-                "INVENTORY_CACHE_TABLE": self.inventory_cache.table_name,
-                "SECRETS_ARN": self.shopify_secrets.secret_arn
-            }
-        )
-
-        # Grant permissions to access resources
-        self.product_cache.grant_read_write_data(self.webhook_handler)
-        self.inventory_cache.grant_read_write_data(self.webhook_handler)
-        self.shopify_secrets.grant_read(self.webhook_handler)
-
-        # Create API Gateway for webhooks
-        self.webhook_api = apigateway.RestApi(
-            self, "ShopifyWebhookAPI",
-            rest_api_name=f"{self.client_config.client_id}-shopify-webhooks",
-            description="Shopify webhook endpoints for product synchronization"
-        )
-
-        # Add webhook endpoint
-        webhook_integration = apigateway.LambdaIntegration(self.webhook_handler)
-        webhook_resource = self.webhook_api.root.add_resource("shopify")
-        webhook_resource.add_method("POST", webhook_integration)
-
-        # Add CORS for development and admin access
-        webhook_resource.add_cors_preflight(
-            allow_origins=["*"],
-            allow_methods=["POST", "OPTIONS"],
-            allow_headers=["Content-Type", "X-Shopify-Topic", "X-Shopify-Hmac-Sha256"]
-        )
-
-    def _create_shopify_build_pipeline(self) -> None:
-        """Create build pipeline with Shopify integration"""
-
-        # Create build role with Shopify-specific permissions
-        additional_policies = [
-            # DynamoDB permissions for product and inventory cache
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                actions=[
-                    "dynamodb:GetItem",
-                    "dynamodb:Query",
-                    "dynamodb:Scan"
-                ],
-                resources=[
-                    self.product_cache.table_arn,
-                    self.inventory_cache.table_arn
-                ]
-            ),
-            # Secrets Manager permissions for Shopify API tokens
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                actions=["secretsmanager:GetSecretValue"],
-                resources=[
-                    self.shopify_secrets.secret_arn,
-                    self.shopify_admin_secrets.secret_arn
-                ]
-            )
-        ]
-
-        self.create_build_role(additional_policies=additional_policies)
-
-        # Create build project with Shopify-specific buildspec
-        buildspec = self._get_shopify_buildspec()
-        self.create_build_project(buildspec=buildspec)
+        # Grant permissions to webhook handler
+        self.product_cache.grant_read_write_data(self.shopify_webhook_handler)
+        self.inventory_cache.grant_read_write_data(self.shopify_webhook_handler)
 
     def _create_shopify_analytics(self) -> None:
         """Create analytics and monitoring for Shopify integration"""
 
         # Create CloudWatch dashboard for Shopify metrics
         self.shopify_dashboard = cloudwatch.Dashboard(
-            self, "ShopifyDashboard",
+            self,
+            "ShopifyDashboard",
             dashboard_name=f"{self.client_config.client_id}-shopify-ecommerce"
         )
 
         # Add metrics widgets
         self.shopify_dashboard.add_widgets(
             cloudwatch.GraphWidget(
-                title="Shopify API Calls",
+                title="Shopify Webhook Processing",
                 left=[
-                    self.product_sync.metric_invocations(),
-                    self.webhook_handler.metric_invocations()
+                    self.shopify_webhook_handler.metric_invocations(),
+                    self.shopify_webhook_handler.metric_errors()
                 ]
             ),
             cloudwatch.GraphWidget(
@@ -370,587 +655,304 @@ class ShopifyBasicEcommerceStack(BaseSSGStack):
                     self.product_cache.metric_consumed_read_capacity_units(),
                     self.product_cache.metric_consumed_write_capacity_units()
                 ]
-            ),
-            cloudwatch.GraphWidget(
-                title="Build Performance",
-                left=[
-                    cloudwatch.Metric(
-                        namespace="AWS/CodeBuild",
-                        metric_name="Builds",
-                        dimensions_map={
-                            "ProjectName": f"{self.client_config.resource_prefix}-build"
-                        }
-                    )
-                ]
             )
         )
 
-        # Create alarms for critical issues
-        cloudwatch.Alarm(
-            self, "ShopifyProductSyncErrors",
-            metric=self.product_sync.metric_errors(),
-            threshold=5,
-            evaluation_periods=2,
-            alarm_description="High error rate in Shopify product sync"
-        )
+    def _generate_shopify_config(self) -> Dict[str, Any]:
+        """Generate Shopify configuration for SSG integration"""
 
-        cloudwatch.Alarm(
-            self, "ShopifyWebhookErrors",
-            metric=self.webhook_handler.metric_errors(),
-            threshold=10,
-            evaluation_periods=2,
-            alarm_description="High error rate in Shopify webhook processing"
-        )
+        ssg_engine = self.client_config.service_integration.ssg_engine
+        ecommerce_settings = self.ecommerce_provider.settings
 
-    def _create_shopify_outputs(self) -> None:
-        """Create Shopify-specific outputs"""
+        # Base Shopify configuration
+        config = {
+            "storeDomain": ecommerce_settings["store_domain"],
+            "plan": ecommerce_settings.get("plan", "basic"),
+            "apiVersion": "2023-10",
+            "currency": ecommerce_settings.get("currency", "USD")
+        }
 
-        from aws_cdk import CfnOutput
+        # Add SSG-specific configurations
+        if ssg_engine == "eleventy":
+            config.update({
+                "integration": "eleventy",
+                "dataFormat": "json",
+                "templatesPath": "_includes/shopify"
+            })
+        elif ssg_engine == "astro":
+            config.update({
+                "integration": "astro",
+                "componentFormat": "Shopify{Component}",
+                "componentsPath": "src/components/shopify"
+            })
+        elif ssg_engine == "nextjs":
+            config.update({
+                "integration": "nextjs",
+                "hooksPath": "hooks/shopify",
+                "componentsPath": "components/shopify"
+            })
+        elif ssg_engine == "nuxt":
+            config.update({
+                "integration": "nuxt",
+                "modulePath": "modules/shopify",
+                "componentsPath": "components/shopify"
+            })
 
-        # E-commerce configuration outputs
+        return config
+
+    def _get_direct_mode_buildspec(self) -> codebuild.BuildSpec:
+        """Get buildspec for direct mode builds"""
+
+        ssg_engine = self.client_config.service_integration.ssg_engine
+
+        if ssg_engine == "eleventy":
+            return codebuild.BuildSpec.from_object({
+                "version": "0.2",
+                "phases": {
+                    "install": {
+                        "runtime-versions": {"nodejs": "18"},
+                        "commands": ["npm ci", "npm install @shopify/storefront-api-client"]
+                    },
+                    "build": {
+                        "commands": ["npx @11ty/eleventy"]
+                    }
+                },
+                "artifacts": {
+                    "files": ["**/*"],
+                    "base-directory": "_site"
+                }
+            })
+
+        elif ssg_engine == "astro":
+            return codebuild.BuildSpec.from_object({
+                "version": "0.2",
+                "phases": {
+                    "install": {
+                        "runtime-versions": {"nodejs": "18"},
+                        "commands": ["npm ci", "npm install @shopify/storefront-api-client"]
+                    },
+                    "build": {
+                        "commands": ["npm run build"]
+                    }
+                },
+                "artifacts": {
+                    "files": ["**/*"],
+                    "base-directory": "dist"
+                }
+            })
+
+        elif ssg_engine == "nextjs":
+            return codebuild.BuildSpec.from_object({
+                "version": "0.2",
+                "phases": {
+                    "install": {
+                        "runtime-versions": {"nodejs": "18"},
+                        "commands": ["npm ci", "npm install @shopify/storefront-api-client @shopify/react-hooks"]
+                    },
+                    "build": {
+                        "commands": ["npm run build", "npm run export"]
+                    }
+                },
+                "artifacts": {
+                    "files": ["**/*"],
+                    "base-directory": "out"
+                }
+            })
+
+        else:  # nuxt
+            return codebuild.BuildSpec.from_object({
+                "version": "0.2",
+                "phases": {
+                    "install": {
+                        "runtime-versions": {"nodejs": "18"},
+                        "commands": ["npm ci", "npm install @shopify/storefront-api-client @nuxtjs/axios"]
+                    },
+                    "build": {
+                        "commands": ["npm run generate"]
+                    }
+                },
+                "artifacts": {
+                    "files": ["**/*"],
+                    "base-directory": "dist"
+                }
+            })
+
+    def _create_stack_outputs(self) -> None:
+        """Create CloudFormation outputs"""
+
+        # Common outputs
         CfnOutput(
-            self, "ShopifyStoreDomain",
-            value=self.shopify_store_domain,
+            self,
+            "SiteUrl",
+            value=f"https://{self.distribution.distribution_domain_name}",
+            description="Published site URL"
+        )
+
+        CfnOutput(
+            self,
+            "ShopifyStoreDomain",
+            value=self.ecommerce_provider.settings["store_domain"],
             description="Shopify store domain"
         )
 
         CfnOutput(
-            self, "ShopifyPlan",
-            value=self.shopify_plan,
-            description="Shopify plan tier"
+            self,
+            "IntegrationMode",
+            value=self.integration_mode.value,
+            description="E-commerce integration mode (direct or event_driven)"
         )
 
         CfnOutput(
-            self, "SSGEngine",
-            value=self.ssg_engine,
-            description="Selected SSG Engine"
-        )
-
-        # Webhook configuration
-        if self.enable_webhooks:
-            CfnOutput(
-                self, "ShopifyWebhookURL",
-                value=f"{self.webhook_api.url}shopify",
-                description="Shopify webhook URL for real-time synchronization"
-            )
-
-        # Analytics dashboard
-        if self.enable_analytics:
-            CfnOutput(
-                self, "ShopifyDashboardURL",
-                value=f"https://console.aws.amazon.com/cloudwatch/home#dashboards:name={self.shopify_dashboard.dashboard_name}",
-                description="CloudWatch dashboard for Shopify e-commerce metrics"
-            )
-
-        # Service tier and pricing information
-        CfnOutput(
-            self, "EcommerceProvider",
+            self,
+            "EcommerceProvider",
             value="shopify_basic",
-            description="E-commerce provider tier"
+            description="E-commerce provider"
         )
 
-        engine_config = self.SUPPORTED_SSG_ENGINES[self.ssg_engine]
         CfnOutput(
-            self, "EstimatedMonthlyCost",
-            value=f"${75 * engine_config['cost_multiplier']:.0f}-${125 * engine_config['cost_multiplier']:.0f}",
-            description="Estimated monthly cost range"
+            self,
+            "SSGEngine",
+            value=self.client_config.service_integration.ssg_engine,
+            description="SSG engine"
         )
 
-    def _get_webhook_handler_code(self) -> str:
-        """Get Lambda code for Shopify webhook handling"""
-        return """
-        const AWS = require('aws-sdk');
-        const crypto = require('crypto');
+        # Mode-specific outputs
+        if self.integration_mode == IntegrationMode.EVENT_DRIVEN:
+            CfnOutput(
+                self,
+                "ContentEventsTopicArn",
+                value=self.integration_layer.content_events_topic.topic_arn,
+                description="SNS topic for content/e-commerce events"
+            )
 
-        const dynamodb = new AWS.DynamoDB.DocumentClient();
-        const codebuild = new AWS.CodeBuild();
-        const secretsManager = new AWS.SecretsManager();
+            CfnOutput(
+                self,
+                "IntegrationApiUrl",
+                value=self.integration_layer.integration_api.url,
+                description="Integration API endpoint"
+            )
 
-        exports.handler = async (event) => {
-            console.log('Shopify webhook received:', JSON.stringify(event));
+            CfnOutput(
+                self,
+                "SupportsComposition",
+                value="true",
+                description="Supports composition with CMS providers"
+            )
+        else:
+            CfnOutput(
+                self,
+                "SupportsComposition",
+                value="false",
+                description="Direct mode - no composition support"
+            )
 
-            try {
-                const body = JSON.parse(event.body || '{}');
-                const headers = event.headers || {};
+    def _create_custom_infrastructure(self) -> None:
+        """Required implementation from BaseSSGStack"""
+        # Infrastructure creation is handled by mode-specific methods
+        pass
 
-                // Validate Shopify webhook
-                const shopifyTopic = headers['X-Shopify-Topic'] || headers['x-shopify-topic'];
-                if (!shopifyTopic) {
-                    console.warn('Missing Shopify topic header');
-                    return { statusCode: 400, body: 'Invalid webhook' };
-                }
+    def get_monthly_cost_estimate(self) -> Dict[str, Any]:
+        """Get monthly cost estimate for Shopify Basic e-commerce tier"""
 
-                console.log('Shopify topic:', shopifyTopic);
-
-                // Handle different webhook events
-                if (shopifyTopic.startsWith('products/')) {
-                    await handleProductWebhook(body, shopifyTopic);
-                } else if (shopifyTopic.startsWith('inventory_levels/')) {
-                    await handleInventoryWebhook(body, shopifyTopic);
-                } else if (shopifyTopic.startsWith('collections/')) {
-                    await handleCollectionWebhook(body, shopifyTopic);
-                }
-
-                return {
-                    statusCode: 200,
-                    body: JSON.stringify({ message: 'Webhook processed successfully' })
-                };
-
-            } catch (error) {
-                console.error('Webhook processing error:', error);
-                return {
-                    statusCode: 500,
-                    body: JSON.stringify({ error: error.message })
-                };
-            }
-        };
-
-        async function handleProductWebhook(productData, topic) {
-            console.log('Processing product webhook:', topic);
-
-            if (topic === 'products/delete') {
-                // Remove product from cache
-                await dynamodb.delete({
-                    TableName: process.env.PRODUCT_CACHE_TABLE,
-                    Key: {
-                        product_id: productData.id.toString(),
-                        handle: productData.handle
-                    }
-                }).promise();
-            } else {
-                // Update or create product in cache
-                const cacheItem = {
-                    product_id: productData.id.toString(),
-                    handle: productData.handle,
-                    title: productData.title,
-                    description: productData.description,
-                    vendor: productData.vendor,
-                    product_type: productData.product_type,
-                    tags: productData.tags,
-                    images: productData.images,
-                    variants: productData.variants,
-                    status: productData.status,
-                    created_at: productData.created_at,
-                    updated_at: productData.updated_at,
-                    ssg_engine: process.env.SSG_ENGINE,
-                    synced_at: new Date().toISOString(),
-                    ttl: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60) // 7 day TTL
-                };
-
-                await dynamodb.put({
-                    TableName: process.env.PRODUCT_CACHE_TABLE,
-                    Item: cacheItem
-                }).promise();
-            }
-
-            // Trigger site rebuild for product changes
-            await triggerSiteRebuild(`Product ${topic}`, productData);
+        base_costs = {
+            "shopify_basic_plan": 29,  # Fixed Shopify Basic plan
+            "shopify_transaction_fees": "2.9% of sales",  # Transaction fees
+            "aws_hosting": 50,  # Base hosting costs
+            "cloudfront": 15,  # CDN costs
+            "codebuild": 10,  # Build minutes
+            "dynamodb": 10,  # Product and inventory cache
+            "lambda": 5,  # Webhook processing
         }
 
-        async function handleInventoryWebhook(inventoryData, topic) {
-            console.log('Processing inventory webhook:', topic);
+        if self.integration_mode == IntegrationMode.EVENT_DRIVEN:
+            base_costs.update({
+                "sns_messages": 8,  # Event messaging
+                "lambda_executions": 8,  # Event processing
+                "dynamodb_events": 5,  # Additional event storage
+            })
 
-            const inventoryItem = {
-                variant_id: inventoryData.inventory_item_id.toString(),
-                available: inventoryData.available,
-                location_id: inventoryData.location_id,
-                updated_at: inventoryData.updated_at,
-                ttl: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hour TTL
-            };
-
-            await dynamodb.put({
-                TableName: process.env.INVENTORY_CACHE_TABLE,
-                Item: inventoryItem
-            }).promise();
-
-            // Trigger site rebuild for inventory changes (less frequent)
-            if (Math.random() < 0.1) { // 10% chance to avoid too many rebuilds
-                await triggerSiteRebuild('Inventory update', inventoryData);
-            }
-        }
-
-        async function handleCollectionWebhook(collectionData, topic) {
-            console.log('Processing collection webhook:', topic);
-
-            // Trigger site rebuild for collection changes
-            await triggerSiteRebuild(`Collection ${topic}`, collectionData);
-        }
-
-        async function triggerSiteRebuild(reason, data) {
-            try {
-                const buildParams = {
-                    projectName: process.env.BUILD_PROJECT_NAME || `${process.env.CLIENT_ID}-build`,
-                    environmentVariablesOverride: [
-                        {
-                            name: 'SHOPIFY_SYNC_REASON',
-                            value: reason,
-                            type: 'PLAINTEXT'
-                        },
-                        {
-                            name: 'SHOPIFY_STORE_DOMAIN',
-                            value: process.env.SHOPIFY_STORE_DOMAIN,
-                            type: 'PLAINTEXT'
-                        }
-                    ]
-                };
-
-                console.log('Starting build:', buildParams.projectName);
-                const result = await codebuild.startBuild(buildParams).promise();
-                console.log('Build started:', result.build.id);
-
-            } catch (error) {
-                console.error('Build trigger error:', error);
-                throw error;
-            }
-        }
-        """
-
-    def _get_product_sync_code(self) -> str:
-        """Get Lambda code for Shopify product synchronization"""
-        return """
-        const AWS = require('aws-sdk');
-        const https = require('https');
-
-        const dynamodb = new AWS.DynamoDB.DocumentClient();
-        const secretsManager = new AWS.SecretsManager();
-
-        exports.handler = async (event) => {
-            console.log('Shopify product sync triggered:', JSON.stringify(event));
-
-            try {
-                // Get Shopify API credentials
-                const secrets = await getShopifySecrets();
-
-                // Sync products from Shopify Storefront API
-                await syncShopifyProducts(secrets);
-
-                return {
-                    statusCode: 200,
-                    body: JSON.stringify({
-                        message: 'Products synchronized successfully',
-                        timestamp: new Date().toISOString()
-                    })
-                };
-
-            } catch (error) {
-                console.error('Product sync error:', error);
-                return {
-                    statusCode: 500,
-                    body: JSON.stringify({ error: error.message })
-                };
-            }
-        };
-
-        async function getShopifySecrets() {
-            const secretValue = await secretsManager.getSecretValue({
-                SecretId: process.env.SECRETS_ARN
-            }).promise();
-
-            return JSON.parse(secretValue.SecretString);
-        }
-
-        async function syncShopifyProducts(secrets) {
-            console.log('Syncing Shopify products...');
-
-            const storeDomain = process.env.SHOPIFY_STORE_DOMAIN;
-            const storefrontToken = secrets.storefront_access_token;
-
-            const query = `
-                query getProducts($first: Int!) {
-                    products(first: $first) {
-                        edges {
-                            node {
-                                id
-                                title
-                                handle
-                                description
-                                vendor
-                                productType
-                                tags
-                                createdAt
-                                updatedAt
-                                images(first: 10) {
-                                    edges {
-                                        node {
-                                            id
-                                            url
-                                            altText
-                                            width
-                                            height
-                                        }
-                                    }
-                                }
-                                variants(first: 10) {
-                                    edges {
-                                        node {
-                                            id
-                                            title
-                                            price {
-                                                amount
-                                                currencyCode
-                                            }
-                                            compareAtPrice {
-                                                amount
-                                                currencyCode
-                                            }
-                                            availableForSale
-                                            quantityAvailable
-                                        }
-                                    }
-                                }
-                                priceRange {
-                                    minVariantPrice {
-                                        amount
-                                        currencyCode
-                                    }
-                                    maxVariantPrice {
-                                        amount
-                                        currencyCode
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            `;
-
-            const response = await makeGraphQLRequest(storeDomain, storefrontToken, query, { first: 50 });
-            const products = response.data.products.edges;
-
-            console.log(`Found ${products.length} products to sync`);
-
-            for (const { node: product } of products) {
-                const cacheItem = {
-                    product_id: product.id,
-                    handle: product.handle,
-                    title: product.title,
-                    description: product.description,
-                    vendor: product.vendor,
-                    product_type: product.productType,
-                    tags: product.tags,
-                    images: product.images.edges.map(edge => edge.node),
-                    variants: product.variants.edges.map(edge => edge.node),
-                    price_range: product.priceRange,
-                    created_at: product.createdAt,
-                    updated_at: product.updatedAt,
-                    ssg_engine: process.env.SSG_ENGINE,
-                    synced_at: new Date().toISOString(),
-                    ttl: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60) // 7 day TTL
-                };
-
-                await dynamodb.put({
-                    TableName: process.env.PRODUCT_CACHE_TABLE,
-                    Item: cacheItem
-                }).promise();
-            }
-
-            console.log('Product sync completed successfully');
-        }
-
-        async function makeGraphQLRequest(storeDomain, accessToken, query, variables) {
-            return new Promise((resolve, reject) => {
-                const data = JSON.stringify({ query, variables });
-
-                const options = {
-                    hostname: storeDomain.replace('https://', '').replace('http://', ''),
-                    path: '/api/2023-10/graphql.json',
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Content-Length': Buffer.byteLength(data),
-                        'X-Shopify-Storefront-Access-Token': accessToken
-                    }
-                };
-
-                const req = https.request(options, (res) => {
-                    let responseData = '';
-                    res.on('data', (chunk) => responseData += chunk);
-                    res.on('end', () => {
-                        try {
-                            resolve(JSON.parse(responseData));
-                        } catch (error) {
-                            reject(error);
-                        }
-                    });
-                });
-
-                req.on('error', reject);
-                req.write(data);
-                req.end();
-            });
-        }
-        """
-
-    def _get_shopify_buildspec(self) -> Dict[str, Any]:
-        """Get CodeBuild buildspec for Shopify integration"""
-
-        base_buildspec = {
-            "version": "0.2",
-            "env": {
-                "variables": {
-                    "SSG_ENGINE": self.ssg_engine,
-                    "SHOPIFY_STORE_DOMAIN": self.shopify_store_domain,
-                    "SHOPIFY_PLAN": self.shopify_plan
-                },
-                "secrets-manager": {
-                    "SHOPIFY_STOREFRONT_ACCESS_TOKEN": f"{self.shopify_secrets.secret_arn}:storefront_access_token",
-                    "SHOPIFY_ADMIN_ACCESS_TOKEN": f"{self.shopify_admin_secrets.secret_arn}:admin_access_token"
-                }
-            },
-            "phases": {
-                "install": {
-                    "runtime-versions": {
-                        "nodejs": 18
-                    },
-                    "commands": [
-                        "echo Installing dependencies for $SSG_ENGINE with Shopify Basic",
-                        "npm install -g @shopify/cli @shopify/theme"
-                    ]
-                },
-                "pre_build": {
-                    "commands": [
-                        "echo Fetching products from Shopify Storefront API...",
-                        "echo Store Domain: $SHOPIFY_STORE_DOMAIN",
-                        "echo SSG Engine: $SSG_ENGINE"
-                    ]
-                },
-                "build": {
-                    "commands": []
-                },
-                "post_build": {
-                    "commands": [
-                        f"aws s3 sync ./dist s3://{self.content_bucket.bucket_name}/ --delete",
-                        f"aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths '/*'"
-                    ]
-                }
-            }
-        }
-
-        # Add SSG-specific build commands
-        ssg_commands = {
-            "eleventy": [
-                "npm install",
-                "npm install @shopify/storefront-api-client graphql",
-                "SHOPIFY_STORE_DOMAIN=$SHOPIFY_STORE_DOMAIN SHOPIFY_STOREFRONT_ACCESS_TOKEN=$SHOPIFY_STOREFRONT_ACCESS_TOKEN npx @11ty/eleventy"
-            ],
-            "astro": [
-                "npm install",
-                "npm install @shopify/storefront-api-client @astrojs/node graphql",
-                "SHOPIFY_STORE_DOMAIN=$SHOPIFY_STORE_DOMAIN SHOPIFY_STOREFRONT_ACCESS_TOKEN=$SHOPIFY_STOREFRONT_ACCESS_TOKEN npm run build"
-            ],
-            "nextjs": [
-                "npm install",
-                "npm install @shopify/storefront-api-client @shopify/react-hooks graphql",
-                "NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN=$SHOPIFY_STORE_DOMAIN NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN=$SHOPIFY_STOREFRONT_ACCESS_TOKEN npm run build && npm run export"
-            ],
-            "nuxt": [
-                "npm install",
-                "npm install @shopify/storefront-api-client @nuxtjs/axios graphql",
-                "NUXT_PUBLIC_SHOPIFY_STORE_DOMAIN=$SHOPIFY_STORE_DOMAIN NUXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN=$SHOPIFY_STOREFRONT_ACCESS_TOKEN npm run generate"
-            ]
-        }
-
-        base_buildspec["phases"]["build"]["commands"] = ssg_commands.get(
-            self.ssg_engine,
-            ["echo Unsupported SSG engine: $SSG_ENGINE"]
-        )
-
-        return base_buildspec
-
-    def get_monthly_cost_estimate(self) -> Dict[str, float]:
-        """Get monthly cost estimate for Shopify Basic tier"""
-
-        # Get base SSG costs
-        base_costs = super().estimate_monthly_cost()
-
-        # Shopify Basic plan cost
-        shopify_basic = 29  # Fixed Shopify Basic plan
-
-        # AWS overhead for e-commerce features
-        engine_config = self.SUPPORTED_SSG_ENGINES[self.ssg_engine]
-        aws_overhead = 20 * engine_config["cost_multiplier"]  # DynamoDB, Lambda, API Gateway
-
-        # Integration and maintenance
-        integration_maintenance = 15  # Automated sync and webhook handling
-        performance_optimization = 8   # CDN and build optimization
-
-        total_ecommerce_cost = shopify_basic + aws_overhead + integration_maintenance + performance_optimization
+        monthly_total = sum(v for v in base_costs.values() if isinstance(v, (int, float)))
 
         return {
-            **base_costs,
-            "shopify_basic_plan": shopify_basic,
-            "ecommerce_aws_overhead": aws_overhead,
-            "integration_maintenance": integration_maintenance,
-            "performance_optimization": performance_optimization,
-            "total_ecommerce_cost": total_ecommerce_cost,
-            "total": base_costs.get("total", 0) + total_ecommerce_cost
+            "monthly_fixed_costs": monthly_total,
+            "transaction_fees": "2.9% of sales",
+            "total_description": f"${monthly_total}/month + 2.9% of sales",
+            "agency_cost_savings": "80-90% vs traditional Shopify agencies",
+            "competitive_advantage": "Proven platform reliability with custom performance optimization"
         }
 
-    @classmethod
-    def get_client_suitability_score(
-        cls,
-        client_requirements: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """Get suitability score for Shopify Basic tier based on client requirements"""
+    @staticmethod
+    def get_client_suitability_score(requirements: Dict[str, Any]) -> Dict[str, Any]:
+        """Get client suitability score for Shopify Basic e-commerce tier"""
 
         score = 0
         reasons = []
 
-        # E-commerce requirements boost score
-        if client_requirements.get("ecommerce_needed", False):
+        # E-commerce platform reliability (major factor for Shopify)
+        if requirements.get("proven_platform", False):
             score += 30
-            reasons.append("E-commerce functionality required")
+            reasons.append("Shopify's proven e-commerce platform reliability")
 
-        if client_requirements.get("product_catalog", False):
+        # Performance requirements
+        if requirements.get("performance_critical", False):
             score += 25
-            reasons.append("Product catalog management needed")
+            reasons.append("Static site performance with proven e-commerce backend")
 
-        if client_requirements.get("performance_critical", False):
-            score += 20
-            reasons.append("Performance-critical requirements benefit from static site delivery")
-
-        # Budget considerations
-        budget = client_requirements.get("monthly_budget", 0)
-        if 75 <= budget <= 200:
-            score += 20
-            reasons.append("Budget range ideal for Shopify Basic tier")
-        elif budget < 75:
-            score -= 15
-            reasons.append("Budget may be tight for Shopify Basic tier")
-
-        # Business size alignment
-        business_size = client_requirements.get("business_size", "small")
-        if business_size in ["small", "medium"]:
-            score += 15
-            reasons.append("Business size fits Shopify Basic tier perfectly")
-
-        # Technical requirements
-        if client_requirements.get("agency_alternative", False):
+        # Agency alternative
+        if requirements.get("agency_alternative", False):
             score += 25
             reasons.append("Excellent agency alternative with 80-90% cost savings")
 
-        # Penalties for misalignment
-        if client_requirements.get("enterprise_features", False):
-            score -= 20
-            reasons.append("Enterprise features may require Shopify Advanced tier")
+        # Business size alignment
+        business_size = requirements.get("business_size", "small")
+        if business_size in ["small", "medium"]:
+            score += 20
+            reasons.append("Perfect fit for small to medium businesses")
 
-        if business_size == "enterprise":
-            score -= 15
-            reasons.append("Enterprise size might need advanced e-commerce features")
+        # Budget considerations
+        budget = requirements.get("monthly_budget", 100)
+        if budget >= 100:
+            score += 15
+            reasons.append("Budget supports Shopify Basic with hosting")
+        elif budget >= 80:
+            score += 10
+            reasons.append("Budget covers basic Shopify implementation")
+        else:
+            score -= 10
+            reasons.append("Budget may be tight for Shopify Basic")
 
-        suitability = "poor"
-        if score >= 70:
+        # Transaction volume
+        expected_monthly_sales = requirements.get("expected_monthly_sales", 2000)
+        if expected_monthly_sales >= 5000:
+            score += 10
+            reasons.append("Good value for medium-volume sales")
+        elif expected_monthly_sales >= 1000:
+            score += 5
+            reasons.append("Suitable for growing sales volume")
+
+        # PCI compliance need
+        if requirements.get("pci_compliance", False):
+            score += 15
+            reasons.append("Shopify handles PCI compliance automatically")
+
+        # Complex customization penalty
+        if requirements.get("complex_customization", False):
+            score -= 10
+            reasons.append("Advanced customization may be limited compared to custom solutions")
+
+        # Determine suitability level
+        if score >= 80:
             suitability = "excellent"
-        elif score >= 50:
+        elif score >= 60:
             suitability = "good"
-        elif score >= 30:
+        elif score >= 40:
             suitability = "fair"
+        else:
+            suitability = "poor"
 
         return {
-            "suitability_score": max(0, min(100, score)),
+            "suitability_score": min(100, max(0, score)),
             "suitability": suitability,
             "reasons": reasons,
-            "recommended_ssg_engines": list(cls.SUPPORTED_SSG_ENGINES.keys()),
-            "estimated_monthly_cost": "$75-125",
-            "setup_cost_estimate": "$1,600-3,200"
+            "integration_mode_recommendation": "event_driven" if requirements.get("growth_planning") else "direct"
         }

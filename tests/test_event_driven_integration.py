@@ -20,10 +20,10 @@ from models.service_config import ClientServiceConfig, IntegrationMode, ServiceI
 from stacks.cms.decap_cms_tier_stack import DecapCMSTierStack
 from stacks.cms.sanity_cms_tier_stack import SanityCMSTierStack
 from stacks.cms.contentful_cms_stack import ContentfulCMSStack
-from stacks.cms.tina_cms_tier_stack_new import TinaCMSTierStack
-from stacks.ecommerce.snipcart_ecommerce_stack_new import SnipcartEcommerceStack
-from stacks.ecommerce.foxy_ecommerce_stack_new import FoxyEcommerceStack
-from stacks.ecommerce.shopify_basic_ecommerce_stack_new import ShopifyBasicEcommerceStack
+from stacks.cms.tina_cms_tier_stack import TinaCMSTierStack
+from stacks.ecommerce.snipcart_ecommerce_stack import SnipcartEcommerceStack
+from stacks.ecommerce.foxy_ecommerce_stack import FoxyEcommerceStack
+from stacks.ecommerce.shopify_basic_ecommerce_stack import ShopifyBasicEcommerceStack
 
 
 class TestEventDrivenIntegration:
