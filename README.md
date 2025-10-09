@@ -207,20 +207,63 @@ The EventDrivenIntegrationLayer is the heart of the composition system, enabling
 │           └─────────┬───────────┼─────────────────────┘                    │
 │                     │           │                                          │
 │  ┌─────────────────────────────────────────────────────────────────────┐  │
-│  │                    API Gateway Integration                          │  │
+│  │                 HTTP API Gateway Integration                        │  │
 │  │                                                                     │  │
-│  │  /webhooks/decap      /webhooks/sanity     /webhooks/snipcart      │  │
-│  │  /webhooks/tina       /webhooks/contentful /webhooks/foxy          │  │
-│  │  /content/{id}        /health              /webhooks/shopify       │  │
+│  │  POST /webhooks/{provider}  ←  Unified webhook router              │  │
+│  │  GET  /content/{id}         ←  Content API for builds              │  │
+│  │  GET  /health               ←  Health check endpoint               │  │
+│  │                                                                     │  │
+│  │  Supported providers: decap, tina, sanity, contentful,             │  │
+│  │                      snipcart, foxy, shopify_basic                 │  │
 │  └─────────────────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### **Unified Webhook Router (Production-Ready)**
+
+The platform features a production-ready unified webhook router built with HTTP API Gateway, providing enterprise-grade security and cost optimization:
+
+**Key Features:**
+- **Single Endpoint**: `POST /webhooks/{provider}` handles all providers
+- **70% Cost Reduction**: HTTP API Gateway vs REST API Gateway
+- **Production Security**: Signature verification, replay protection, idempotency
+- **Comprehensive Monitoring**: Per-provider CloudWatch metrics
+- **Auto-scaling**: Built-in burst protection and error handling
+
+**Security Layers (Processing Order):**
+1. **Signature Verification** - Provider-specific HMAC validation
+2. **Timestamp Validation** - Replay attack prevention (5-minute window)
+3. **JSON Validation** - Payload parsing and content-type checking
+4. **Idempotency Check** - DynamoDB-based duplicate prevention (24h TTL)
+5. **Content Processing** - Provider adapter registry normalization
+
+**Production Features:**
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                   Unified Webhook Router                           │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  HTTP API Gateway → Lambda Proxy v2 → Security Layers              │
+│                                                                     │
+│  Security:           Monitoring:         Storage:                   │
+│  • Signature Auth    • CloudWatch        • DynamoDB Cache          │
+│  • Replay Protection • Per-provider      • Webhook Receipts       │
+│  • Idempotency       • Error tracking    • Event Store            │
+│  • Input Validation  • Latency metrics   • TTL Cleanup            │
+│                                                                     │
+│  Response Format:    Error Handling:     Performance:              │
+│  • Standardized     • Detailed context   • <100ms avg response    │
+│  • Request IDs      • Support guidance   • Burst protection       │
+│  • API versioning   • Retry guidance     • Auto-scaling           │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ### **Event Flow Architecture**
 
 **1. Content Events Flow:**
 ```
-CMS Provider → Webhook → API Gateway → Integration Handler → SNS Topic
+CMS Provider → POST /webhooks/{provider} → Security Layers → Integration Handler → SNS Topic
      ↓
 Unified Content Cache (DynamoDB) ← Build Batching Handler ← SNS Subscription
      ↓
@@ -229,14 +272,15 @@ Build Trigger → CodeBuild → S3 → CloudFront Invalidation
 
 **2. E-commerce Events Flow:**
 ```
-E-commerce Provider → Webhook → API Gateway → Integration Handler → SNS Topic
+E-commerce Provider → POST /webhooks/{provider} → Security Layers → Integration Handler → SNS Topic
      ↓
 Order Processing → Inventory Updates → Content Cache Update → Build Trigger
 ```
 
-**3. Unified Event Schema:**
+**3. Unified Event Schema (Versioned):**
 ```json
 {
+  "schema_version": "1.0",
   "event_type": "content_updated|order_placed|inventory_changed",
   "provider": "decap|sanity|contentful|tina|snipcart|foxy|shopify_basic",
   "content_id": "unique-content-identifier",

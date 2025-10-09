@@ -466,9 +466,13 @@ class EventFilteringSystem:
         elif event.provider_name in ['snipcart', 'foxy']:
             message_attributes['ecommerce_platform'] = {'DataType': 'String', 'StringValue': 'third_party'}
 
+        # Add schema versioning for future-proofing
+        event_data = event.model_dump()
+        event_data["schema_version"] = "1.0"
+
         response = self.sns.publish(
             TopicArn=topic_arn,
-            Message=event.model_dump_json(),
+            Message=json.dumps(event_data),
             MessageAttributes=message_attributes
         )
 

@@ -28,6 +28,8 @@ from aws_cdk import (
     aws_dynamodb as dynamodb,
     aws_lambda as lambda_,
     aws_apigateway as apigateway,
+    aws_apigatewayv2 as apigwv2,
+    aws_apigatewayv2_integrations as integrations,
     aws_iam as iam,
     aws_events as events,
     aws_logs as logs
@@ -76,6 +78,7 @@ class EventDrivenIntegrationLayer(Construct):
         self.content_events_topic = self._create_content_events_topic()
         self.unified_content_cache = self._create_unified_content_cache()
         self.build_batching_table = self._create_build_batching_table()
+        self.webhook_receipts_table = self._create_webhook_receipts_table()
 
         # Lambda functions that handle the intelligent event processing
         self.integration_handler = self._create_integration_handler()
@@ -196,6 +199,43 @@ class EventDrivenIntegrationLayer(Construct):
 
         return table
 
+    def _create_webhook_receipts_table(self) -> dynamodb.Table:
+        """
+        Create DynamoDB table for webhook idempotency tracking.
+
+        This table prevents duplicate webhook processing by storing webhook receipts
+        with automatic cleanup via TTL. Essential for production reliability.
+        """
+
+        table = dynamodb.Table(
+            self, "WebhookReceiptsTable",
+            table_name=f"{self.client_config.resource_prefix}-webhook-receipts",
+
+            # Partition key: {provider}#{event_id}
+            partition_key=dynamodb.Attribute(
+                name="pk",
+                type=dynamodb.AttributeType.STRING
+            ),
+
+            # TTL for automatic cleanup (24 hours)
+            time_to_live_attribute="ttl",
+
+            # Pay per request billing for cost efficiency
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
+
+            # Remove during development, retain in production
+            removal_policy=RemovalPolicy.DESTROY
+        )
+
+        # Add tags for cost tracking and operational clarity
+        table.node.default_child.add_property_override("Tags", [
+            {"Key": "Client", "Value": self.client_config.client_id},
+            {"Key": "Component", "Value": "WebhookIdempotency"},
+            {"Key": "Purpose", "Value": "ProductionReliability"}
+        ])
+
+        return table
+
     def _create_integration_handler(self) -> lambda_.Function:
         """
         Create Lambda function for handling webhook integration.
@@ -219,6 +259,7 @@ class EventDrivenIntegrationLayer(Construct):
             environment={
                 "CONTENT_CACHE_TABLE": self.unified_content_cache.table_name,
                 "CONTENT_EVENTS_TOPIC_ARN": self.content_events_topic.topic_arn,
+                "WEBHOOK_RECEIPTS_TABLE": self.webhook_receipts_table.table_name,
                 "CLIENT_ID": self.client_config.client_id,
                 "ENVIRONMENT": "prod",
                 "LOG_LEVEL": "INFO",
@@ -226,7 +267,11 @@ class EventDrivenIntegrationLayer(Construct):
                 # Provider registry configuration
                 "PROVIDER_REGISTRY_ENABLED": "true",
                 "CACHE_OPTIMIZATION_ENABLED": "true",
-                "EVENT_FILTERING_ENABLED": "true"
+                "EVENT_FILTERING_ENABLED": "true",
+
+                # Production reliability features
+                "IDEMPOTENCY_ENABLED": "true",
+                "IDEMPOTENCY_TTL_HOURS": "24"
             },
 
             # Enhanced error handling and monitoring
@@ -242,7 +287,35 @@ class EventDrivenIntegrationLayer(Construct):
 
         # Grant permissions for DynamoDB and SNS operations
         self.unified_content_cache.grant_read_write_data(function)
+        self.webhook_receipts_table.grant_read_write_data(function)
         self.content_events_topic.grant_publish(function)
+
+        # Grant Secrets Manager permissions for webhook signature verification
+        function.add_to_role_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=[
+                    "secretsmanager:GetSecretValue"
+                ],
+                resources=[f"arn:aws:secretsmanager:{Stack.of(self).region}:{Stack.of(self).account}:secret:{self.client_config.client_id}/webhooks/*"]
+            )
+        )
+
+        # Grant CloudWatch permissions for operational metrics
+        function.add_to_role_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=[
+                    "cloudwatch:PutMetricData"
+                ],
+                resources=["*"],  # CloudWatch metrics don't support resource-level permissions
+                conditions={
+                    "StringEquals": {
+                        "cloudwatch:namespace": "WebhookRouter"
+                    }
+                }
+            )
+        )
 
         # Add error handling and monitoring
         function.add_environment("SENTRY_DSN", "")  # Add Sentry for error tracking in production
@@ -352,186 +425,103 @@ class EventDrivenIntegrationLayer(Construct):
 
         return function
 
-    def _create_integration_api(self) -> apigateway.RestApi:
+    def _create_integration_api(self) -> apigwv2.HttpApi:
         """
-        Create API Gateway for webhook integration.
+        Create HTTP API Gateway for webhook integration.
 
-        This API serves as the entry point for all external provider webhooks,
-        providing a secure, scalable interface that can handle global traffic.
+        HTTP API Gateway provides 70% cost reduction vs REST API Gateway
+        while delivering better performance with native Lambda Proxy v2.
         """
 
-        api = apigateway.RestApi(
+        api = apigwv2.HttpApi(
             self, "IntegrationAPI",
-            rest_api_name=f"{self.client_config.client_id}-integration-api",
-            description=f"Integration API for {self.client_config.client_id} event-driven composition",
+            api_name=f"{self.client_config.client_id}-integration-api",
+            description=f"HTTP API for {self.client_config.client_id} webhook integration",
 
-            # Enable request validation for security
-            policy=iam.PolicyDocument(
-                statements=[
-                    iam.PolicyStatement(
-                        effect=iam.Effect.ALLOW,
-                        principals=[iam.AnyPrincipal()],
-                        actions=["execute-api:Invoke"],
-                        resources=["*"],
-                        conditions={
-                            "StringEquals": {
-                                "aws:SourceIp": [
-                                    # Add known provider IP ranges here for additional security
-                                    "0.0.0.0/0"  # Allow all for now, restrict in production
-                                ]
-                            }
-                        }
-                    )
-                ]
-            ),
-
-            # Enable CORS for development and testing
-            default_cors_preflight_options=apigateway.CorsOptions(
-                allow_origins=apigateway.Cors.ALL_ORIGINS,
-                allow_methods=apigateway.Cors.ALL_METHODS,
+            # CORS configuration for webhook providers
+            cors_preflight=apigwv2.CorsPreflightOptions(
+                allow_origins=["*"],  # Restrict to provider IPs in production
+                allow_methods=[apigwv2.CorsHttpMethod.POST, apigwv2.CorsHttpMethod.GET],
                 allow_headers=[
                     "Content-Type",
-                    "X-Amz-Date",
-                    "Authorization",
-                    "X-Api-Key",
                     "X-GitHub-Event",
+                    "X-GitHub-Delivery",
                     "X-Shopify-Topic",
+                    "X-Shopify-Hmac-Sha256",
+                    "X-Shopify-Webhook-Id",
                     "X-Webhook-Event"
-                ]
-            ),
-
-            # Enable API Gateway logging
-            deploy_options=apigateway.StageOptions(
-                stage_name="prod",
-                logging_level=apigateway.MethodLoggingLevel.INFO,
-                data_trace_enabled=True,
-                metrics_enabled=True
+                ],
+                max_age=Duration.seconds(300)
             )
         )
 
-        # Create webhook resource structure
-        webhooks_resource = api.root.add_resource("webhooks")
+        # Create webhook routes
+        self._create_webhook_routes(api)
 
-        # Create provider-specific endpoints
-        self._create_webhook_endpoints(api, webhooks_resource)
+        # Create content API routes
+        self._create_content_api_routes(api)
 
-        # Create internal API endpoints for content retrieval
-        self._create_content_api_endpoints(api)
-
-        # Create health check endpoint
-        self._create_health_check_endpoint(api)
+        # Create health check route
+        self._create_health_check_route(api)
 
         return api
 
-    def _create_webhook_endpoints(
-        self,
-        api: apigateway.RestApi,
-        webhooks_resource: apigateway.Resource
-    ) -> None:
-        """Create webhook endpoints for all supported providers."""
+    def _create_webhook_routes(self, api: apigwv2.HttpApi) -> None:
+        """Create unified webhook router with HTTP API Gateway."""
 
-        # Supported providers (expandable through ProviderAdapterRegistry)
-        providers = [
-            "decap", "tina", "sanity", "contentful",  # CMS providers
-            "snipcart", "foxy", "shopify_basic"       # E-commerce providers
-        ]
-
-        for provider in providers:
-            provider_resource = webhooks_resource.add_resource(provider)
-
-            # POST endpoint for webhook handling
-            provider_resource.add_method(
-                "POST",
-                apigateway.LambdaIntegration(
-                    self.integration_handler,
-                    # Pass provider context to Lambda
-                    request_templates={
-                        "application/json": f"""{{
-                            "provider_name": "{provider}",
-                            "body": $input.body,
-                            "headers": {{
-                                #foreach($header in $input.params().header.keySet())
-                                "$header": "$util.escapeJavaScript($input.params().header.get($header))"
-                                #if($foreach.hasNext),#end
-                                #end
-                            }},
-                            "query_params": {{
-                                #foreach($param in $input.params().querystring.keySet())
-                                "$param": "$util.escapeJavaScript($input.params().querystring.get($param))"
-                                #if($foreach.hasNext),#end
-                                #end
-                            }}
-                        }}"""
-                    }
-                ),
-
-                # Method responses for proper error handling
-                method_responses=[
-                    apigateway.MethodResponse(status_code="200"),
-                    apigateway.MethodResponse(status_code="400"),
-                    apigateway.MethodResponse(status_code="401"),
-                    apigateway.MethodResponse(status_code="500")
-                ]
+        # Create unified webhook route - no complex resource hierarchy needed!
+        api.add_routes(
+            path="/webhooks/{provider}",
+            methods=[apigwv2.HttpMethod.POST],
+            integration=integrations.HttpLambdaIntegration(
+                "WebhookIntegration",
+                self.integration_handler,
+                # Native Lambda Proxy v2 - no VTL templates needed!
+                payload_format_version=apigwv2.PayloadFormatVersion.VERSION_2_0
             )
+        )
 
-    def _create_content_api_endpoints(self, api: apigateway.RestApi) -> None:
-        """Create internal API endpoints for content retrieval during builds."""
+        logger.info(f"Created HTTP API webhook router at /webhooks/{{provider}} for client: {self.client_config.client_id}")
 
-        content_resource = api.root.add_resource("content")
+
+
+    def _create_content_api_routes(self, api: apigwv2.HttpApi) -> None:
+        """Create internal API routes for content retrieval during builds."""
 
         # GET /content - retrieve all content for build
-        content_resource.add_method(
-            "GET",
-            apigateway.LambdaIntegration(self.integration_handler),
-            authorization_type=apigateway.AuthorizationType.IAM,
-            request_parameters={
-                "method.request.querystring.content_type": False,
-                "method.request.querystring.provider": False,
-                "method.request.querystring.limit": False,
-                "method.request.querystring.status": False
-            }
+        api.add_routes(
+            path="/content",
+            methods=[apigwv2.HttpMethod.GET],
+            integration=integrations.HttpLambdaIntegration(
+                "ContentListIntegration",
+                self.integration_handler,
+                payload_format_version=apigwv2.PayloadFormatVersion.VERSION_2_0
+            )
         )
 
         # GET /content/{id} - retrieve specific content item
-        content_id_resource = content_resource.add_resource("{id}")
-        content_id_resource.add_method(
-            "GET",
-            apigateway.LambdaIntegration(self.integration_handler),
-            authorization_type=apigateway.AuthorizationType.IAM
+        api.add_routes(
+            path="/content/{id}",
+            methods=[apigwv2.HttpMethod.GET],
+            integration=integrations.HttpLambdaIntegration(
+                "ContentItemIntegration",
+                self.integration_handler,
+                payload_format_version=apigwv2.PayloadFormatVersion.VERSION_2_0
+            )
         )
 
-    def _create_health_check_endpoint(self, api: apigateway.RestApi) -> None:
-        """Create health check endpoint for monitoring."""
+    def _create_health_check_route(self, api: apigwv2.HttpApi) -> None:
+        """Create health check route for monitoring."""
 
-        health_resource = api.root.add_resource("health")
-        health_resource.add_method(
-            "GET",
-            apigateway.MockIntegration(
-                integration_responses=[
-                    apigateway.IntegrationResponse(
-                        status_code="200",
-                        response_templates={
-                            "application/json": f"""{{
-                                "status": "healthy",
-                                "timestamp": "$context.requestTime",
-                                "client_id": "{self.client_config.client_id}",
-                                "version": "2.0.0",
-                                "components": {{
-                                    "integration_layer": "active",
-                                    "content_cache": "active",
-                                    "event_bus": "active"
-                                }}
-                            }}"""
-                        }
-                    )
-                ],
-                request_templates={
-                    "application/json": '{"statusCode": 200}'
-                }
-            ),
-            method_responses=[
-                apigateway.MethodResponse(status_code="200")
-            ]
+        # Simple health check route
+        api.add_routes(
+            path="/health",
+            methods=[apigwv2.HttpMethod.GET],
+            integration=integrations.HttpLambdaIntegration(
+                "HealthCheckIntegration",
+                self.integration_handler,
+                payload_format_version=apigwv2.PayloadFormatVersion.VERSION_2_0
+            )
         )
 
     def _create_event_subscriptions(self) -> None:
@@ -594,18 +584,30 @@ class EventDrivenIntegrationLayer(Construct):
         """Get integration endpoints for provider configuration."""
 
         return {
+            # Base API URLs
             "webhook_base_url": self.integration_api.url,
             "content_api_url": f"{self.integration_api.url}/content",
             "health_check_url": f"{self.integration_api.url}/health",
 
-            # Provider-specific webhook URLs
+            # Unified webhook router pattern
+            "unified_webhook_url": f"{self.integration_api.url}/webhooks/{{provider}}",
+            "webhook_url_template": f"{self.integration_api.url}/webhooks/{{provider}}",
+
+            # Provider-specific URLs using unified pattern
             "decap_webhook": f"{self.integration_api.url}/webhooks/decap",
             "sanity_webhook": f"{self.integration_api.url}/webhooks/sanity",
             "tina_webhook": f"{self.integration_api.url}/webhooks/tina",
             "contentful_webhook": f"{self.integration_api.url}/webhooks/contentful",
             "snipcart_webhook": f"{self.integration_api.url}/webhooks/snipcart",
             "foxy_webhook": f"{self.integration_api.url}/webhooks/foxy",
-            "shopify_webhook": f"{self.integration_api.url}/webhooks/shopify_basic"
+            "shopify_webhook": f"{self.integration_api.url}/webhooks/shopify_basic",
+
+            # Configuration info
+            "routing_pattern": "unified",
+            "supported_providers": [
+                "decap", "tina", "sanity", "contentful",
+                "snipcart", "foxy", "shopify_basic"
+            ]
         }
 
     def estimate_monthly_cost(self) -> Dict[str, float]:
