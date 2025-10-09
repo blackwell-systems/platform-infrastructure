@@ -140,6 +140,30 @@ class SSGStackFactory:
                 "team_size": "1-5_people",
                 "workflow_preference": "git_based"
             }
+        },
+        "tina_cms_tier": {
+            "tier_name": "Tina CMS - Visual Editing with Git Workflow",
+            "monthly_cost_range": (60, 125),  # Includes optional Tina Cloud features
+            "setup_cost_range": (1200, 2880),  # Higher complexity due to visual editor integration
+            "target_market": ["content_creators", "agencies", "visual_editing_preference", "collaboration_teams"],
+            "best_for": "Visual content editing with git-based storage and real-time collaboration",
+            "complexity_level": "medium",
+            "cms_provider": "tina",
+            "cms_type": "hybrid",
+            "ssg_engine_options": ["nextjs", "astro", "gatsby"],
+            "template_variants": ["visual_editor", "react_based", "collaboration_focused"],
+            "key_features": ["visual_editing", "real_time_preview", "git_workflow", "react_based", "graphql_api", "collaboration"],
+            "hosting_pattern": "aws_optimized",
+            "performance_tier": "optimized",
+            "cms_features": ["visual_editor", "real_time_collaboration", "media_management", "structured_content", "preview_mode"],
+            "ideal_client_profile": {
+                "budget": "moderate",
+                "technical_comfort": "medium",
+                "content_volume": "small_to_large",
+                "team_size": "2-10_people",
+                "workflow_preference": "visual_editing"
+            },
+            "tina_cloud_features": ["real_time_sync", "team_collaboration", "advanced_media", "analytics_dashboard"]
         }
     }
 
@@ -332,7 +356,7 @@ class SSGStackFactory:
                 "key_benefits": ["Component islands", "Framework agnostic", "Optimal performance", "Modern developer experience"]
             })
 
-        # CMS recommendations - Decap CMS tier
+        # CMS recommendations - Decap CMS tier (Budget-focused)
         if (requirements.get("content_management", False) or
             requirements.get("cms_needed", False) or
             requirements.get("git_based_cms", False) or
@@ -373,6 +397,49 @@ class SSGStackFactory:
                     "content_volume": "Small to medium",
                     "technical_comfort": "Medium (git workflow)"
                 }
+            })
+
+        # CMS recommendations - Tina CMS tier (Visual editing focused)
+        if (requirements.get("content_management", False) or
+            requirements.get("cms_needed", False) or
+            requirements.get("visual_editing", False) or
+            requirements.get("collaboration", False) or
+            requirements.get("content_creators", False)):
+
+            # Determine best SSG engine for Tina CMS based on requirements
+            recommended_ssg = "nextjs"  # Default for Tina (React-based)
+            if requirements.get("modern_features", False) and not requirements.get("react_preferred", False):
+                recommended_ssg = "astro"
+            elif requirements.get("react_preferred", False) or requirements.get("graphql_preferred", False):
+                recommended_ssg = "gatsby"
+
+            recommendations.append({
+                "stack_type": "tina_cms_tier",
+                "ssg_engine": recommended_ssg,
+                "ssg_engine_options": ["nextjs", "astro", "gatsby"],
+                "monthly_cost": "$60-125",
+                "setup_cost": "$1,200-2,880",
+                "reason": "Visual editing CMS with git-based storage and real-time collaboration capabilities",
+                "best_for": "Content creators, agencies, teams needing visual editing with git workflow control",
+                "complexity": "Medium",
+                "build_time": "Fast",
+                "cms_provider": "tina",
+                "cms_cost": "$0-50/month",
+                "key_benefits": [
+                    "Visual editing interface",
+                    "Real-time preview",
+                    "Git-based storage",
+                    "React-based admin",
+                    "GraphQL API",
+                    "Optional cloud collaboration"
+                ],
+                "ideal_for": {
+                    "budget": "Moderate ($60-125/month)",
+                    "team_size": "2-10 people",
+                    "content_volume": "Small to large",
+                    "technical_comfort": "Medium (visual editing preference)"
+                },
+                "tina_cloud_features": ["real_time_sync", "team_collaboration", "advanced_media", "analytics"]
             })
 
         # Enterprise/Advanced recommendations (future)

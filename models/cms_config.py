@@ -432,6 +432,55 @@ def decap_cms_config(
     )
 
 
+def tina_cms_config(
+    admin_users: List[str],
+    repository: str,
+    repository_owner: str,
+    branch: str = "main",
+    content_path: str = "content",
+    media_path: str = "public/images",
+    tina_token: Optional[str] = None,
+    client_id: Optional[str] = None
+) -> CMSConfig:
+    """
+    Create Tina CMS configuration.
+
+    Tina CMS provides visual editing with git-based storage,
+    combining the benefits of git workflow with user-friendly editing.
+
+    Args:
+        admin_users: List of admin user emails
+        repository: GitHub repository name
+        repository_owner: GitHub repository owner/organization
+        branch: Git branch to use (default: main)
+        content_path: Path to content files (default: content)
+        media_path: Path to media files (default: public/images)
+        tina_token: Tina Cloud token for enhanced features (optional)
+        client_id: Tina Cloud client ID (optional)
+    """
+    content_settings = {
+        "repository": repository,
+        "repository_owner": repository_owner,
+        "branch": branch,
+        "content_path": content_path,
+        "media_path": media_path
+    }
+
+    # Add Tina Cloud settings if provided
+    if tina_token:
+        content_settings["tina_token"] = tina_token
+    if client_id:
+        content_settings["tina_client_id"] = client_id
+
+    return CMSConfig(
+        provider="tina",
+        cms_type=CMSType.HYBRID,  # Tina is hybrid: git storage + visual editing
+        auth_method=CMSAuthMethod.GITHUB_OAUTH,
+        admin_users=admin_users,
+        content_settings=content_settings
+    )
+
+
 def sanity_cms_config(
     admin_users: List[str],
     project_id: str,
@@ -450,26 +499,6 @@ def sanity_cms_config(
         }
     )
 
-
-def tina_cms_config(
-    admin_users: List[str],
-    repository: str,
-    repository_owner: str,
-    branch: str = "main",
-    content_path: str = "content"
-) -> CMSConfig:
-    """Create Tina CMS configuration"""
-    return CMSConfig(
-        provider="tina",
-        auth_method=CMSAuthMethod.GITHUB_OAUTH,
-        admin_users=admin_users,
-        content_settings={
-            "repository": repository,
-            "repository_owner": repository_owner,
-            "branch": branch,
-            "content_path": content_path
-        }
-    )
 
 
 def contentful_cms_config(

@@ -35,7 +35,7 @@ class CMSProviderFactory:
         # "forestry": ForestryProvider,  # Legacy, being phased out
 
         # Hybrid CMS providers
-        # "tina": TinaCMSProvider,
+        "tina": None,   # Lazy loaded to avoid circular imports
 
         # API-based CMS providers
         # "sanity": SanityCMSProvider,
@@ -672,5 +672,8 @@ class CMSProviderFactory:
         if provider_name == "decap":
             from .providers.decap_cms import DecapCMSProvider
             return DecapCMSProvider
+        elif provider_name == "tina":
+            from .providers.tina_cms import TinaCMSProvider
+            return TinaCMSProvider
         else:
             raise ValueError(f"Provider '{provider_name}' not implemented yet")
