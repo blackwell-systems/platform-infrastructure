@@ -38,7 +38,7 @@ class CMSProviderFactory:
         "tina": None,   # Lazy loaded to avoid circular imports
 
         # API-based CMS providers
-        # "sanity": SanityCMSProvider,
+        "sanity": None,  # Lazy loaded to avoid circular imports
         # "contentful": ContentfulProvider,
         # "strapi": StrapiProvider,
         # "ghost": GhostProvider,
@@ -675,5 +675,8 @@ class CMSProviderFactory:
         elif provider_name == "tina":
             from .providers.tina_cms import TinaCMSProvider
             return TinaCMSProvider
+        elif provider_name == "sanity":
+            from .providers.sanity_cms import SanityCMSProvider
+            return SanityCMSProvider
         else:
             raise ValueError(f"Provider '{provider_name}' not implemented yet")

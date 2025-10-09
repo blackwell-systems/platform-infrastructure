@@ -485,18 +485,45 @@ def sanity_cms_config(
     admin_users: List[str],
     project_id: str,
     dataset: str = "production",
-    api_version: str = "2023-01-01"
+    api_version: str = "2023-05-03",
+    api_token: Optional[str] = None,
+    webhook_secret: Optional[str] = None,
+    use_cdn: bool = True
 ) -> CMSConfig:
-    """Create Sanity CMS configuration"""
+    """
+    Create Sanity CMS configuration.
+
+    Sanity is a structured content platform with real-time APIs,
+    powerful querying with GROQ, and advanced content modeling.
+
+    Args:
+        admin_users: List of admin user emails
+        project_id: Sanity project ID
+        dataset: Sanity dataset name (default: production)
+        api_version: Sanity API version (default: 2023-05-03)
+        api_token: Sanity API token for server-side operations
+        webhook_secret: Secret for webhook validation
+        use_cdn: Whether to use Sanity's CDN for content delivery
+    """
+    content_settings = {
+        "project_id": project_id,
+        "dataset": dataset,
+        "api_version": api_version,
+        "use_cdn": use_cdn
+    }
+
+    # Add optional settings if provided
+    if api_token:
+        content_settings["api_token"] = api_token
+    if webhook_secret:
+        content_settings["webhook_secret"] = webhook_secret
+
     return CMSConfig(
         provider="sanity",
+        cms_type=CMSType.API_BASED,  # Sanity is API-based CMS
         auth_method=CMSAuthMethod.API_KEY,
         admin_users=admin_users,
-        content_settings={
-            "project_id": project_id,
-            "dataset": dataset,
-            "api_version": api_version
-        }
+        content_settings=content_settings
     )
 
 

@@ -164,6 +164,31 @@ class SSGStackFactory:
                 "workflow_preference": "visual_editing"
             },
             "tina_cloud_features": ["real_time_sync", "team_collaboration", "advanced_media", "analytics_dashboard"]
+        },
+        "sanity_cms_tier": {
+            "tier_name": "Sanity CMS - Structured Content with Real-Time APIs",
+            "monthly_cost_range": (65, 280),  # Hosting + Sanity CMS plans (Free to Business)
+            "setup_cost_range": (1440, 3360),  # High complexity due to API integration and structured content
+            "target_market": ["professional_content_teams", "api_first_developers", "structured_content_needs", "enterprise_ready"],
+            "best_for": "Professional structured content management with real-time APIs and advanced querying",
+            "complexity_level": "medium_to_high",
+            "cms_provider": "sanity",
+            "cms_type": "api_based",
+            "ssg_engine_options": ["nextjs", "astro", "gatsby", "eleventy"],
+            "template_variants": ["structured_content", "api_driven", "professional_editorial"],
+            "key_features": ["structured_content", "groq_querying", "real_time_apis", "content_validation", "advanced_media", "webhook_automation"],
+            "hosting_pattern": "aws_optimized",
+            "performance_tier": "premium",
+            "cms_features": ["sanity_studio", "real_time_collaboration", "content_validation", "advanced_schemas", "webhook_integration", "groq_playground"],
+            "ideal_client_profile": {
+                "budget": "moderate_to_high",
+                "technical_comfort": "medium_to_high",
+                "content_volume": "medium_to_large",
+                "team_size": "3-15_people",
+                "workflow_preference": "structured_content"
+            },
+            "sanity_features": ["portable_text", "content_lake", "real_time_sync", "image_transformations", "groq_queries", "content_modeling"],
+            "api_capabilities": ["content_delivery_api", "content_management_api", "assets_api", "mutations_api", "real_time_updates"]
         }
     }
 
@@ -440,6 +465,67 @@ class SSGStackFactory:
                     "technical_comfort": "Medium (visual editing preference)"
                 },
                 "tina_cloud_features": ["real_time_sync", "team_collaboration", "advanced_media", "analytics"]
+            })
+
+        # CMS recommendations - Sanity CMS tier (Structured content focused)
+        if (requirements.get("content_management", False) or
+            requirements.get("cms_needed", False) or
+            requirements.get("structured_content", False) or
+            requirements.get("api_first", False) or
+            requirements.get("professional_content", False) or
+            requirements.get("advanced_cms", False)):
+
+            # Determine best SSG engine for Sanity CMS based on requirements
+            recommended_ssg = "nextjs"  # Default for Sanity (best API integration)
+            if requirements.get("modern_features", False) and not requirements.get("react_preferred", False):
+                recommended_ssg = "astro"
+            elif requirements.get("react_preferred", False) or requirements.get("graphql_preferred", False):
+                recommended_ssg = "gatsby"
+            elif requirements.get("simple_build", False) or requirements.get("build_speed", False):
+                recommended_ssg = "eleventy"
+
+            recommendations.append({
+                "stack_type": "sanity_cms_tier",
+                "ssg_engine": recommended_ssg,
+                "ssg_engine_options": ["nextjs", "astro", "gatsby", "eleventy"],
+                "monthly_cost": "$65-280",
+                "setup_cost": "$1,440-3,360",
+                "reason": "Professional structured content management with real-time APIs and advanced content modeling",
+                "best_for": "Professional content teams, API-first development, structured content needs, enterprise-ready solutions",
+                "complexity": "Medium to High",
+                "build_time": "Fast",
+                "cms_provider": "sanity",
+                "cms_cost": "$0-199/month",
+                "key_benefits": [
+                    "Structured content schemas",
+                    "GROQ query language",
+                    "Real-time APIs",
+                    "Content validation",
+                    "Advanced media management",
+                    "Webhook automation",
+                    "Sanity Studio interface"
+                ],
+                "ideal_for": {
+                    "budget": "Moderate to high ($65-280/month)",
+                    "team_size": "3-15 people",
+                    "content_volume": "Medium to large",
+                    "technical_comfort": "Medium to high (API-based workflow)"
+                },
+                "sanity_features": [
+                    "Portable Text editing",
+                    "Content Lake storage",
+                    "Real-time sync",
+                    "Image transformations",
+                    "GROQ playground",
+                    "Content modeling"
+                ],
+                "api_capabilities": [
+                    "Content Delivery API",
+                    "Content Management API",
+                    "Assets API",
+                    "Mutations API",
+                    "Real-time updates"
+                ]
             })
 
         # Enterprise/Advanced recommendations (future)
