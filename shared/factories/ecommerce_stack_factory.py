@@ -27,6 +27,7 @@ from constructs import Construct
 
 from stacks.ecommerce.snipcart_ecommerce_stack import SnipcartEcommerceStack
 from stacks.ecommerce.foxy_ecommerce_stack import FoxyEcommerceStack
+from stacks.ecommerce.shopify_basic_ecommerce_stack import ShopifyBasicEcommerceStack
 from shared.base.base_ecommerce_stack import BaseEcommerceStack
 
 
@@ -42,7 +43,8 @@ class EcommerceStackFactory:
     ECOMMERCE_STACK_CLASSES: Dict[str, Type[BaseEcommerceStack]] = {
         "snipcart": SnipcartEcommerceStack,
         "foxy": FoxyEcommerceStack,
-        # Note: ShopifyBasicStack and ShopifyAdvancedStack would be added here
+        "shopify_basic": ShopifyBasicEcommerceStack,
+        # Note: ShopifyAdvancedStack would be added here when implemented
     }
 
     # E-commerce provider tier information
@@ -64,12 +66,42 @@ class EcommerceStackFactory:
             "complexity_level": "medium_to_high"
         },
         "shopify_basic": {
-            "tier_name": "Standard E-commerce",
+            "tier_name": "Shopify Basic - Performance E-commerce with Flexible SSG",
             "monthly_cost_range": (75, 125),
-            "setup_cost_range": (1800, 3600),
-            "target_market": ["small_businesses", "product_retailers", "inventory_focused"],
-            "best_for": "Standard e-commerce with inventory management",
-            "complexity_level": "medium"
+            "setup_cost_range": (1600, 3200),
+            "target_market": ["small_medium_stores", "performance_focused_brands", "agency_alternatives", "shopify_theme_upgrades"],
+            "best_for": "Enterprise performance at small business prices - 80-90% cost reduction vs agencies",
+            "complexity_level": "medium",
+            "ecommerce_provider": "shopify_basic",
+            "provider_type": "hosted_platform",
+            "ssg_engine_options": ["eleventy", "astro", "nextjs", "nuxt"],
+            "template_variants": ["performance_optimized", "static_site_ecommerce", "agency_alternative"],
+            "key_features": [
+                "shopify_storefront_api", "real_time_sync", "webhook_automation",
+                "product_catalog_management", "secure_checkout", "inventory_tracking",
+                "performance_optimization", "seo_excellence", "mobile_optimization"
+            ],
+            "hosting_pattern": "aws_optimized",
+            "performance_tier": "premium",
+            "shopify_features": [
+                "shopify_basic_plan", "storefront_api", "admin_dashboard",
+                "payment_processing", "order_management", "customer_accounts",
+                "app_ecosystem", "webhook_integration"
+            ],
+            "ideal_client_profile": {
+                "budget": "cost_conscious_performance",
+                "technical_comfort": "low_to_medium",
+                "business_size": "small_to_medium_stores",
+                "monthly_sales": "$2,000-25,000",
+                "current_pain_points": "slow_shopify_themes_or_expensive_agencies"
+            },
+            "competitive_advantages": [
+                "80-90% cost reduction vs traditional Shopify agencies",
+                "2-3x faster page loads than standard Shopify themes",
+                "Shopify's proven e-commerce platform with custom performance frontend",
+                "Automated maintenance eliminates agency dependencies",
+                "Professional features without enterprise complexity"
+            ]
         },
         "shopify_advanced": {
             "tier_name": "Enterprise E-commerce",
@@ -198,8 +230,48 @@ class EcommerceStackFactory:
                 "recommended_ssg": cls._recommend_ssg_for_foxy(requirements)
             })
 
-        # Enterprise/Shopify requirements
-        if requirements.get("shopify_integration", False) or requirements.get("enterprise_ecommerce", False):
+        # Shopify Basic recommendations (Agency Alternative / Performance Focus)
+        if (requirements.get("agency_alternative", False) or
+            requirements.get("shopify_theme_upgrade", False) or
+            requirements.get("performance_ecommerce", False) or
+            (requirements.get("product_catalog", False) and requirements.get("performance_critical", False))):
+
+            # Determine best SSG engine for Shopify Basic based on requirements
+            recommended_ssg = "eleventy"  # Default for simplicity
+            if requirements.get("performance_critical", False) and requirements.get("technical_team", False):
+                recommended_ssg = "astro"  # Best performance for technical teams
+            elif requirements.get("prefer_react", False):
+                recommended_ssg = "nextjs"
+            elif requirements.get("prefer_vue", False):
+                recommended_ssg = "nuxt"
+            elif requirements.get("modern_features", False):
+                recommended_ssg = "astro"
+
+            recommendations.append({
+                "ecommerce_provider": "shopify_basic",
+                "ssg_options": ["eleventy", "astro", "nextjs", "nuxt"],
+                "monthly_cost": "$75-125",
+                "setup_cost": "$1,600-3,200",
+                "reason": "Enterprise performance at small business prices - 80-90% cost reduction vs agencies",
+                "best_for": "Shopify theme upgrades, agency alternatives, performance-focused e-commerce",
+                "complexity": "Medium",
+                "recommended_ssg": recommended_ssg,
+                "key_benefits": [
+                    "2-3x faster page loads than Shopify themes",
+                    "80-90% cost savings vs traditional agencies",
+                    "Shopify's proven e-commerce with custom frontend",
+                    "Automated maintenance eliminates agency dependencies"
+                ],
+                "ideal_for": {
+                    "budget": "$75-125/month (vs $200-800 agency maintenance)",
+                    "business_size": "Small to medium stores ($2K-25K monthly sales)",
+                    "technical_comfort": "Low to medium (automated infrastructure)",
+                    "current_pain_points": "Slow Shopify themes or expensive agency costs"
+                }
+            })
+
+        # Enterprise/Shopify Advanced requirements
+        if requirements.get("enterprise_ecommerce", False) or requirements.get("shopify_plus", False):
             ssg_options = []
             if requirements.get("prefer_react", False):
                 ssg_options = ["nextjs", "gatsby"]
@@ -210,18 +282,17 @@ class EcommerceStackFactory:
             else:
                 ssg_options = ["astro", "nextjs", "nuxt"]
 
-            tier = "shopify_advanced" if requirements.get("enterprise_ecommerce") else "shopify_basic"
-            cost_info = cls.PROVIDER_TIERS[tier]
+            cost_info = cls.PROVIDER_TIERS["shopify_advanced"]
 
             recommendations.append({
-                "ecommerce_provider": tier,
+                "ecommerce_provider": "shopify_advanced",
                 "ssg_options": ssg_options,
                 "monthly_cost": f"${cost_info['monthly_cost_range'][0]}-{cost_info['monthly_cost_range'][1]}",
                 "setup_cost": f"${cost_info['setup_cost_range'][0]}-{cost_info['setup_cost_range'][1]}",
                 "reason": f"{cost_info['best_for']} with headless architecture",
                 "best_for": "Large catalogs, custom experiences, enterprise workflows",
                 "complexity": cost_info['complexity_level'].title(),
-                "recommended_ssg": cls._recommend_ssg_for_shopify(requirements, tier)
+                "recommended_ssg": cls._recommend_ssg_for_shopify(requirements, "shopify_advanced")
             })
 
         # Performance-focused recommendations
@@ -374,7 +445,9 @@ class EcommerceStackFactory:
                 "decision_points": {
                     "budget_conscious": "Choose Snipcart for simple, cost-effective e-commerce",
                     "advanced_features": "Choose Foxy for subscriptions and advanced functionality",
-                    "shopify_ecosystem": "Choose Shopify Basic for standard e-commerce with inventory",
+                    "agency_alternative": "Choose Shopify Basic for 80-90% cost savings vs agencies",
+                    "performance_focused": "Choose Shopify Basic for enterprise performance at small business prices",
+                    "shopify_ecosystem": "Choose Shopify Basic for proven e-commerce with custom frontend",
                     "enterprise_needs": "Choose Shopify Advanced for enterprise features and scale"
                 }
             },
@@ -432,4 +505,22 @@ def create_advanced_ecommerce_store(
         ecommerce_provider="foxy",
         ssg_engine=ssg_engine,
         enable_subscriptions=enable_subscriptions
+    )
+
+
+def create_shopify_performance_store(
+    scope: Construct,
+    client_id: str,
+    domain: str,
+    shopify_store_domain: str,
+    ssg_engine: str = "astro"
+) -> ShopifyBasicEcommerceStack:
+    """Create a high-performance Shopify store with static frontend and flexible SSG choice"""
+    return EcommerceStackFactory.create_ecommerce_stack(
+        scope=scope,
+        client_id=client_id,
+        domain=domain,
+        ecommerce_provider="shopify_basic",
+        ssg_engine=ssg_engine,
+        shopify_store_domain=shopify_store_domain
     )
