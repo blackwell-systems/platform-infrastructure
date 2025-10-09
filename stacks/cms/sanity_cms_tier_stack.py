@@ -1,788 +1,784 @@
 """
-Sanity CMS Tier Stack Implementation
+Sanity CMS Tier Stack
 
-Creates AWS infrastructure for Sanity CMS integration with static site generators,
-providing structured content management with real-time APIs and GROQ querying.
+Updated Sanity CMS implementation with optional event-driven integration support:
+- Direct Mode: Sanity webhooks → build pipeline (traditional, fast)
+- Event-Driven Mode: Sanity events → SNS → unified content system (composition-ready)
 
-Key Features:
-- API-based CMS with structured content schemas
-- Real-time content delivery via Sanity's CDN
+Sanity CMS Features:
+- Structured content platform with real-time APIs
 - GROQ query language for flexible content access
-- Webhook-driven build automation
-- Preview mode integration for content editing
-- Advanced media management with transformations
+- Advanced content modeling and relationships
+- Real-time collaboration with live editing
+- Powerful media management with transformations
+- Excellent developer experience with Studio
 
-Architecture:
-- S3 bucket for SSG build artifacts and optional media backup
-- CloudFront distribution with Sanity CDN integration
-- Lambda functions for webhook handling and build automation
-- Route53 DNS configuration with SSL certificates
-- Environment variables for Sanity API integration
-- Preview deployment for content editing workflow
+Target Market:
+- Content-heavy sites requiring structured data
+- Teams needing advanced content modeling
+- Projects requiring real-time collaboration
+- Enterprises needing scalable content architecture
+- Sites with complex content relationships
 
-Supported SSG Engines:
-- Next.js: Full-stack React with ISR and preview mode
-- Astro: Multi-framework SSG with component islands
-- Gatsby: React-based SSG with GraphQL integration
-- Eleventy: Flexible templating with build-time data fetching
-
-Cost Structure:
-- Hosting: $45-80/month (CloudFront + S3 + Lambda)
+Pricing:
 - Sanity CMS: $0-199/month (Free tier to Business plan)
+- AWS Hosting: $45-80/month
 - Total: $65-280/month depending on usage and plan
 """
 
-from typing import Dict, Any, List, Optional
-
+from typing import Dict, Any, Optional, List
 from aws_cdk import (
     Stack,
     aws_s3 as s3,
     aws_cloudfront as cloudfront,
-    aws_cloudfront_origins as origins,
-    aws_certificatemanager as acm,
-    aws_route53 as route53,
-    aws_route53_targets as targets,
-    aws_lambda as lambda_,
+    aws_codebuild as codebuild,
     aws_iam as iam,
-    aws_ssm as ssm,
-    aws_logs as logs,
+    aws_apigateway as apigateway,
+    aws_lambda as lambda_,
+    aws_secretsmanager as secrets,
+    CfnOutput,
     Duration,
-    RemovalPolicy,
-    CfnOutput
+    RemovalPolicy
 )
 from constructs import Construct
 
-from clients._templates.client_config import ClientConfig
+from stacks.shared.base_ssg_stack import BaseSSGStack
+from models.service_config import ClientServiceConfig, IntegrationMode
+from shared.composition.integration_layer import EventDrivenIntegrationLayer
+from shared.providers.cms.factory import CMSProviderFactory
 
 
-class SanityCMSTierStack(Stack):
+class SanityCMSTierStack(BaseSSGStack):
     """
-    Sanity CMS tier stack for structured content management.
+    Sanity CMS Tier Stack Implementation
 
-    Provides complete infrastructure for Sanity-powered websites with
-    real-time content APIs, advanced media management, and webhook
-    automation for seamless content-to-deployment workflows.
+    Supports both integration modes:
+    - Direct: Sanity webhooks → CodeBuild → S3/CloudFront (traditional, fast)
+    - Event-Driven: Sanity events → SNS → unified content system (composition-ready)
+
+    Perfect for structured content and enterprise content management needs.
     """
+
+    # Supported SSG engines for Sanity CMS
+    SUPPORTED_SSG_ENGINES = {
+        "astro": {
+            "compatibility": "excellent",
+            "setup_complexity": "intermediate",
+            "features": ["component_islands", "sanity_integration", "fast_builds"]
+        },
+        "gatsby": {
+            "compatibility": "excellent",
+            "setup_complexity": "advanced",
+            "features": ["graphql", "sanity_source_plugin", "rich_ecosystem"]
+        },
+        "nextjs": {
+            "compatibility": "excellent",
+            "setup_complexity": "intermediate",
+            "features": ["isr", "preview_mode", "sanity_studio_embed"]
+        },
+        "nuxt": {
+            "compatibility": "good",
+            "setup_complexity": "intermediate",
+            "features": ["vue_components", "sanity_module", "ssr_support"]
+        }
+    }
 
     def __init__(
         self,
         scope: Construct,
         construct_id: str,
-        client_config: ClientConfig,
+        client_config: ClientServiceConfig,
         **kwargs
     ):
-        super().__init__(scope, construct_id, **kwargs)
+        super().__init__(scope, construct_id, client_config, **kwargs)
 
-        self.client_config = client_config
-        self.cms_config = client_config.cms_config.cms
-        self.ssg_engine = client_config.ssg_engine
+        # Validate Sanity CMS configuration
+        self._validate_sanity_cms_config()
 
-        # Get Sanity-specific configuration
-        self.sanity_project_id = self.cms_config.content_settings.get("project_id")
-        self.sanity_dataset = self.cms_config.content_settings.get("dataset", "production")
-        self.sanity_api_version = self.cms_config.content_settings.get("api_version", "2023-05-03")
-        self.use_cdn = self.cms_config.content_settings.get("use_cdn", True)
+        # Initialize providers and integration
+        self.cms_provider = self._initialize_cms_provider()
+        self.integration_mode = client_config.service_integration.integration_mode
 
-        # Create infrastructure components
-        self._create_storage_resources()
-        # self._create_ssl_certificate()  # Requires SSLConstruct
-        self._create_sanity_integration()
-        # self._create_cdn_distribution()  # Requires SSLConstruct
-        # self._create_dns_configuration()  # Requires distribution
-        # self._create_monitoring()  # Requires MonitoringConstruct
-        self._create_outputs()
+        # Create infrastructure based on integration mode
+        if self.integration_mode == IntegrationMode.DIRECT:
+            self._create_direct_mode_infrastructure()
+        else:
+            self.integration_layer = EventDrivenIntegrationLayer(
+                self, "IntegrationLayer", client_config
+            )
+            self._create_event_driven_infrastructure()
 
-    def _create_storage_resources(self) -> None:
-        """Create S3 storage resources for SSG builds and media backup"""
+        # Create common infrastructure (both modes need these)
+        self._create_common_infrastructure()
 
-        # Primary content bucket for SSG build output
-        self.content_bucket = s3.Bucket(
-            self,
-            "ContentBucket",
-            bucket_name=f"{self.client_config.client_id}-sanity-content",
-            website_index_document="index.html",
-            website_error_document="404.html",
-            public_read_access=True,
-            removal_policy=RemovalPolicy.DESTROY,
-            auto_delete_objects=True,
-            versioning=True,  # Enable versioning for content rollbacks
-            lifecycle_rules=[
-                s3.LifecycleRule(
-                    id="DeleteOldVersions",
-                    noncurrent_version_expiration=Duration.days(30),
-                    enabled=True
-                )
-            ]
+        # Output stack information
+        self._create_stack_outputs()
+
+    def _validate_sanity_cms_config(self) -> None:
+        """Validate Sanity CMS configuration"""
+        service_config = self.client_config.service_integration
+
+        if not service_config.cms_config:
+            raise ValueError("Sanity CMS tier requires cms_config")
+
+        if service_config.cms_config.provider != "sanity":
+            raise ValueError(f"Expected Sanity CMS provider, got {service_config.cms_config.provider}")
+
+        # Validate Sanity-specific settings
+        settings = service_config.cms_config.settings
+        required = ["project_id"]
+        for setting in required:
+            if not settings.get(setting):
+                raise ValueError(f"Sanity CMS requires '{setting}' in settings")
+
+        # Validate SSG compatibility
+        if service_config.ssg_engine not in self.SUPPORTED_SSG_ENGINES:
+            supported = list(self.SUPPORTED_SSG_ENGINES.keys())
+            raise ValueError(f"Sanity CMS supports: {supported}, got: {service_config.ssg_engine}")
+
+    def _initialize_cms_provider(self):
+        """Initialize CMS provider instance"""
+        cms_config = self.client_config.service_integration.cms_config
+        return CMSProviderFactory.create_provider(
+            cms_config.provider,
+            cms_config.settings
         )
 
-        # Optional media backup bucket (Sanity handles primary media storage)
-        self.media_backup_bucket = s3.Bucket(
-            self,
-            "MediaBackupBucket",
-            bucket_name=f"{self.client_config.client_id}-sanity-media-backup",
-            removal_policy=RemovalPolicy.DESTROY,
-            auto_delete_objects=True,
-            versioning=True
-        )
+    def _create_direct_mode_infrastructure(self) -> None:
+        """Create infrastructure for direct integration mode"""
 
-        # Build artifacts bucket for deployment pipeline
-        self.build_bucket = s3.Bucket(
-            self,
-            "BuildBucket",
-            bucket_name=f"{self.client_config.client_id}-sanity-builds",
-            removal_policy=RemovalPolicy.DESTROY,
-            auto_delete_objects=True,
-            lifecycle_rules=[
-                s3.LifecycleRule(
-                    id="DeleteOldBuilds",
-                    expiration=Duration.days(7),
-                    enabled=True
-                )
-            ]
-        )
+        # Direct mode: Sanity webhook → CodeBuild pipeline
+        self.sanity_webhook_handler = self._create_sanity_webhook_handler()
+        self.build_project = self._create_direct_build_project()
 
-    # def _create_ssl_certificate(self) -> None:
-    #     """Create SSL certificate for the domain"""
-    #     self.ssl_construct = SSLConstruct(
-    #         self,
-    #         "SSL",
-    #         domain=self.client_config.domain,
-    #         client_config=self.client_config
-    #     )
+        # Sanity Studio configuration
+        self._create_sanity_studio_config()
 
-    def _create_sanity_integration(self) -> None:
-        """Create Lambda functions for Sanity webhook handling and build automation"""
+        # Sanity webhook integration
+        self._create_sanity_webhook_integration()
 
-        # Create IAM role for Lambda functions
-        lambda_role = iam.Role(
-            self,
-            "SanityLambdaRole",
-            assumed_by=iam.ServicePrincipal("lambda.amazonaws.com"),
-            managed_policies=[
-                iam.ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole"),
-                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3FullAccess")
-            ]
-        )
+        print(f"✅ Created Sanity CMS direct mode infrastructure for {self.client_config.client_id}")
 
-        # Webhook handler for Sanity content changes
-        self.webhook_handler = lambda_.Function(
+    def _create_event_driven_infrastructure(self) -> None:
+        """Create infrastructure for event-driven integration mode"""
+
+        # Event-driven mode: Sanity events → Integration Layer → Unified Content
+        self._create_event_driven_cms_integration()
+
+        # Sanity Studio configuration (same as direct mode)
+        self._create_sanity_studio_config()
+
+        # Connect to event system
+        self._connect_sanity_to_event_system()
+
+        print(f"✅ Created Sanity CMS event-driven infrastructure for {self.client_config.client_id}")
+
+    def _create_common_infrastructure(self) -> None:
+        """Create infrastructure needed by both modes"""
+
+        # Both modes need these components:
+        self._create_content_storage()
+        self._create_sanity_secrets()
+        self._create_monitoring_and_logging()
+
+    def _create_sanity_webhook_handler(self) -> lambda_.Function:
+        """Create Sanity webhook handler for direct mode"""
+
+        return lambda_.Function(
             self,
             "SanityWebhookHandler",
             runtime=lambda_.Runtime.PYTHON_3_11,
-            handler="webhook_handler.lambda_handler",
-            code=lambda_.Code.from_inline(self._get_webhook_handler_code()),
-            role=lambda_role,
-            timeout=Duration.minutes(5),
+            handler="sanity_webhook.main",
+            code=lambda_.Code.from_inline("""
+import json
+import boto3
+import hmac
+import hashlib
+import os
+
+def main(event, context):
+    '''Handle Sanity webhook for direct mode'''
+
+    try:
+        # Verify webhook signature if secret is configured
+        if not verify_sanity_signature(event):
+            return {'statusCode': 401, 'body': 'Unauthorized'}
+
+        # Parse webhook payload
+        body = json.loads(event['body'])
+
+        # Only trigger build for published documents
+        if body.get('_id') and not body.get('_id').startswith('drafts.'):
+            codebuild = boto3.client('codebuild')
+
+            response = codebuild.start_build(
+                projectName=os.environ['BUILD_PROJECT_NAME'],
+                environmentVariablesOverride=[
+                    {
+                        'name': 'SANITY_DOCUMENT_ID',
+                        'value': body.get('_id', '')
+                    },
+                    {
+                        'name': 'SANITY_DOCUMENT_TYPE',
+                        'value': body.get('_type', '')
+                    }
+                ]
+            )
+
+            return {
+                'statusCode': 200,
+                'body': json.dumps({
+                    'message': 'Build triggered',
+                    'buildId': response['build']['id'],
+                    'documentId': body.get('_id')
+                })
+            }
+
+        return {'statusCode': 200, 'body': 'No action needed'}
+
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return {'statusCode': 500, 'body': f'Error: {str(e)}'}
+
+def verify_sanity_signature(event):
+    '''Verify Sanity webhook signature'''
+    sanity_secret = os.environ.get('SANITY_WEBHOOK_SECRET', '')
+    if not sanity_secret:
+        return True  # Skip verification if no secret set
+
+    signature = event['headers'].get('sanity-webhook-signature', '')
+    body = event['body']
+
+    # Sanity uses sha256 signature format
+    expected = hashlib.sha256((body + sanity_secret).encode()).hexdigest()
+
+    return hmac.compare_digest(signature, expected)
+            """),
             environment={
-                "SANITY_PROJECT_ID": self.sanity_project_id,
-                "SANITY_DATASET": self.sanity_dataset,
-                "SANITY_WEBHOOK_SECRET": self.cms_config.content_settings.get("webhook_secret", ""),
-                "BUILD_FUNCTION_NAME": "SanityBuildFunction",  # Will be set after creation
-                "CLIENT_ID": self.client_config.client_id
+                "BUILD_PROJECT_NAME": f"{self.client_config.resource_prefix}-sanity-build",
+                "SANITY_WEBHOOK_SECRET": "placeholder"  # Should use Secrets Manager
             },
-            log_retention=logs.RetentionDays.ONE_WEEK
+            timeout=Duration.seconds(30)
         )
 
-        # Build function for SSG compilation
-        self.build_function = lambda_.Function(
+    def _create_direct_build_project(self) -> codebuild.Project:
+        """Create CodeBuild project for direct mode"""
+
+        # Get Sanity settings for environment variables
+        sanity_settings = self.cms_provider.settings
+
+        return codebuild.Project(
             self,
-            "SanityBuildFunction",
-            runtime=lambda_.Runtime.PYTHON_3_11,
-            handler="build_handler.lambda_handler",
-            code=lambda_.Code.from_inline(self._get_build_handler_code()),
-            role=lambda_role,
-            timeout=Duration.minutes(15),
-            memory_size=1024,
-            environment={
-                "CONTENT_BUCKET": self.content_bucket.bucket_name,
-                "BUILD_BUCKET": self.build_bucket.bucket_name,
-                "SSG_ENGINE": self.ssg_engine,
-                "SANITY_PROJECT_ID": self.sanity_project_id,
-                "SANITY_DATASET": self.sanity_dataset,
-                "SANITY_API_VERSION": self.sanity_api_version,
-                "SANITY_TOKEN": self.cms_config.content_settings.get("api_token", ""),
-                "CLIENT_ID": self.client_config.client_id
-            },
-            log_retention=logs.RetentionDays.ONE_WEEK
+            "SanityDirectBuild",
+            project_name=f"{self.client_config.resource_prefix}-sanity-build",
+            source=codebuild.Source.no_source(),  # Sanity is API-based, not git-based
+            environment=codebuild.BuildEnvironment(
+                build_image=codebuild.LinuxBuildImage.STANDARD_6_0,
+                compute_type=codebuild.ComputeType.SMALL,
+                environment_variables={
+                    "SANITY_PROJECT_ID": codebuild.BuildEnvironmentVariable(
+                        value=sanity_settings["project_id"]
+                    ),
+                    "SANITY_DATASET": codebuild.BuildEnvironmentVariable(
+                        value=sanity_settings.get("dataset", "production")
+                    ),
+                    "SANITY_API_VERSION": codebuild.BuildEnvironmentVariable(
+                        value=sanity_settings.get("api_version", "2023-05-03")
+                    )
+                }
+            ),
+            build_spec=self._get_direct_mode_buildspec()
         )
 
-        # Preview function for content editing preview
-        self.preview_function = lambda_.Function(
+    def _create_event_driven_cms_integration(self) -> None:
+        """Create event-driven CMS integration"""
+
+        # Sanity Event Processor - transforms Sanity webhooks to unified content events
+        self.sanity_event_processor = lambda_.Function(
             self,
-            "SanityPreviewFunction",
+            "SanityEventProcessor",
             runtime=lambda_.Runtime.PYTHON_3_11,
-            handler="preview_handler.lambda_handler",
-            code=lambda_.Code.from_inline(self._get_preview_handler_code()),
-            role=lambda_role,
-            timeout=Duration.minutes(5),
-            environment={
-                "SANITY_PROJECT_ID": self.sanity_project_id,
-                "SANITY_DATASET": self.sanity_dataset,
-                "SANITY_API_VERSION": self.sanity_api_version,
-                "SANITY_TOKEN": self.cms_config.content_settings.get("api_token", ""),
-                "CLIENT_ID": self.client_config.client_id
-            },
-            log_retention=logs.RetentionDays.ONE_WEEK
-        )
+            handler="sanity_event_processor.main",
+            code=lambda_.Code.from_inline("""
+import json
+import boto3
+import os
+import uuid
+from datetime import datetime, timezone
 
-        # Update webhook handler environment with build function name
-        self.webhook_handler.add_environment("BUILD_FUNCTION_NAME", self.build_function.function_name)
+def main(event, context):
+    '''Process Sanity events and publish to unified content system'''
 
-        # Grant invoke permissions
-        self.webhook_handler.grant_invoke(iam.ServicePrincipal("events.amazonaws.com"))
-        self.build_function.grant_invoke(self.webhook_handler)
+    sns = boto3.client('sns')
 
-        # Store configuration in Systems Manager Parameter Store
-        self._create_parameter_store_config()
+    try:
+        # Parse Sanity webhook
+        sanity_event = json.loads(event['body'])
 
-    def _create_parameter_store_config(self) -> None:
-        """Store Sanity configuration in Parameter Store for Lambda access"""
+        # Skip draft documents
+        document_id = sanity_event.get('_id', '')
+        if document_id.startswith('drafts.'):
+            return {'statusCode': 200, 'body': 'Draft document ignored'}
 
-        config_params = {
-            f"/{self.client_config.client_id}/sanity/project-id": self.sanity_project_id,
-            f"/{self.client_config.client_id}/sanity/dataset": self.sanity_dataset,
-            f"/{self.client_config.client_id}/sanity/api-version": self.sanity_api_version,
-            f"/{self.client_config.client_id}/sanity/use-cdn": str(self.use_cdn),
-            f"/{self.client_config.client_id}/sanity/ssg-engine": self.ssg_engine
+        # Transform to unified content event
+        unified_event = {
+            'event_type': 'content_updated',
+            'provider': 'sanity',
+            'content_id': document_id,
+            'content_type': determine_content_type(sanity_event.get('_type', '')),
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+            'data': {
+                'sanity_document': sanity_event,
+                'document_type': sanity_event.get('_type'),
+                'revision': sanity_event.get('_rev'),
+                'created_at': sanity_event.get('_createdAt'),
+                'updated_at': sanity_event.get('_updatedAt')
+            }
         }
 
-        for param_name, param_value in config_params.items():
-            ssm.StringParameter(
-                self,
-                f"SanityParam{param_name.split('/')[-1].replace('-', '').title()}",
-                parameter_name=param_name,
-                string_value=param_value,
-                description=f"Sanity CMS configuration for {self.client_config.client_id}"
-            )
-
-        # Store sensitive values as SecureString
-        if self.cms_config.content_settings.get("api_token"):
-            ssm.StringParameter(
-                self,
-                "SanityApiTokenParam",
-                parameter_name=f"/{self.client_config.client_id}/sanity/api-token",
-                string_value=self.cms_config.content_settings["api_token"],
-                type=ssm.ParameterType.SECURE_STRING,
-                description=f"Sanity API token for {self.client_config.client_id}"
-            )
-
-        if self.cms_config.content_settings.get("webhook_secret"):
-            ssm.StringParameter(
-                self,
-                "SanityWebhookSecretParam",
-                parameter_name=f"/{self.client_config.client_id}/sanity/webhook-secret",
-                string_value=self.cms_config.content_settings["webhook_secret"],
-                type=ssm.ParameterType.SECURE_STRING,
-                description=f"Sanity webhook secret for {self.client_config.client_id}"
-            )
-
-    def _create_cdn_distribution(self) -> None:
-        """Create CloudFront distribution with Sanity CDN integration"""
-
-        # Origin Access Identity for S3
-        oai = cloudfront.OriginAccessIdentity(
-            self,
-            "SanityOAI",
-            comment=f"OAI for {self.client_config.client_id} Sanity CMS"
+        # Publish to content events topic
+        sns.publish(
+            TopicArn=os.environ['CONTENT_EVENTS_TOPIC_ARN'],
+            Message=json.dumps(unified_event),
+            Subject=f"Sanity Content Updated: {unified_event['content_id']}"
         )
 
-        # Grant read access to CloudFront
-        self.content_bucket.grant_read(oai)
+        return {'statusCode': 200, 'body': f'Processed document: {document_id}'}
 
-        # Create cache behaviors for different content types
-        cache_behaviors = self._get_sanity_cache_behaviors()
+    except Exception as e:
+        print(f"Error processing Sanity event: {str(e)}")
+        return {'statusCode': 500, 'body': f'Error: {str(e)}'}
 
-        # CloudFront distribution
-        self.distribution = cloudfront.Distribution(
+def determine_content_type(sanity_type):
+    '''Map Sanity document types to unified content types'''
+    type_mapping = {
+        'post': 'article',
+        'article': 'article',
+        'blog': 'article',
+        'page': 'page',
+        'product': 'product',
+        'category': 'collection',
+        'collection': 'collection'
+    }
+    return type_mapping.get(sanity_type, 'page')
+            """),
+            environment={
+                "CONTENT_EVENTS_TOPIC_ARN": self.integration_layer.content_events_topic.topic_arn
+            },
+            timeout=Duration.seconds(30)
+        )
+
+        # Grant SNS publish permissions
+        self.integration_layer.content_events_topic.grant_publish(self.sanity_event_processor)
+
+    def _create_sanity_studio_config(self) -> None:
+        """Create Sanity Studio configuration"""
+
+        # Generate Studio configuration for the client
+        studio_config = self._generate_sanity_studio_config()
+
+        # Store configuration in S3 for deployment
+        # This would typically be done during deployment process
+        pass
+
+    def _create_sanity_webhook_integration(self) -> None:
+        """Create Sanity webhook integration for direct mode"""
+
+        # Create API Gateway for Sanity webhooks
+        webhook_api = apigateway.RestApi(
             self,
-            "SanityDistribution",
-            default_behavior=cloudfront.BehaviorOptions(
-                origin=origins.S3Origin(
-                    self.content_bucket,
-                    origin_access_identity=oai
-                ),
-                viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-                cache_policy=cloudfront.CachePolicy.CACHING_OPTIMIZED,
-                origin_request_policy=cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
-                response_headers_policy=cloudfront.ResponseHeadersPolicy.SECURITY_HEADERS
-            ),
-            additional_behaviors=cache_behaviors,
-            # domain_names=[self.client_config.domain],  # Requires SSL certificate
-            # certificate=self.ssl_construct.certificate,  # Requires SSL construct
-            default_root_object="index.html",
-            error_responses=[
-                cloudfront.ErrorResponse(
-                    http_status=404,
-                    response_http_status=200,
-                    response_page_path="/index.html",  # SPA routing support
-                    ttl=Duration.seconds(300)
-                )
+            "SanityWebhookAPI",
+            rest_api_name=f"{self.client_config.resource_prefix}-sanity-webhooks",
+            description="Sanity webhook endpoint"
+        )
+
+        # Add webhook endpoint
+        webhook_resource = webhook_api.root.add_resource("webhook")
+        webhook_resource.add_method(
+            "POST",
+            apigateway.LambdaIntegration(self.sanity_webhook_handler)
+        )
+
+        # Output webhook URL
+        CfnOutput(
+            self,
+            "SanityWebhookUrl",
+            value=f"{webhook_api.url}webhook",
+            description="Webhook URL to configure in Sanity Studio"
+        )
+
+    def _connect_sanity_to_event_system(self) -> None:
+        """Connect Sanity CMS to event system for event-driven mode"""
+
+        # Create API Gateway for Sanity webhooks (event-driven version)
+        webhook_api = apigateway.RestApi(
+            self,
+            "SanityEventWebhookAPI",
+            rest_api_name=f"{self.client_config.resource_prefix}-sanity-event-webhooks"
+        )
+
+        # Add event webhook endpoint
+        event_resource = webhook_api.root.add_resource("events")
+        sanity_resource = event_resource.add_resource("sanity")
+
+        sanity_resource.add_method(
+            "POST",
+            apigateway.LambdaIntegration(self.sanity_event_processor)
+        )
+
+        # Output webhook URL for Sanity configuration
+        CfnOutput(
+            self,
+            "SanityEventWebhookUrl",
+            value=f"{webhook_api.url}events/sanity",
+            description="Event webhook URL to configure in Sanity Studio"
+        )
+
+    def _create_content_storage(self) -> None:
+        """Create content storage (both modes)"""
+        # Content storage is handled by BaseSSGStack
+        # Additional Sanity-specific storage could be added here
+        pass
+
+    def _create_sanity_secrets(self) -> None:
+        """Create secrets for Sanity API credentials"""
+
+        # Sanity API token secret
+        self.sanity_token_secret = secrets.Secret(
+            self,
+            "SanityTokenSecret",
+            secret_name=f"{self.client_config.resource_prefix}-sanity-token",
+            description="Sanity API token for content fetching"
+        )
+
+        # Optional webhook secret
+        self.webhook_secret = secrets.Secret(
+            self,
+            "SanityWebhookSecret",
+            secret_name=f"{self.client_config.resource_prefix}-sanity-webhook-secret",
+            description="Secret for Sanity webhook signature verification"
+        )
+
+    def _create_monitoring_and_logging(self) -> None:
+        """Create monitoring and logging (both modes)"""
+        # CloudWatch dashboards and alarms for Sanity integration
+        pass
+
+    def _generate_sanity_studio_config(self) -> Dict[str, Any]:
+        """Generate Sanity Studio configuration"""
+
+        cms_settings = self.cms_provider.settings
+        ssg_engine = self.client_config.service_integration.ssg_engine
+
+        # Base Studio configuration
+        config = {
+            "projectId": cms_settings["project_id"],
+            "dataset": cms_settings.get("dataset", "production"),
+            "plugins": [
+                "@sanity/vision"  # GROQ query tool
             ],
-            comment=f"Sanity CMS distribution for {self.client_config.client_id}"
-        )
+            "schema": {
+                "types": self._get_sanity_schema_types()
+            }
+        }
 
-    def _get_sanity_cache_behaviors(self) -> Dict[str, cloudfront.BehaviorOptions]:
-        """Get cache behaviors optimized for Sanity CMS integration"""
+        # Add SSG-specific configurations
+        if ssg_engine == "nextjs":
+            config["plugins"].append("@sanity/nextjs-loader")
+        elif ssg_engine == "gatsby":
+            config["plugins"].append("gatsby-source-sanity")
 
-        behaviors = {}
+        return config
 
-        # API routes for preview and webhook handling
-        behaviors["/api/*"] = cloudfront.BehaviorOptions(
-            origin=origins.HttpOrigin(
-                f"{self.preview_function.function_name}.lambda-url.{self.region}.on.aws",
-                custom_headers={"x-sanity-client": self.client_config.client_id}
-            ),
-            viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
-            cache_policy=cloudfront.CachePolicy.CACHING_DISABLED,
-            origin_request_policy=cloudfront.OriginRequestPolicy.ALL_VIEWER
-        )
+    def _get_sanity_schema_types(self) -> List[Dict[str, Any]]:
+        """Get Sanity schema types configuration"""
 
-        # Sanity Studio admin interface (if self-hosted)
-        if self.ssg_engine in ["nextjs", "astro"]:
-            behaviors["/studio*"] = cloudfront.BehaviorOptions(
-                origin=origins.S3Origin(
-                    self.content_bucket,
-                    origin_path="/studio"
-                ),
-                viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
-                cache_policy=cloudfront.CachePolicy.CACHING_DISABLED
-            )
+        # Basic schema types that work with all SSG engines
+        schema_types = [
+            {
+                "name": "post",
+                "type": "document",
+                "title": "Blog Post",
+                "fields": [
+                    {"name": "title", "type": "string", "title": "Title"},
+                    {"name": "slug", "type": "slug", "title": "Slug", "options": {"source": "title"}},
+                    {"name": "publishedAt", "type": "datetime", "title": "Published At"},
+                    {"name": "excerpt", "type": "text", "title": "Excerpt"},
+                    {"name": "body", "type": "array", "title": "Body", "of": [{"type": "block"}]},
+                    {"name": "featuredImage", "type": "image", "title": "Featured Image"},
+                    {"name": "tags", "type": "array", "title": "Tags", "of": [{"type": "string"}]}
+                ]
+            },
+            {
+                "name": "page",
+                "type": "document",
+                "title": "Page",
+                "fields": [
+                    {"name": "title", "type": "string", "title": "Title"},
+                    {"name": "slug", "type": "slug", "title": "Slug", "options": {"source": "title"}},
+                    {"name": "body", "type": "array", "title": "Body", "of": [{"type": "block"}]},
+                    {"name": "seo", "type": "seo", "title": "SEO"}
+                ]
+            },
+            {
+                "name": "seo",
+                "type": "object",
+                "title": "SEO",
+                "fields": [
+                    {"name": "title", "type": "string", "title": "SEO Title"},
+                    {"name": "description", "type": "text", "title": "SEO Description"},
+                    {"name": "image", "type": "image", "title": "Social Image"}
+                ]
+            }
+        ]
 
-        # Static assets with longer caching
-        behaviors["/_next/static/*"] = cloudfront.BehaviorOptions(
-            origin=origins.S3Origin(self.content_bucket),
-            viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
-            cache_policy=cloudfront.CachePolicy.CACHING_OPTIMIZED_FOR_UNCOMPRESSED_OBJECTS
-        )
+        return schema_types
 
-        # Images and media with CDN optimization
-        behaviors["/images/*"] = cloudfront.BehaviorOptions(
-            origin=origins.S3Origin(self.content_bucket),
-            viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
-            cache_policy=cloudfront.CachePolicy.CACHING_OPTIMIZED,
-            response_headers_policy=cloudfront.ResponseHeadersPolicy.SECURITY_HEADERS
-        )
+    def _get_direct_mode_buildspec(self) -> codebuild.BuildSpec:
+        """Get buildspec for direct mode builds"""
 
-        return behaviors
+        ssg_engine = self.client_config.service_integration.ssg_engine
 
-    # def _create_dns_configuration(self) -> None:
-    #     """Create Route53 DNS configuration"""
+        if ssg_engine == "nextjs":
+            return codebuild.BuildSpec.from_object({
+                "version": "0.2",
+                "phases": {
+                    "install": {
+                        "runtime-versions": {"nodejs": "18"},
+                        "commands": ["npm ci"]
+                    },
+                    "build": {
+                        "commands": [
+                            "npm run build",
+                            "npm run export"
+                        ]
+                    }
+                },
+                "artifacts": {
+                    "files": ["**/*"],
+                    "base-directory": "out"
+                }
+            })
 
-    #     # Get hosted zone
-    #     hosted_zone = route53.HostedZone.from_lookup(
-    #         self,
-    #         "HostedZone",
-    #         domain_name=self.client_config.domain
-    #     )
+        elif ssg_engine == "astro":
+            return codebuild.BuildSpec.from_object({
+                "version": "0.2",
+                "phases": {
+                    "install": {
+                        "runtime-versions": {"nodejs": "18"},
+                        "commands": ["npm ci"]
+                    },
+                    "build": {
+                        "commands": ["npm run build"]
+                    }
+                },
+                "artifacts": {
+                    "files": ["**/*"],
+                    "base-directory": "dist"
+                }
+            })
 
-    #     # A record pointing to CloudFront
-    #     self.dns_record = route53.ARecord(
-    #         self,
-    #         "SanityDNSRecord",
-    #         zone=hosted_zone,
-    #         target=route53.RecordTarget.from_alias(
-    #             targets.CloudFrontTarget(self.distribution)
-    #         ),
-    #         record_name=self.client_config.domain
-    #     )
+        elif ssg_engine == "gatsby":
+            return codebuild.BuildSpec.from_object({
+                "version": "0.2",
+                "phases": {
+                    "install": {
+                        "runtime-versions": {"nodejs": "18"},
+                        "commands": ["npm ci"]
+                    },
+                    "build": {
+                        "commands": ["gatsby build"]
+                    }
+                },
+                "artifacts": {
+                    "files": ["**/*"],
+                    "base-directory": "public"
+                }
+            })
 
-    # def _create_monitoring(self) -> None:
-    #     """Create monitoring and alerting for Sanity CMS operations"""
-    #     self.monitoring = MonitoringConstruct(
-    #         self,
-    #         "SanityMonitoring",
-    #         client_config=self.client_config,
-    #         distribution=self.distribution,
-    #         lambda_functions=[
-    #             self.webhook_handler,
-    #             self.build_function,
-    #             self.preview_function
-    #         ]
-    #     )
+        else:  # nuxt
+            return codebuild.BuildSpec.from_object({
+                "version": "0.2",
+                "phases": {
+                    "install": {
+                        "runtime-versions": {"nodejs": "18"},
+                        "commands": ["npm ci"]
+                    },
+                    "build": {
+                        "commands": ["npm run generate"]
+                    }
+                },
+                "artifacts": {
+                    "files": ["**/*"],
+                    "base-directory": "dist"
+                }
+            })
 
-    def _create_outputs(self) -> None:
+    def _create_stack_outputs(self) -> None:
         """Create CloudFormation outputs"""
 
+        # Common outputs
         CfnOutput(
             self,
-            "SanityWebsiteURL",
-            value=f"https://{self.client_config.domain}",
-            description="Sanity CMS website URL"
+            "SiteUrl",
+            value=f"https://{self.distribution.distribution_domain_name}",
+            description="Published site URL"
         )
 
         CfnOutput(
             self,
-            "SanityDistributionID",
-            value=self.distribution.distribution_id,
-            description="CloudFront distribution ID"
+            "SanityStudioUrl",
+            value=f"https://{self.cms_provider.settings['project_id']}.sanity.studio",
+            description="Sanity Studio URL for content management"
         )
 
         CfnOutput(
             self,
-            "SanityProjectID",
-            value=self.sanity_project_id,
-            description="Sanity project ID"
+            "IntegrationMode",
+            value=self.integration_mode.value,
+            description="CMS integration mode (direct or event_driven)"
         )
 
         CfnOutput(
             self,
-            "SanityWebhookURL",
-            value=f"https://{self.webhook_handler.function_name}.lambda-url.{self.region}.on.aws/webhook",
-            description="Sanity webhook URL for content updates"
+            "CMSProvider",
+            value="sanity",
+            description="CMS provider"
         )
 
         CfnOutput(
             self,
-            "SanityPreviewURL",
-            value=f"https://{self.client_config.domain}/api/preview",
-            description="Sanity preview mode URL"
+            "SSGEngine",
+            value=self.client_config.service_integration.ssg_engine,
+            description="SSG engine"
         )
 
-        CfnOutput(
-            self,
-            "SanityStudioURL",
-            value=f"https://{self.sanity_project_id}.sanity.studio",
-            description="Sanity Studio admin interface URL"
-        )
-
-    def _get_webhook_handler_code(self) -> str:
-        """Get Lambda code for Sanity webhook handling"""
-        return '''
-import json
-import boto3
-import hashlib
-import hmac
-import os
-from typing import Dict, Any
-
-lambda_client = boto3.client('lambda')
-
-def lambda_handler(event: Dict[str, Any], context) -> Dict[str, Any]:
-    """Handle Sanity webhook events and trigger builds"""
-
-    try:
-        # Verify webhook signature
-        if not verify_webhook_signature(event):
-            return {
-                'statusCode': 401,
-                'body': json.dumps({'error': 'Invalid webhook signature'})
-            }
-
-        # Parse webhook body
-        body = json.loads(event.get('body', '{}'))
-
-        # Check if this is a content update that should trigger a build
-        if should_trigger_build(body):
-            trigger_build(body)
-
-        return {
-            'statusCode': 200,
-            'body': json.dumps({'message': 'Webhook processed successfully'})
-        }
-
-    except Exception as e:
-        print(f"Webhook processing error: {str(e)}")
-        return {
-            'statusCode': 500,
-            'body': json.dumps({'error': 'Internal server error'})
-        }
-
-def verify_webhook_signature(event: Dict[str, Any]) -> bool:
-    """Verify Sanity webhook signature"""
-    webhook_secret = os.environ.get('SANITY_WEBHOOK_SECRET')
-    if not webhook_secret:
-        return True  # Skip verification if no secret configured
-
-    signature = event.get('headers', {}).get('sanity-webhook-signature')
-    body = event.get('body', '')
-
-    if not signature:
-        return False
-
-    expected_signature = hmac.new(
-        webhook_secret.encode(),
-        body.encode(),
-        hashlib.sha256
-    ).hexdigest()
-
-    return hmac.compare_digest(signature, expected_signature)
-
-def should_trigger_build(body: Dict[str, Any]) -> bool:
-    """Determine if webhook event should trigger a build"""
-    # Trigger on document creates, updates, and deletes
-    return body.get('type') in ['create', 'update', 'delete']
-
-def trigger_build(webhook_data: Dict[str, Any]) -> None:
-    """Trigger the build function"""
-    build_function_name = os.environ.get('BUILD_FUNCTION_NAME')
-
-    lambda_client.invoke(
-        FunctionName=build_function_name,
-        InvocationType='Event',  # Async invoke
-        Payload=json.dumps({
-            'source': 'webhook',
-            'webhook_data': webhook_data,
-            'client_id': os.environ.get('CLIENT_ID')
-        })
-    )
-'''
-
-    def _get_build_handler_code(self) -> str:
-        """Get Lambda code for SSG build handling"""
-        return '''
-import json
-import boto3
-import os
-import subprocess
-import tempfile
-import shutil
-from typing import Dict, Any
-
-s3_client = boto3.client('s3')
-
-def lambda_handler(event: Dict[str, Any], context) -> Dict[str, Any]:
-    """Build SSG site with Sanity content"""
-
-    try:
-        ssg_engine = os.environ.get('SSG_ENGINE')
-        client_id = os.environ.get('CLIENT_ID')
-
-        print(f"Starting {ssg_engine} build for {client_id}")
-
-        # Create temporary working directory
-        with tempfile.TemporaryDirectory() as temp_dir:
-            # Set up build environment
-            setup_build_environment(temp_dir, ssg_engine)
-
-            # Run SSG build
-            build_output = run_ssg_build(temp_dir, ssg_engine)
-
-            # Upload build artifacts to S3
-            upload_build_artifacts(temp_dir, build_output, ssg_engine)
-
-        return {
-            'statusCode': 200,
-            'body': json.dumps({
-                'message': f'{ssg_engine} build completed successfully',
-                'client_id': client_id
-            })
-        }
-
-    except Exception as e:
-        print(f"Build error: {str(e)}")
-        return {
-            'statusCode': 500,
-            'body': json.dumps({'error': str(e)})
-        }
-
-def setup_build_environment(temp_dir: str, ssg_engine: str) -> None:
-    """Set up the build environment for the SSG"""
-
-    # Install Node.js and npm (would use container layer in production)
-    os.chdir(temp_dir)
-
-    # Create basic package.json for each SSG engine
-    package_configs = {
-        'nextjs': {
-            'dependencies': {
-                'next': '^14.0.0',
-                'react': '^18.0.0',
-                'react-dom': '^18.0.0',
-                'next-sanity': '^6.0.0',
-                '@sanity/image-url': '^1.0.0'
-            },
-            'scripts': {
-                'build': 'next build',
-                'start': 'next start'
-            }
-        },
-        'astro': {
-            'dependencies': {
-                'astro': '^4.0.0',
-                '@sanity/client': '^6.0.0',
-                '@sanity/image-url': '^1.0.0'
-            },
-            'scripts': {
-                'build': 'astro build'
-            }
-        },
-        'gatsby': {
-            'dependencies': {
-                'gatsby': '^5.0.0',
-                'gatsby-source-sanity': '^7.0.0',
-                '@sanity/image-url': '^1.0.0'
-            },
-            'scripts': {
-                'build': 'gatsby build'
-            }
-        },
-        'eleventy': {
-            'dependencies': {
-                '@11ty/eleventy': '^2.0.0',
-                '@sanity/client': '^6.0.0'
-            },
-            'scripts': {
-                'build': 'eleventy'
-            }
-        }
-    }
-
-    config = package_configs.get(ssg_engine, package_configs['eleventy'])
-
-    with open('package.json', 'w') as f:
-        json.dump({
-            'name': f'sanity-{ssg_engine}-build',
-            'version': '1.0.0',
-            **config
-        }, f, indent=2)
-
-def run_ssg_build(temp_dir: str, ssg_engine: str) -> str:
-    """Run the SSG build process"""
-
-    # In production, this would pull from source repository
-    # For now, create minimal build structure
-
-    output_dirs = {
-        'nextjs': '.next',
-        'astro': 'dist',
-        'gatsby': 'public',
-        'eleventy': '_site'
-    }
-
-    output_dir = output_dirs.get(ssg_engine, 'dist')
-
-    # Create output directory with basic content
-    os.makedirs(output_dir, exist_ok=True)
-
-    # Create index.html
-    with open(f'{output_dir}/index.html', 'w') as f:
-        f.write(f"""<!DOCTYPE html>
-<html>
-<head>
-    <title>Sanity CMS Site</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-</head>
-<body>
-    <h1>Sanity CMS Site</h1>
-    <p>Built with {ssg_engine}</p>
-    <p>Connected to Sanity project: {os.environ.get('SANITY_PROJECT_ID')}</p>
-</body>
-</html>""")
-
-    return output_dir
-
-def upload_build_artifacts(temp_dir: str, build_output: str, ssg_engine: str) -> None:
-    """Upload build artifacts to S3"""
-
-    content_bucket = os.environ.get('CONTENT_BUCKET')
-    build_bucket = os.environ.get('BUILD_BUCKET')
-
-    build_path = os.path.join(temp_dir, build_output)
-
-    # Upload to content bucket (for CloudFront)
-    for root, dirs, files in os.walk(build_path):
-        for file in files:
-            local_path = os.path.join(root, file)
-            relative_path = os.path.relpath(local_path, build_path)
-
-            s3_client.upload_file(
-                local_path,
-                content_bucket,
-                relative_path,
-                ExtraArgs={'ContentType': get_content_type(file)}
+        # Mode-specific outputs
+        if self.integration_mode == IntegrationMode.EVENT_DRIVEN:
+            CfnOutput(
+                self,
+                "ContentEventsTopicArn",
+                value=self.integration_layer.content_events_topic.topic_arn,
+                description="SNS topic for content events"
             )
 
-    print(f"Build artifacts uploaded to {content_bucket}")
+            CfnOutput(
+                self,
+                "IntegrationApiUrl",
+                value=self.integration_layer.integration_api.url,
+                description="Integration API endpoint"
+            )
 
-def get_content_type(filename: str) -> str:
-    """Get content type for file"""
-    extensions = {
-        '.html': 'text/html',
-        '.css': 'text/css',
-        '.js': 'application/javascript',
-        '.json': 'application/json',
-        '.png': 'image/png',
-        '.jpg': 'image/jpeg',
-        '.jpeg': 'image/jpeg',
-        '.svg': 'image/svg+xml'
-    }
-
-    ext = os.path.splitext(filename)[1].lower()
-    return extensions.get(ext, 'application/octet-stream')
-'''
-
-    def _get_preview_handler_code(self) -> str:
-        """Get Lambda code for Sanity preview mode"""
-        return '''
-import json
-import os
-import boto3
-from typing import Dict, Any
-
-def lambda_handler(event: Dict[str, Any], context) -> Dict[str, Any]:
-    """Handle Sanity preview mode requests"""
-
-    try:
-        # Get request path and query parameters
-        path = event.get('rawPath', '/')
-        query_params = event.get('queryStringParameters', {}) or {}
-
-        # Handle preview API endpoints
-        if path.startswith('/api/preview'):
-            return handle_preview_request(query_params)
-        elif path.startswith('/api/exit-preview'):
-            return handle_exit_preview()
+            CfnOutput(
+                self,
+                "SupportsComposition",
+                value="true",
+                description="Supports composition with other providers"
+            )
         else:
-            return {
-                'statusCode': 404,
-                'body': json.dumps({'error': 'Not found'})
-            }
+            CfnOutput(
+                self,
+                "SupportsComposition",
+                value="false",
+                description="Direct mode - no composition support"
+            )
 
-    except Exception as e:
-        print(f"Preview handler error: {str(e)}")
-        return {
-            'statusCode': 500,
-            'body': json.dumps({'error': 'Internal server error'})
+    def _create_custom_infrastructure(self) -> None:
+        """Required implementation from BaseSSGStack"""
+        # Infrastructure creation is handled by mode-specific methods
+        pass
+
+    def get_monthly_cost_estimate(self) -> Dict[str, Any]:
+        """Get monthly cost estimate for Sanity CMS tier"""
+
+        base_costs = {
+            "sanity_cms_free": 0,  # Free tier: 3 users, 500K API requests
+            "sanity_cms_team": 99,  # Team plan: 5 users, 1M API requests
+            "sanity_cms_business": 199,  # Business plan: 15 users, 10M API requests
+            "aws_hosting": 60,  # Base hosting costs (higher due to API calls)
+            "cloudfront": 20,  # CDN costs
+            "codebuild": 15,  # Build minutes
         }
 
-def handle_preview_request(query_params: Dict[str, Any]) -> Dict[str, Any]:
-    """Handle preview mode activation"""
+        if self.integration_mode == IntegrationMode.EVENT_DRIVEN:
+            base_costs.update({
+                "sns_messages": 10,  # Event messaging
+                "lambda_executions": 10,  # Event processing
+                "dynamodb": 15,  # Unified content storage
+            })
 
-    # Validate preview token/secret
-    secret = query_params.get('secret')
-    if secret != os.environ.get('SANITY_TOKEN'):
+        # Calculate total for different Sanity plans
         return {
-            'statusCode': 401,
-            'body': json.dumps({'error': 'Invalid preview secret'})
+            "sanity_free_tier": base_costs["sanity_cms_free"] + base_costs["aws_hosting"] + base_costs["cloudfront"] + base_costs["codebuild"] + base_costs.get("sns_messages", 0) + base_costs.get("lambda_executions", 0) + base_costs.get("dynamodb", 0),
+            "sanity_team_plan": base_costs["sanity_cms_team"] + base_costs["aws_hosting"] + base_costs["cloudfront"] + base_costs["codebuild"] + base_costs.get("sns_messages", 0) + base_costs.get("lambda_executions", 0) + base_costs.get("dynamodb", 0),
+            "sanity_business_plan": base_costs["sanity_cms_business"] + base_costs["aws_hosting"] + base_costs["cloudfront"] + base_costs["codebuild"] + base_costs.get("sns_messages", 0) + base_costs.get("lambda_executions", 0) + base_costs.get("dynamodb", 0),
+            "recommended_plan": "team" if self.integration_mode == IntegrationMode.EVENT_DRIVEN else "free"
         }
 
-    # Get document slug for preview
-    slug = query_params.get('slug', '/')
+    @staticmethod
+    def get_client_suitability_score(requirements: Dict[str, Any]) -> Dict[str, Any]:
+        """Get client suitability score for Sanity CMS tier"""
 
-    # Set preview cookie and redirect
-    response = {
-        'statusCode': 307,
-        'headers': {
-            'Location': f'/{slug}',
-            'Set-Cookie': '__prerender_bypass=true; Path=/; HttpOnly; SameSite=None; Secure'
-        },
-        'body': ''
-    }
+        score = 0
+        reasons = []
 
-    return response
+        # Structured content need (major factor for Sanity)
+        if requirements.get("structured_content", False):
+            score += 30
+            reasons.append("Excellent structured content modeling")
 
-def handle_exit_preview() -> Dict[str, Any]:
-    """Handle preview mode exit"""
+        # Content team size
+        team_size = requirements.get("team_size", 1)
+        if team_size >= 5:
+            score += 25
+            reasons.append("Great for collaborative content teams")
+        elif team_size >= 3:
+            score += 15
+            reasons.append("Good for small content teams")
 
-    response = {
-        'statusCode': 307,
-        'headers': {
-            'Location': '/',
-            'Set-Cookie': '__prerender_bypass=; Path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-        },
-        'body': ''
-    }
+        # Technical sophistication
+        if requirements.get("technical_team", False):
+            score += 20
+            reasons.append("Developer-friendly with GROQ query language")
 
-    return response
-'''
+        # Real-time features
+        if requirements.get("real_time_editing", False):
+            score += 15
+            reasons.append("Real-time collaboration and live preview")
+
+        # Content complexity
+        content_complexity = requirements.get("content_complexity", "simple")
+        if content_complexity == "complex":
+            score += 20
+            reasons.append("Handles complex content relationships")
+        elif content_complexity == "medium":
+            score += 10
+
+        # Budget considerations
+        budget = requirements.get("monthly_budget", 100)
+        if budget >= 200:
+            score += 10
+            reasons.append("Budget supports Business plan features")
+        elif budget >= 100:
+            score += 5
+            reasons.append("Budget supports Team plan")
+        else:
+            score -= 5
+            reasons.append("May exceed budget on paid plans")
+
+        # Determine suitability level
+        if score >= 80:
+            suitability = "excellent"
+        elif score >= 60:
+            suitability = "good"
+        elif score >= 40:
+            suitability = "fair"
+        else:
+            suitability = "poor"
+
+        return {
+            "suitability_score": min(100, max(0, score)),
+            "suitability": suitability,
+            "reasons": reasons,
+            "integration_mode_recommendation": "event_driven" if team_size >= 5 else "direct"
+        }

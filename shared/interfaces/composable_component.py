@@ -15,7 +15,7 @@ from models.composition import (
     UnifiedContent, ComponentRegistration, CostBreakdown,
     ContentEvent, CompositionConfiguration
 )
-from shared.ssg.ssg_engines import SSGEngine
+from shared.ssg.core_models import SSGEngineType
 
 
 @runtime_checkable
@@ -92,7 +92,7 @@ class ComposableComponent(Protocol):
         """
         ...
 
-    def get_build_dependencies(self, ssg_engine: SSGEngine) -> Dict[str, List[str]]:
+    def get_build_dependencies(self, ssg_engine: SSGEngineType) -> Dict[str, List[str]]:
         """
         Return build dependencies needed for SSG integration.
 
@@ -116,7 +116,7 @@ class ComposableComponent(Protocol):
         """
         ...
 
-    def generate_environment_variables(self, ssg_engine: SSGEngine) -> Dict[str, str]:
+    def generate_environment_variables(self, ssg_engine: SSGEngineType) -> Dict[str, str]:
         """
         Generate environment variables needed for SSG build process.
 

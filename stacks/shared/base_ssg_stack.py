@@ -30,6 +30,7 @@ from aws_cdk import (
     RemovalPolicy
 )
 from constructs import Construct
+from models.service_config import ClientServiceConfig
 
 
 class StackABCMeta(ABCMeta, type(Stack)):
@@ -49,9 +50,13 @@ class BaseSSGStack(Stack, metaclass=StackABCMeta):
         self,
         scope: Construct,
         construct_id: str,
+        client_config: ClientServiceConfig,
         **kwargs
     ):
         super().__init__(scope, construct_id, **kwargs)
+
+        # Store client configuration
+        self.client_config = client_config
 
         # Common infrastructure components (initialized by subclasses)
         self.content_bucket: Optional[s3.Bucket] = None

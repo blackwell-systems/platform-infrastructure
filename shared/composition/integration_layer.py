@@ -34,7 +34,7 @@ from aws_cdk import (
 )
 from constructs import Construct
 
-from models.client import ClientConfig
+from models.service_config import ClientServiceConfig
 from models.composition import ContentEvent, UnifiedContent
 from shared.composition.optimized_content_cache import OptimizedContentCache
 from shared.composition.provider_adapter_registry import ProviderAdapterRegistry
@@ -65,7 +65,7 @@ class EventDrivenIntegrationLayer(Construct):
         self,
         scope: Construct,
         construct_id: str,
-        client_config: ClientConfig,
+        client_config: ClientServiceConfig,
         **kwargs
     ):
         super().__init__(scope, construct_id, **kwargs)
@@ -114,20 +114,7 @@ class EventDrivenIntegrationLayer(Construct):
             master_key=None  # Use default AWS managed key for cost optimization
         )
 
-        # Add CloudWatch monitoring
-        topic.add_subscription(
-            sns.Subscription(
-                self, "ContentEventsCloudWatchSubscription",
-                topic=topic,
-                endpoint="cloudwatch",
-                protocol=sns.SubscriptionProtocol.SQS,
-                filter_policy={
-                    "monitoring": sns.SubscriptionFilter.string_filter(
-                        allowlist=["true"]
-                    )
-                }
-            )
-        )
+        # CloudWatch monitoring can be configured separately as needed
 
         return topic
 
@@ -167,52 +154,6 @@ class EventDrivenIntegrationLayer(Construct):
             # Stream for real-time processing capabilities
             stream=dynamodb.StreamViewType.NEW_AND_OLD_IMAGES,
 
-            # Global Secondary Indexes for optimized queries
-            global_secondary_indexes=[
-                # PRIMARY GSI: Query by client and content type (most common query)
-                dynamodb.GlobalSecondaryIndex(
-                    index_name="ClientContentTypeIndex",
-                    partition_key=dynamodb.Attribute(
-                        name="client_id",
-                        type=dynamodb.AttributeType.STRING
-                    ),
-                    sort_key=dynamodb.Attribute(
-                        name="content_type",
-                        type=dynamodb.AttributeType.STRING
-                    ),
-                    projection_type=dynamodb.ProjectionType.ALL
-                ),
-
-                # SECONDARY GSI: Query by provider and update time
-                dynamodb.GlobalSecondaryIndex(
-                    index_name="ProviderUpdateIndex",
-                    partition_key=dynamodb.Attribute(
-                        name="provider_name",
-                        type=dynamodb.AttributeType.STRING
-                    ),
-                    sort_key=dynamodb.Attribute(
-                        name="updated_at",
-                        type=dynamodb.AttributeType.STRING
-                    ),
-                    projection_type=dynamodb.ProjectionType.KEYS_ONLY
-                ),
-
-                # OPTIMIZATION GSI: Query by status for build optimization
-                dynamodb.GlobalSecondaryIndex(
-                    index_name="StatusUpdateIndex",
-                    partition_key=dynamodb.Attribute(
-                        name="status",
-                        type=dynamodb.AttributeType.STRING
-                    ),
-                    sort_key=dynamodb.Attribute(
-                        name="updated_at",
-                        type=dynamodb.AttributeType.STRING
-                    ),
-                    projection_type=dynamodb.ProjectionType.INCLUDE,
-                    non_key_attributes=["client_id", "content_type", "provider_name", "title"]
-                )
-            ],
-
             # Removal policy for development (change to RETAIN for production)
             removal_policy=RemovalPolicy.DESTROY
         )
@@ -249,22 +190,6 @@ class EventDrivenIntegrationLayer(Construct):
 
             # Pay per request billing for cost efficiency
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
-
-            # GSI for client active batches
-            global_secondary_indexes=[
-                dynamodb.GlobalSecondaryIndex(
-                    index_name="ClientActiveIndex",
-                    partition_key=dynamodb.Attribute(
-                        name="client_id",
-                        type=dynamodb.AttributeType.STRING
-                    ),
-                    sort_key=dynamodb.Attribute(
-                        name="status",
-                        type=dynamodb.AttributeType.STRING
-                    ),
-                    projection_type=dynamodb.ProjectionType.ALL
-                )
-            ],
 
             removal_policy=RemovalPolicy.DESTROY
         )
@@ -372,7 +297,7 @@ class EventDrivenIntegrationLayer(Construct):
                     "codebuild:StartBuild",
                     "codebuild:BatchGetBuilds"
                 ],
-                resources=[f"arn:aws:codebuild:{self.region}:{self.account}:project/{self.client_config.resource_prefix}-*"]
+                resources=[f"arn:aws:codebuild:{Stack.of(self).region}:{Stack.of(self).account}:project/{self.client_config.resource_prefix}-*"]
             )
         )
 
@@ -540,16 +465,9 @@ class EventDrivenIntegrationLayer(Construct):
                     }
                 ),
 
-                # Method responses for proper CORS and error handling
+                # Method responses for proper error handling
                 method_responses=[
-                    apigateway.MethodResponse(
-                        status_code="200",
-                        response_headers={
-                            "Access-Control-Allow-Origin": True,
-                            "Access-Control-Allow-Headers": True,
-                            "Access-Control-Allow-Methods": True
-                        }
-                    ),
+                    apigateway.MethodResponse(status_code="200"),
                     apigateway.MethodResponse(status_code="400"),
                     apigateway.MethodResponse(status_code="401"),
                     apigateway.MethodResponse(status_code="500")
@@ -612,13 +530,7 @@ class EventDrivenIntegrationLayer(Construct):
                 }
             ),
             method_responses=[
-                apigateway.MethodResponse(
-                    status_code="200",
-                    response_headers={
-                        "Content-Type": True,
-                        "Access-Control-Allow-Origin": True
-                    }
-                )
+                apigateway.MethodResponse(status_code="200")
             ]
         )
 
@@ -729,7 +641,7 @@ class EventDrivenIntegrationLayer(Construct):
 
 def create_integration_layer(
     scope: Construct,
-    client_config: ClientConfig,
+    client_config: ClientServiceConfig,
     **kwargs
 ) -> EventDrivenIntegrationLayer:
     """
