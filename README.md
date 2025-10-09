@@ -467,8 +467,8 @@ print(f"Setup: FREE CMS + AWS hosting + event coordination")
 ```
 
 ```bash
-# Deploy the composed infrastructure
-uv run cdk deploy BudgetStartup-ComposedStack
+# Deploy the composed infrastructure (auto-generated name)
+uv run cdk deploy BudgetStartup-Prod-DecapSnipcartComposedStack
 ```
 
 ## Dual-Mode Integration
@@ -748,12 +748,208 @@ print(f"Recommended: {mode.value} - {reason}")
 # Deploy shared infrastructure (one-time)
 uv run cdk deploy WebServices-SharedInfra
 
-# Deploy composed client (CMS + E-commerce)
-uv run cdk deploy MyClient-ComposedStack
+# Deploy composed client (using auto-generated name)
+uv run cdk deploy CreativeAgency-Prod-SanitySnipcartComposedStack
 
-# Deploy individual provider stacks
-uv run cdk deploy MyClient-CMS-Stack
-uv run cdk deploy MyClient-Ecommerce-Stack
+# Deploy individual provider stacks (if using factory pattern)
+uv run cdk deploy CreativeAgency-Sanity-Astro-Stack
+uv run cdk deploy CreativeAgency-Snipcart-Astro-Stack
+```
+
+## Stack Naming System
+
+Understanding how stack names are generated is crucial for deployment and management. The platform uses automatic naming to ensure consistency across all deployments.
+
+**★ Insight ─────────────────────────────────────**
+Stack names are automatically generated using the `ClientServiceConfig.deployment_name` computed field, which combines your client ID, environment, and technology choices into a predictable, readable format.
+**─────────────────────────────────────────────────**
+
+### Naming Formula
+
+**Template Function Approach (Most Common):**
+```
+{ClientId in PascalCase}-{Environment}-{StackType in PascalCase}
+```
+
+**Factory Direct Creation:**
+```
+{ClientId in PascalCase}-{Provider in PascalCase}-{SSGEngine in PascalCase}-Stack
+```
+
+### Name Generation Examples
+
+#### Tina + Foxy + Astro Example
+
+```python
+# Your configuration
+client_config = tier1_composed_client(
+    client_id="my-business-site",        # ← Input
+    company_name="My Business Inc",
+    domain="mybusiness.com",
+    contact_email="admin@mybusiness.com",
+    cms_provider="tina",
+    ecommerce_provider="foxy",
+    ssg_engine="astro",
+    integration_mode=IntegrationMode.EVENT_DRIVEN
+)
+
+# Automatic name generation
+print(f"Stack type: {client_config.stack_type}")
+# Output: "tina_foxy_composed_stack"
+
+print(f"Deployment name: {client_config.deployment_name}")
+# Output: "MyBusinessSite-Prod-TinaFoxyComposedStack"
+
+print(f"Resource prefix: {client_config.resource_prefix}")
+# Output: "my-business-site-prod"
+```
+
+**Your CDK Command:**
+```bash
+uv run cdk deploy MyBusinessSite-Prod-TinaFoxyComposedStack
+```
+
+#### More Naming Examples
+
+| client_id | Stack Type | Generated Name |
+|-----------|------------|----------------|
+| `"budget-startup"` | Decap + Snipcart + Eleventy | `BudgetStartup-Prod-DecapSnipcartComposedStack` |
+| `"creative-agency"` | Sanity CMS only | `CreativeAgency-Prod-SanityCmsTier` |
+| `"enterprise-corp"` | Contentful + Shopify + Gatsby | `EnterpriseCorp-Prod-ContentfulShopifyBasicComposedStack` |
+| `"saas-company"` | TinaCMS only | `SaasCompany-Prod-TinaCmsTier` |
+
+### Name Transformation Rules
+
+**Client ID → PascalCase:**
+- `"my-business-site"` → `"MyBusinessSite"`
+- `"budget-startup"` → `"BudgetStartup"`
+- `"creative-agency"` → `"CreativeAgency"`
+- `"enterprise-corp"` → `"EnterpriseCorp"`
+
+**Stack Type Generation:**
+- **CMS Only**: `"{cms_provider}_cms_tier"` → `"SanityCmsTier"`
+- **E-commerce Only**: `"{ecommerce_provider}_ecommerce_tier"` → `"SnipcartEcommerceTier"`
+- **Composed**: `"{cms_provider}_{ecommerce_provider}_composed_stack"` → `"TinaFoxyComposedStack"`
+
+### Predicting Your Stack Names
+
+**Step 1: Choose Your Configuration**
+```python
+# Example configuration
+client_config = tier1_composed_client(
+    client_id="my-online-store",  # This becomes "MyOnlineStore"
+    cms_provider="sanity",        # These become "SanitySnipcartComposedStack"
+    ecommerce_provider="snipcart",
+    ssg_engine="astro"
+)
+```
+
+**Step 2: Predict the Name**
+```python
+# The system generates:
+# client_id: "my-online-store" → "MyOnlineStore"
+# stack_type: "sanity_snipcart_composed_stack" → "SanitySnipcartComposedStack"
+# environment: "prod" → "Prod"
+# Final: "MyOnlineStore-Prod-SanitySnipcartComposedStack"
+```
+
+**Step 3: Your CDK Commands**
+```bash
+# List stacks to verify
+uv run cdk list
+# Shows: MyOnlineStore-Prod-SanitySnipcartComposedStack
+
+# Deploy your stack
+uv run cdk deploy MyOnlineStore-Prod-SanitySnipcartComposedStack
+
+# Check deployment status
+uv run cdk list --long
+```
+
+### Different Creation Approaches
+
+#### 1. Template Functions (Recommended)
+```python
+# Uses ClientServiceConfig.deployment_name
+client = tier1_composed_client(client_id="my-site", ...)
+# Generates: MyySite-Prod-TinaFoxyComposedStack
+```
+
+#### 2. Factory Pattern
+```python
+# Uses factory naming: {Client}-{Provider}-{SSG}-Stack
+EcommerceStackFactory.create_ecommerce_stack(
+    client_id="my-site",
+    ecommerce_provider="foxy",
+    ssg_engine="astro"
+)
+# Generates: MySite-Foxy-Astro-Stack
+```
+
+#### 3. Manual Construction
+```python
+# You control the name completely
+stack = TinaCMSTierStack(
+    app,
+    construct_id="CustomStackName",  # ← You choose this
+    client_config=config
+)
+```
+
+### Multi-Environment Support
+
+```python
+# Development environment
+dev_config = ClientServiceConfig(
+    client_id="acme-corp",
+    environment="dev",  # ← Changes the generated name
+    # ... other config
+)
+# Generates: AcmeCorp-Dev-SanityCmsTier
+
+# Production environment
+prod_config = ClientServiceConfig(
+    client_id="acme-corp",
+    environment="prod",  # ← Default
+    # ... other config
+)
+# Generates: AcmeCorp-Prod-SanityCmsTier
+```
+
+### Common Deployment Commands
+
+```bash
+# List all your stacks
+uv run cdk list
+
+# Deploy shared infrastructure (one-time)
+uv run cdk deploy WebServices-SharedInfra
+
+# Deploy your main stack (using generated name)
+uv run cdk deploy MyBusinessSite-Prod-TinaFoxyComposedStack
+
+# Deploy individual components (if using factories)
+uv run cdk deploy MyBusinessSite-Tina-Astro-Stack      # CMS stack
+uv run cdk deploy MyBusinessSite-Foxy-Astro-Stack     # E-commerce stack
+
+# Check deployment status
+uv run cdk list --long
+
+# View stack details
+aws cloudformation describe-stacks --stack-name MyBusinessSite-Prod-TinaFoxyComposedStack
+```
+
+### Quick Reference
+
+**To predict your stack name:**
+1. Take your `client_id`, split on `-`, capitalize each word, join → `"my-business"` → `"MyBusiness"`
+2. Add environment → `"MyBusiness-Prod-"`
+3. Add stack type based on your providers → `"TinaFoxyComposedStack"`
+4. Final result → `"MyBusiness-Prod-TinaFoxyComposedStack"`
+
+**Your deployment command will always be:**
+```bash
+uv run cdk deploy {YourPredictedStackName}
 ```
 
 ## Configuration System

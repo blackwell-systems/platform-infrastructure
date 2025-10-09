@@ -51,6 +51,67 @@ uv run cdk --version
 5. **🎨 Provider Tier System**: CMS tiers and E-commerce tiers with client choice of SSG engine
 6. **📊 Composition Examples**: Working patterns from $65/month to $430/month price points
 
+## 📋 Understanding Stack Names
+
+Before creating projects, it's crucial to understand how stack names are automatically generated. **You don't choose stack names manually** – the system generates them based on your configuration.
+
+### Stack Name Generation Formula
+
+```
+{ClientId in PascalCase}-{Environment}-{StackType in PascalCase}
+```
+
+**Example Transformations:**
+- **client_id**: `"budget-startup"` → `"BudgetStartup"`
+- **environment**: `"prod"` → `"Prod"` (default)
+- **stack_type**: `"decap_snipcart_composed_stack"` → `"DecapSnipcartComposedStack"`
+- **Final Name**: `"BudgetStartup-Prod-DecapSnipcartComposedStack"`
+
+### Predicting Your Stack Names
+
+**Step 1: Know Your Configuration**
+```python
+# Your configuration determines the name
+client_config = tier1_composed_client(
+    client_id="my-business-site",        # → "MyBusinessSite"
+    cms_provider="tina",                 # → Part of "TinaFoxyComposedStack"
+    ecommerce_provider="foxy",           # → Part of "TinaFoxyComposedStack"
+    ssg_engine="astro"                   # → Doesn't affect stack name
+)
+```
+
+**Step 2: Predict the Generated Name**
+- **Client Part**: `"my-business-site"` → `"MyBusinessSite"`
+- **Environment**: `"prod"` (default)
+- **Stack Type**: `"tina_foxy_composed_stack"` → `"TinaFoxyComposedStack"`
+- **Generated Name**: `"MyBusinessSite-Prod-TinaFoxyComposedStack"`
+
+**Step 3: Your CDK Deploy Command**
+```bash
+uv run cdk deploy MyBusinessSite-Prod-TinaFoxyComposedStack
+```
+
+### Common Stack Type Patterns
+
+| Configuration | Generated Stack Type |
+|---------------|---------------------|
+| CMS only (Decap) | `DecapCmsTier` |
+| CMS only (Sanity) | `SanityCmsTier` |
+| E-commerce only (Snipcart) | `SnipcartEcommerceTier` |
+| Composed (Tina + Foxy) | `TinaFoxyComposedStack` |
+| Composed (Sanity + Snipcart) | `SanitySnipcartComposedStack` |
+
+### Quick Name Prediction
+
+**For any configuration, you can predict the name:**
+```python
+# Check your configuration's generated name
+print(f"Stack will be named: {your_config.deployment_name}")
+print(f"Deploy command: uv run cdk deploy {your_config.deployment_name}")
+```
+
+**Important**: All deployment examples below use these auto-generated names. Never use manual stack names like "MyProject-CMS-Stack" – always use the system-generated names.
+
 ## 🚀 Creating a New Project
 
 ### 🏭 Modern Approach: Direct Stack Creation with Composition
@@ -132,25 +193,22 @@ from stacks.ecommerce.snipcart_ecommerce_stack_new import SnipcartEcommerceStack
 
 app = App()
 
-# Create budget CMS stack (Direct mode)
+# Create budget CMS stack (Direct mode) - use auto-generated name
 budget_cms_stack = DecapCMSTierStack(
     app,
-    "BudgetStartup-CMS-Stack",
+    budget_client.deployment_name,  # Auto-generates: BudgetStartup-Prod-DecapCmsTier
     client_config=budget_client
 )
 
-# Create professional composition (Event-driven mode)
+# Create professional composition (Event-driven mode) - use auto-generated names
 professional_cms_stack = SanityCMSTierStack(
     app,
-    "CreativeAgency-CMS-Stack",
+    professional_client.deployment_name,  # Auto-generates: CreativeAgency-Prod-SanitySnipcartComposedStack
     client_config=professional_client
 )
 
-professional_ecommerce_stack = SnipcartEcommerceStack(
-    app,
-    "CreativeAgency-Ecommerce-Stack",
-    client_config=professional_client
-)
+# Note: For composed stacks, both CMS and E-commerce use the same deployment_name
+# The EventDrivenIntegrationLayer handles the coordination between them
 
 app.synth()
 ```
@@ -203,8 +261,9 @@ budget_composed = tier1_composed_client(
 from stacks.cms.decap_cms_tier_stack import DecapCMSTierStack
 from stacks.ecommerce.snipcart_ecommerce_stack_new import SnipcartEcommerceStack
 
-budget_cms = DecapCMSTierStack(app, "BudgetStore-CMS", client_config=budget_composed)
-budget_ecommerce = SnipcartEcommerceStack(app, "BudgetStore-Ecommerce", client_config=budget_composed)
+# Use auto-generated deployment names instead of manual stack names
+budget_cms = DecapCMSTierStack(app, budget_composed.deployment_name, client_config=budget_composed)
+# Note: BudgetStore-Prod-DecapSnipcartComposedStack will be the actual generated name
 
 # Enterprise composition ($430-580/month)
 enterprise_composed = tier1_composed_client(
@@ -222,8 +281,9 @@ enterprise_composed = tier1_composed_client(
 from stacks.cms.contentful_cms_stack import ContentfulCMSStack
 from stacks.ecommerce.shopify_basic_ecommerce_stack_new import ShopifyBasicEcommerceStack
 
-enterprise_cms = ContentfulCMSStack(app, "Enterprise-CMS", client_config=enterprise_composed)
-enterprise_ecommerce = ShopifyBasicEcommerceStack(app, "Enterprise-Ecommerce", client_config=enterprise_composed)
+# Use auto-generated deployment names
+enterprise_cms = ContentfulCMSStack(app, enterprise_composed.deployment_name, client_config=enterprise_composed)
+# Note: EnterpriseCorp-Prod-ContentfulShopifyBasicComposedStack will be the actual generated name
 
 app.synth()
 ```
@@ -231,16 +291,15 @@ app.synth()
 #### Step 5: Deploy Your Dual-Mode Infrastructure
 
 ```bash
-# Deploy budget site (Direct mode)
-uv run cdk deploy BudgetStartup-CMS-Stack
+# Deploy budget site (Direct mode) - using auto-generated name
+uv run cdk deploy BudgetStartup-Prod-DecapCmsTier
 
-# Deploy professional composition (Event-driven mode)
-uv run cdk deploy CreativeAgency-CMS-Stack
-uv run cdk deploy CreativeAgency-Ecommerce-Stack
+# Deploy professional composition (Event-driven mode) - using auto-generated name
+uv run cdk deploy CreativeAgency-Prod-SanitySnipcartComposedStack
 
-# Deploy composed stacks
-uv run cdk deploy BudgetStore-CMS BudgetStore-Ecommerce
-uv run cdk deploy Enterprise-CMS Enterprise-Ecommerce
+# Deploy composed stacks - using auto-generated names
+uv run cdk deploy BudgetStore-Prod-DecapSnipcartComposedStack
+uv run cdk deploy EnterpriseCorp-Prod-ContentfulShopifyBasicComposedStack
 
 # Check all deployments
 uv run cdk list
@@ -523,15 +582,14 @@ uv run cdk deploy WebServices-SharedInfra --context account=123456789012 --conte
 ### Step 2: Deploy Client Stacks
 
 ```bash
-# Deploy CMS-only stack (Direct mode)
-uv run cdk deploy BudgetStartup-CMS-Stack
+# Deploy CMS-only stack (Direct mode) - using auto-generated name
+uv run cdk deploy BudgetStartup-Prod-DecapCmsTier
 
-# Deploy composed stacks (Event-driven mode)
-uv run cdk deploy CreativeAgency-CMS-Stack
-uv run cdk deploy CreativeAgency-Ecommerce-Stack
+# Deploy composed stacks (Event-driven mode) - using auto-generated names
+uv run cdk deploy CreativeAgency-Prod-SanitySnipcartComposedStack
 
-# Deploy with parameters if needed
-uv run cdk deploy Enterprise-CMS-Stack --parameters Domain=enterprisecorp.com
+# Deploy with parameters if needed - using auto-generated name
+uv run cdk deploy EnterpriseCorp-Prod-ContentfulShopifyBasicComposedStack --parameters Domain=enterprisecorp.com
 ```
 
 ### Step 3: Verify Deployment
@@ -540,8 +598,8 @@ uv run cdk deploy Enterprise-CMS-Stack --parameters Domain=enterprisecorp.com
 # Check deployment status
 uv run cdk list
 
-# Get stack outputs
-aws cloudformation describe-stacks --stack-name BudgetStartup-CMS-Stack --query 'Stacks[0].Outputs'
+# Get stack outputs - using auto-generated stack name
+aws cloudformation describe-stacks --stack-name BudgetStartup-Prod-DecapCmsTier --query 'Stacks[0].Outputs'
 ```
 
 ## ✅ Validation and Testing
@@ -789,10 +847,10 @@ uv run ruff check .
        'my-business', 'My Business', 'mybusiness.com', 'admin@mybusiness.com',
        cms_provider='decap', ssg_engine='astro'
    )
-   stack = DecapCMSTierStack(app, 'MyBusiness-CMS-Stack', client_config=config)
+   stack = DecapCMSTierStack(app, config.deployment_name, client_config=config)  # Auto-generates: MyBusiness-Prod-DecapCmsTier
    app.synth()
    "
-   uv run cdk deploy MyBusiness-CMS-Stack
+   uv run cdk deploy MyBusiness-Prod-DecapCmsTier
    ```
 
 5. **For composition sites**: Use the template functions for intelligent provider combinations
