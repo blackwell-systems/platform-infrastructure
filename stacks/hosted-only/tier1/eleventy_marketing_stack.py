@@ -30,6 +30,7 @@ class EleventyMarketingStack(BaseSSGStack):
         construct_id: str,
         client_id: str,
         domain: str,
+        template_variant: str = "business_modern",
         **kwargs
     ):
         # Create SSG configuration
@@ -37,7 +38,7 @@ class EleventyMarketingStack(BaseSSGStack):
             client_id=client_id,
             domain=domain,
             ssg_engine="eleventy",
-            template_variant="business_modern",
+            template_variant=template_variant,
             performance_tier="optimized"
         )
 

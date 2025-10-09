@@ -50,7 +50,7 @@ from aws_cdk import (
 from constructs import Construct
 
 from stacks.shared.base_ssg_stack import BaseSSGStack
-from shared.factories.ssg_stack_factory import SSGStackFactory
+from shared.ssg import SSGEngineFactory
 from shared.providers.cms.factory import CMSProviderFactory
 from shared.providers.cms.integration_patterns import CMSIntegrationManager
 
@@ -120,7 +120,7 @@ class TinaCMSTierStack(BaseSSGStack):
 
     def _get_ssg_configuration(self):
         """Get SSG configuration from factory"""
-        return SSGStackFactory.get_ssg_engine_info(self.client_config.ssg_engine)
+        return SSGEngineFactory.create_engine(self.client_config.ssg_engine)
 
     def _get_cms_provider(self):
         """Get CMS provider instance"""

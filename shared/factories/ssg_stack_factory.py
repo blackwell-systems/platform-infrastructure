@@ -56,9 +56,9 @@ JekyllGitHubStack = _import_from_hyphenated_path("stacks/hosted-only/tier1/jekyl
 AstroTemplateBasicStack = _import_from_hyphenated_path("stacks/hosted-only/tier1/astro_template_basic_stack", "AstroTemplateBasicStack")
 
 # Import CMS tier stacks
-from stacks.cms.decap_cms_stack import DecapCMSStack
-from stacks.cms.tina_cms_stack import TinaCMSStack
-from stacks.cms.sanity_cms_stack import SanityCMSStack
+from stacks.cms.decap_cms_tier_stack import DecapCMSTierStack as DecapCMSStack
+from stacks.cms.tina_cms_tier_stack import TinaCMSTierStack as TinaCMSStack
+from stacks.cms.sanity_cms_tier_stack import SanityCMSTierStack as SanityCMSStack
 from stacks.cms.contentful_cms_stack import ContentfulCMSStack
 
 from stacks.shared.base_ssg_stack import BaseSSGStack
@@ -346,6 +346,12 @@ class SSGStackFactory:
 
         # Generate construct ID
         construct_id = f"{client_id.title()}-{stack_type.title().replace('_', '')}-SSG-Stack"
+
+        # Get stack tier info and set default template variant if not provided
+        stack_info = cls.STACK_TIERS.get(stack_type, {})
+        if 'template_variant' not in kwargs and 'template_variants' in stack_info:
+            # Use the first template variant as default
+            kwargs['template_variant'] = stack_info['template_variants'][0]
 
         # Create and return stack instance
         return stack_class(

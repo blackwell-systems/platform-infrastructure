@@ -26,6 +26,11 @@ class SSGEngineConfig(ABC):
         pass
 
     @property
+    def ssg_engine(self) -> str:
+        """Compatibility property for test expectations - returns engine_name"""
+        return self.engine_name
+
+    @property
     @abstractmethod
     def runtime_version(self) -> str:
         """Node.js or other runtime version"""

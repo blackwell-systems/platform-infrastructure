@@ -42,8 +42,8 @@ import json
 import os
 from pathlib import Path
 
-from shared.ssg.ssg_engines import SSGEngine
-from shared.providers.cms.base_cms_provider import BaseCMSProvider
+from shared.ssg.core_models import SSGEngineType
+from shared.providers.cms.base_provider import CMSProvider
 
 
 class ContentfulEnvironment(str, Enum):
@@ -83,7 +83,7 @@ class ContentfulContentSettings:
 @dataclass
 class ContentfulBuildSettings:
     """Build configuration for different SSG engines with Contentful"""
-    ssg_engine: SSGEngine
+    ssg_engine: SSGEngineType
     build_command: str = field(default="")
     output_directory: str = field(default="dist")
     environment_variables: Dict[str, str] = field(default_factory=dict)
@@ -100,25 +100,25 @@ class ContentfulBuildSettings:
     def _get_default_build_command(self) -> str:
         """Get default build command based on SSG engine"""
         commands = {
-            SSGEngine.GATSBY: "gatsby build",
-            SSGEngine.ASTRO: "npm run build",
-            SSGEngine.NEXTJS: "npm run build && npm run export",
-            SSGEngine.NUXT: "npm run generate"
+            "gatsby": "gatsby build",
+            "astro": "npm run build",
+            "nextjs": "npm run build && npm run export",
+            "nuxt": "npm run generate"
         }
         return commands.get(self.ssg_engine, "npm run build")
 
     def _get_default_plugins(self) -> List[str]:
         """Get default Contentful plugins/packages for SSG engine"""
         plugins = {
-            SSGEngine.GATSBY: ["gatsby-source-contentful"],
-            SSGEngine.ASTRO: ["@astrojs/contentful"],
-            SSGEngine.NEXTJS: ["contentful"],
-            SSGEngine.NUXT: ["@nuxtjs/contentful"]
+            "gatsby": ["gatsby-source-contentful"],
+            "astro": ["@astrojs/contentful"],
+            "nextjs": ["contentful"],
+            "nuxt": ["@nuxtjs/contentful"]
         }
         return plugins.get(self.ssg_engine, ["contentful"])
 
 
-class ContentfulProvider(BaseCMSProvider):
+class ContentfulProvider(CMSProvider):
     """
     Enterprise Contentful CMS provider with advanced API integration and workflow support.
 
@@ -147,7 +147,7 @@ class ContentfulProvider(BaseCMSProvider):
 
     # SSG engine compatibility and optimization matrix
     SSG_COMPATIBILITY = {
-        SSGEngine.GATSBY: {
+        "gatsby": {
             "compatibility_score": 10,  # Perfect GraphQL integration
             "setup_complexity": "advanced",
             "build_performance": "good",
@@ -159,7 +159,7 @@ class ContentfulProvider(BaseCMSProvider):
                 "Rich text rendering with gatsby-transformer-contentful-richtext"
             ]
         },
-        SSGEngine.ASTRO: {
+        "astro": {
             "compatibility_score": 9,   # Excellent modern integration
             "setup_complexity": "intermediate",
             "build_performance": "excellent",
@@ -171,7 +171,7 @@ class ContentfulProvider(BaseCMSProvider):
                 "Modern TypeScript integration patterns"
             ]
         },
-        SSGEngine.NEXTJS: {
+        "nextjs": {
             "compatibility_score": 9,   # Excellent React ecosystem fit
             "setup_complexity": "advanced",
             "build_performance": "good",
@@ -183,7 +183,7 @@ class ContentfulProvider(BaseCMSProvider):
                 "Enterprise scaling with Contentful's CDN"
             ]
         },
-        SSGEngine.NUXT: {
+        "nuxt": {
             "compatibility_score": 8,   # Good Vue ecosystem integration
             "setup_complexity": "advanced",
             "build_performance": "good",
@@ -201,7 +201,7 @@ class ContentfulProvider(BaseCMSProvider):
         self,
         space_id: str,
         environment: str = "master",
-        ssg_engine: Optional[SSGEngine] = None
+        ssg_engine: Optional[SSGEngineType] = None
     ):
         super().__init__()
         self.space_id = space_id
@@ -245,22 +245,22 @@ class ContentfulProvider(BaseCMSProvider):
             "dedicated_support"
         ]
 
-    def get_supported_ssg_engines(self) -> List[SSGEngine]:
+    def get_supported_ssg_engines(self) -> List[SSGEngineType]:
         """Get list of SSG engines supported by Contentful provider"""
         return [
-            SSGEngine.GATSBY,
-            SSGEngine.ASTRO,
-            SSGEngine.NEXTJS,
-            SSGEngine.NUXT
+            "gatsby",
+            "astro",
+            "nextjs",
+            "nuxt"
         ]
 
-    def validate_ssg_compatibility(self, ssg_engine: SSGEngine) -> Dict[str, Any]:
+    def validate_ssg_compatibility(self, ssg_engine: SSGEngineType) -> Dict[str, Any]:
         """Validate and get compatibility information for SSG engine"""
         if ssg_engine not in self.get_supported_ssg_engines():
             return {
                 "compatible": False,
-                "reason": f"SSG engine {ssg_engine.value} not supported by Contentful provider",
-                "supported_engines": [engine.value for engine in self.get_supported_ssg_engines()]
+                "reason": f"SSG engine {ssg_engine} not supported by Contentful provider",
+                "supported_engines": self.get_supported_ssg_engines()
             }
 
         compatibility = self.SSG_COMPATIBILITY[ssg_engine]
@@ -288,7 +288,7 @@ class ContentfulProvider(BaseCMSProvider):
             "images_api": "https://images.ctfassets.net"
         }
 
-    def generate_environment_variables(self, ssg_engine: SSGEngine) -> Dict[str, str]:
+    def generate_environment_variables(self, ssg_engine: SSGEngineType) -> Dict[str, str]:
         """Generate environment variables for SSG build process"""
         base_vars = {
             "CONTENTFUL_SPACE_ID": self.space_id,
@@ -298,20 +298,20 @@ class ContentfulProvider(BaseCMSProvider):
 
         # Add SSG-specific variables
         ssg_vars = {
-            SSGEngine.GATSBY: {
+            "gatsby": {
                 "CONTENTFUL_ACCESS_TOKEN": "${CONTENTFUL_DELIVERY_TOKEN}",
                 "CONTENTFUL_PREVIEW_ACCESS_TOKEN": "${CONTENTFUL_PREVIEW_TOKEN}"
             },
-            SSGEngine.ASTRO: {
+            "astro": {
                 "CONTENTFUL_DELIVERY_TOKEN": "${CONTENTFUL_DELIVERY_TOKEN}",
                 "CONTENTFUL_PREVIEW_TOKEN": "${CONTENTFUL_PREVIEW_TOKEN}"
             },
-            SSGEngine.NEXTJS: {
+            "nextjs": {
                 "CONTENTFUL_ACCESS_TOKEN": "${CONTENTFUL_DELIVERY_TOKEN}",
                 "CONTENTFUL_PREVIEW_ACCESS_TOKEN": "${CONTENTFUL_PREVIEW_TOKEN}",
                 "CONTENTFUL_MANAGEMENT_TOKEN": "${CONTENTFUL_MANAGEMENT_TOKEN}"
             },
-            SSGEngine.NUXT: {
+            "nuxt": {
                 "CTF_SPACE_ID": self.space_id,
                 "CTF_CDA_ACCESS_TOKEN": "${CONTENTFUL_DELIVERY_TOKEN}",
                 "CTF_ENVIRONMENT": self.environment
@@ -321,10 +321,10 @@ class ContentfulProvider(BaseCMSProvider):
         base_vars.update(ssg_vars.get(ssg_engine, {}))
         return base_vars
 
-    def get_build_dependencies(self, ssg_engine: SSGEngine) -> Dict[str, Any]:
+    def get_build_dependencies(self, ssg_engine: SSGEngineType) -> Dict[str, Any]:
         """Get required dependencies for SSG engine with Contentful"""
         dependencies = {
-            SSGEngine.GATSBY: {
+            "gatsby": {
                 "npm_packages": [
                     "gatsby-source-contentful",
                     "gatsby-transformer-contentful-richtext",
@@ -342,21 +342,21 @@ class ContentfulProvider(BaseCMSProvider):
                     }
                 ]
             },
-            SSGEngine.ASTRO: {
+            "astro": {
                 "npm_packages": [
                     "@astrojs/contentful",
                     "contentful"
                 ],
                 "astro_integrations": ["@astrojs/contentful"]
             },
-            SSGEngine.NEXTJS: {
+            "nextjs": {
                 "npm_packages": [
                     "contentful",
                     "@contentful/rich-text-react-renderer",
                     "@contentful/rich-text-types"
                 ]
             },
-            SSGEngine.NUXT: {
+            "nuxt": {
                 "npm_packages": [
                     "@nuxtjs/contentful",
                     "contentful"
@@ -372,25 +372,25 @@ class ContentfulProvider(BaseCMSProvider):
 
         return dependencies.get(ssg_engine, {"npm_packages": ["contentful"]})
 
-    def generate_build_configuration(self, ssg_engine: SSGEngine) -> Dict[str, Any]:
+    def generate_build_configuration(self, ssg_engine: SSGEngineType) -> Dict[str, Any]:
         """Generate build configuration for specific SSG engine"""
         base_config = {
             "provider": "contentful",
             "space_id": self.space_id,
             "environment": self.environment,
-            "ssg_engine": ssg_engine.value
+            "ssg_engine": ssg_engine
         }
 
         # SSG-specific configurations
         ssg_configs = {
-            SSGEngine.GATSBY: {
+            "gatsby": {
                 "gatsby_config": {
                     "plugins": self.get_build_dependencies(ssg_engine).get("gatsby_plugins", [])
                 },
                 "build_command": "gatsby build",
                 "output_dir": "public"
             },
-            SSGEngine.ASTRO: {
+            "astro": {
                 "astro_config": {
                     "integrations": ["@astrojs/contentful"],
                     "contentful": {
@@ -402,7 +402,7 @@ class ContentfulProvider(BaseCMSProvider):
                 "build_command": "npm run build",
                 "output_dir": "dist"
             },
-            SSGEngine.NEXTJS: {
+            "nextjs": {
                 "next_config": {
                     "env": {
                         "CONTENTFUL_SPACE_ID": self.space_id,
@@ -413,7 +413,7 @@ class ContentfulProvider(BaseCMSProvider):
                 "build_command": "npm run build && npm run export",
                 "output_dir": "out"
             },
-            SSGEngine.NUXT: {
+            "nuxt": {
                 "nuxt_config": {
                     "modules": ["@nuxtjs/contentful"],
                     "contentful": self.get_build_dependencies(ssg_engine).get("contentful_config", {})

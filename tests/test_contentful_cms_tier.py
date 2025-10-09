@@ -20,7 +20,7 @@ from shared.providers.cms.contentful_provider import (
     ContentfulAPIType
 )
 from shared.factories.ssg_stack_factory import SSGStackFactory
-from shared.ssg.ssg_engines import SSGEngine
+from shared.ssg.core_models import SSGEngineType
 from models.client_config import ClientConfig
 
 
@@ -32,12 +32,12 @@ class TestContentfulProvider:
         provider = ContentfulProvider(
             space_id="test-space-123",
             environment="master",
-            ssg_engine=SSGEngine.GATSBY
+            ssg_engine="gatsby"
         )
 
         assert provider.space_id == "test-space-123"
         assert provider.environment == "master"
-        assert provider.ssg_engine == SSGEngine.GATSBY
+        assert provider.ssg_engine == "gatsby"
         assert provider.provider_name == "contentful"
         assert provider.provider_type == "api_based"
 
@@ -46,7 +46,7 @@ class TestContentfulProvider:
         provider = ContentfulProvider(space_id="test-space")
         supported_engines = provider.get_supported_ssg_engines()
 
-        expected_engines = [SSGEngine.GATSBY, SSGEngine.ASTRO, SSGEngine.NEXTJS, SSGEngine.NUXT]
+        expected_engines = ["gatsby", "astro", "nextjs", "nuxt"]
         assert all(engine in supported_engines for engine in expected_engines)
         assert len(supported_engines) == 4
 
@@ -55,13 +55,13 @@ class TestContentfulProvider:
         provider = ContentfulProvider(space_id="test-space")
 
         # Test Gatsby compatibility (should be excellent)
-        gatsby_compat = provider.validate_ssg_compatibility(SSGEngine.GATSBY)
+        gatsby_compat = provider.validate_ssg_compatibility("gatsby")
         assert gatsby_compat["compatible"] is True
         assert gatsby_compat["compatibility_score"] == 10
         assert "graphql" in gatsby_compat["features"]
 
         # Test Astro compatibility
-        astro_compat = provider.validate_ssg_compatibility(SSGEngine.ASTRO)
+        astro_compat = provider.validate_ssg_compatibility("astro")
         assert astro_compat["compatible"] is True
         assert astro_compat["compatibility_score"] == 9
         assert "component_islands" in astro_compat["features"]
@@ -71,10 +71,10 @@ class TestContentfulProvider:
         provider = ContentfulProvider(space_id="test-space")
 
         # Test Hugo compatibility (should fail)
-        hugo_compat = provider.validate_ssg_compatibility(SSGEngine.HUGO)
+        hugo_compat = provider.validate_ssg_compatibility("hugo")
         assert hugo_compat["compatible"] is False
         assert "not supported" in hugo_compat["reason"]
-        assert "hugo" in [engine for engine in hugo_compat["supported_engines"]] is False
+        assert "hugo" not in hugo_compat["supported_engines"]
 
     def test_api_endpoints_generation(self):
         """Test Contentful API endpoints generation"""
@@ -92,18 +92,18 @@ class TestContentfulProvider:
         provider = ContentfulProvider(space_id="test-space", environment="master")
 
         # Test Gatsby environment variables
-        gatsby_vars = provider.generate_environment_variables(SSGEngine.GATSBY)
+        gatsby_vars = provider.generate_environment_variables("gatsby")
         assert "CONTENTFUL_SPACE_ID" in gatsby_vars
         assert "CONTENTFUL_ACCESS_TOKEN" in gatsby_vars
         assert gatsby_vars["CONTENTFUL_SPACE_ID"] == "test-space"
 
         # Test Next.js environment variables
-        nextjs_vars = provider.generate_environment_variables(SSGEngine.NEXTJS)
+        nextjs_vars = provider.generate_environment_variables("nextjs")
         assert "CONTENTFUL_ACCESS_TOKEN" in nextjs_vars
         assert "CONTENTFUL_PREVIEW_ACCESS_TOKEN" in nextjs_vars
 
         # Test Nuxt-specific variables
-        nuxt_vars = provider.generate_environment_variables(SSGEngine.NUXT)
+        nuxt_vars = provider.generate_environment_variables("nuxt")
         assert "CTF_SPACE_ID" in nuxt_vars
         assert "CTF_CDA_ACCESS_TOKEN" in nuxt_vars
 
@@ -112,18 +112,18 @@ class TestContentfulProvider:
         provider = ContentfulProvider(space_id="test-space")
 
         # Test Gatsby dependencies
-        gatsby_deps = provider.get_build_dependencies(SSGEngine.GATSBY)
+        gatsby_deps = provider.get_build_dependencies("gatsby")
         assert "npm_packages" in gatsby_deps
         assert "gatsby-source-contentful" in gatsby_deps["npm_packages"]
         assert "gatsby_plugins" in gatsby_deps
 
         # Test Astro dependencies
-        astro_deps = provider.get_build_dependencies(SSGEngine.ASTRO)
+        astro_deps = provider.get_build_dependencies("astro")
         assert "@astrojs/contentful" in astro_deps["npm_packages"]
         assert "astro_integrations" in astro_deps
 
         # Test Next.js dependencies
-        nextjs_deps = provider.get_build_dependencies(SSGEngine.NEXTJS)
+        nextjs_deps = provider.get_build_dependencies("nextjs")
         assert "contentful" in nextjs_deps["npm_packages"]
         assert "@contentful/rich-text-react-renderer" in nextjs_deps["npm_packages"]
 
@@ -132,14 +132,14 @@ class TestContentfulProvider:
         provider = ContentfulProvider(space_id="test-space", environment="master")
 
         # Test Gatsby configuration
-        gatsby_config = provider.generate_build_configuration(SSGEngine.GATSBY)
+        gatsby_config = provider.generate_build_configuration("gatsby")
         assert gatsby_config["ssg_engine"] == "gatsby"
         assert gatsby_config["build_command"] == "gatsby build"
         assert gatsby_config["output_dir"] == "public"
         assert "gatsby_config" in gatsby_config
 
         # Test Astro configuration
-        astro_config = provider.generate_build_configuration(SSGEngine.ASTRO)
+        astro_config = provider.generate_build_configuration("astro")
         assert astro_config["build_command"] == "npm run build"
         assert astro_config["output_dir"] == "dist"
         assert "astro_config" in astro_config
@@ -263,23 +263,23 @@ class TestContentfulBuildSettings:
 
     def test_gatsby_build_settings(self):
         """Test build settings for Gatsby"""
-        settings = ContentfulBuildSettings(ssg_engine=SSGEngine.GATSBY)
+        settings = ContentfulBuildSettings(ssg_engine="gatsby")
 
-        assert settings.ssg_engine == SSGEngine.GATSBY
+        assert settings.ssg_engine == "gatsby"
         assert settings.build_command == "gatsby build"
         assert settings.output_directory == "dist"  # Default
         assert "gatsby-source-contentful" in settings.contentful_plugins
 
     def test_astro_build_settings(self):
         """Test build settings for Astro"""
-        settings = ContentfulBuildSettings(ssg_engine=SSGEngine.ASTRO)
+        settings = ContentfulBuildSettings(ssg_engine="astro")
 
         assert settings.build_command == "npm run build"
         assert "@astrojs/contentful" in settings.contentful_plugins
 
     def test_nextjs_build_settings(self):
         """Test build settings for Next.js"""
-        settings = ContentfulBuildSettings(ssg_engine=SSGEngine.NEXTJS)
+        settings = ContentfulBuildSettings(ssg_engine="nextjs")
 
         assert settings.build_command == "npm run build && npm run export"
         assert "contentful" in settings.contentful_plugins
@@ -287,7 +287,7 @@ class TestContentfulBuildSettings:
     def test_custom_build_settings(self):
         """Test custom build settings override"""
         custom_settings = ContentfulBuildSettings(
-            ssg_engine=SSGEngine.GATSBY,
+            ssg_engine="gatsby",
             build_command="custom-build-command",
             output_directory="custom-output",
             contentful_plugins=["custom-plugin"]

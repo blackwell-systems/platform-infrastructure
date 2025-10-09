@@ -41,8 +41,8 @@ import json
 import os
 from pathlib import Path
 
-from shared.ssg.ssg_engines import SSGEngine
-from shared.providers.ecommerce.base_ecommerce_provider import BaseEcommerceProvider
+from shared.ssg.core_models import SSGEngineType
+from shared.providers.ecommerce.base_provider import EcommerceProvider
 
 
 class ShopifyPlan(str, Enum):
@@ -81,7 +81,7 @@ class ShopifyBasicSettings:
 @dataclass
 class ShopifyBuildSettings:
     """Build configuration for different SSG engines with Shopify Basic"""
-    ssg_engine: SSGEngine
+    ssg_engine: SSGEngineType
     build_command: str = field(default="")
     output_directory: str = field(default="dist")
     environment_variables: Dict[str, str] = field(default_factory=dict)
@@ -98,25 +98,25 @@ class ShopifyBuildSettings:
     def _get_default_build_command(self) -> str:
         """Get default build command based on SSG engine"""
         commands = {
-            SSGEngine.ELEVENTY: "npx @11ty/eleventy",
-            SSGEngine.ASTRO: "npm run build",
-            SSGEngine.NEXTJS: "npm run build && npm run export",
-            SSGEngine.NUXT: "npm run generate"
+            "eleventy": "npx @11ty/eleventy",
+            "astro": "npm run build",
+            "nextjs": "npm run build && npm run export",
+            "nuxt": "npm run generate"
         }
         return commands.get(self.ssg_engine, "npm run build")
 
     def _get_default_packages(self) -> List[str]:
         """Get default Shopify packages for SSG engine"""
         packages = {
-            SSGEngine.ELEVENTY: ["@shopify/storefront-api-client"],
-            SSGEngine.ASTRO: ["@shopify/storefront-api-client", "@astrojs/node"],
-            SSGEngine.NEXTJS: ["@shopify/storefront-api-client", "@shopify/react-hooks"],
-            SSGEngine.NUXT: ["@shopify/storefront-api-client", "@nuxtjs/axios"]
+            "eleventy": ["@shopify/storefront-api-client"],
+            "astro": ["@shopify/storefront-api-client", "@astrojs/node"],
+            "nextjs": ["@shopify/storefront-api-client", "@shopify/react-hooks"],
+            "nuxt": ["@shopify/storefront-api-client", "@nuxtjs/axios"]
         }
         return packages.get(self.ssg_engine, ["@shopify/storefront-api-client"])
 
 
-class ShopifyBasicProvider(BaseEcommerceProvider):
+class ShopifyBasicProvider(EcommerceProvider):
     """
     Shopify Basic e-commerce provider with static site integration and performance optimization.
 
@@ -148,7 +148,7 @@ class ShopifyBasicProvider(BaseEcommerceProvider):
 
     # SSG engine compatibility and optimization matrix for Shopify Basic
     SSG_COMPATIBILITY = {
-        SSGEngine.ELEVENTY: {
+        "eleventy": {
             "compatibility_score": 9,   # Excellent for simple, fast builds
             "setup_complexity": "simple",
             "build_performance": "excellent",
@@ -160,7 +160,7 @@ class ShopifyBasicProvider(BaseEcommerceProvider):
                 "Minimal complexity for straightforward e-commerce sites"
             ]
         },
-        SSGEngine.ASTRO: {
+        "astro": {
             "compatibility_score": 10,  # Perfect for modern performance
             "setup_complexity": "intermediate",
             "build_performance": "excellent",
@@ -172,7 +172,7 @@ class ShopifyBasicProvider(BaseEcommerceProvider):
                 "Modern architecture with excellent Shopify API integration"
             ]
         },
-        SSGEngine.NEXTJS: {
+        "nextjs": {
             "compatibility_score": 9,   # Excellent React ecosystem integration
             "setup_complexity": "advanced",
             "build_performance": "good",
@@ -184,7 +184,7 @@ class ShopifyBasicProvider(BaseEcommerceProvider):
                 "Rich ecosystem of React e-commerce components"
             ]
         },
-        SSGEngine.NUXT: {
+        "nuxt": {
             "compatibility_score": 8,   # Good Vue ecosystem integration
             "setup_complexity": "advanced",
             "build_performance": "good",
@@ -202,7 +202,7 @@ class ShopifyBasicProvider(BaseEcommerceProvider):
         self,
         store_domain: str,
         shopify_plan: str = "basic",
-        ssg_engine: Optional[SSGEngine] = None
+        ssg_engine: Optional[SSGEngineType] = None
     ):
         super().__init__()
         self.store_domain = store_domain
@@ -249,22 +249,22 @@ class ShopifyBasicProvider(BaseEcommerceProvider):
             "app_ecosystem"
         ]
 
-    def get_supported_ssg_engines(self) -> List[SSGEngine]:
+    def get_supported_ssg_engines(self) -> List[SSGEngineType]:
         """Get list of SSG engines supported by Shopify Basic provider"""
         return [
-            SSGEngine.ELEVENTY,
-            SSGEngine.ASTRO,
-            SSGEngine.NEXTJS,
-            SSGEngine.NUXT
+            "eleventy",
+            "astro",
+            "nextjs",
+            "nuxt"
         ]
 
-    def validate_ssg_compatibility(self, ssg_engine: SSGEngine) -> Dict[str, Any]:
+    def validate_ssg_compatibility(self, ssg_engine: SSGEngineType) -> Dict[str, Any]:
         """Validate and get compatibility information for SSG engine"""
         if ssg_engine not in self.get_supported_ssg_engines():
             return {
                 "compatible": False,
-                "reason": f"SSG engine {ssg_engine.value} not supported by Shopify Basic provider",
-                "supported_engines": [engine.value for engine in self.get_supported_ssg_engines()]
+                "reason": f"SSG engine {ssg_engine} not supported by Shopify Basic provider",
+                "supported_engines": [engine for engine in self.get_supported_ssg_engines()]
             }
 
         compatibility = self.SSG_COMPATIBILITY[ssg_engine]
@@ -290,7 +290,7 @@ class ShopifyBasicProvider(BaseEcommerceProvider):
             "products_api": f"https://{store_domain}.myshopify.com/admin/api/2023-10/products.json"
         }
 
-    def generate_environment_variables(self, ssg_engine: SSGEngine) -> Dict[str, str]:
+    def generate_environment_variables(self, ssg_engine: SSGEngineType) -> Dict[str, str]:
         """Generate environment variables for SSG build process"""
         base_vars = {
             "SHOPIFY_STORE_DOMAIN": self.store_domain,
@@ -300,19 +300,19 @@ class ShopifyBasicProvider(BaseEcommerceProvider):
 
         # Add SSG-specific variables
         ssg_vars = {
-            SSGEngine.ELEVENTY: {
+            "eleventy": {
                 "SHOPIFY_API_ENDPOINT": f"https://{self.store_domain}/api/2023-10/graphql.json"
             },
-            SSGEngine.ASTRO: {
+            "astro": {
                 "PUBLIC_SHOPIFY_STORE_DOMAIN": self.store_domain,
                 "PUBLIC_SHOPIFY_STOREFRONT_TOKEN": "${SHOPIFY_STOREFRONT_TOKEN}"
             },
-            SSGEngine.NEXTJS: {
+            "nextjs": {
                 "NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN": self.store_domain,
                 "NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN": "${SHOPIFY_STOREFRONT_TOKEN}",
                 "SHOPIFY_ADMIN_ACCESS_TOKEN": "${SHOPIFY_ADMIN_TOKEN}"
             },
-            SSGEngine.NUXT: {
+            "nuxt": {
                 "NUXT_PUBLIC_SHOPIFY_STORE_DOMAIN": self.store_domain,
                 "NUXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN": "${SHOPIFY_STOREFRONT_TOKEN}"
             }
@@ -321,10 +321,10 @@ class ShopifyBasicProvider(BaseEcommerceProvider):
         base_vars.update(ssg_vars.get(ssg_engine, {}))
         return base_vars
 
-    def get_build_dependencies(self, ssg_engine: SSGEngine) -> Dict[str, Any]:
+    def get_build_dependencies(self, ssg_engine: SSGEngineType) -> Dict[str, Any]:
         """Get required dependencies for SSG engine with Shopify Basic"""
         dependencies = {
-            SSGEngine.ELEVENTY: {
+            "eleventy": {
                 "npm_packages": [
                     "@shopify/storefront-api-client",
                     "graphql",
@@ -334,7 +334,7 @@ class ShopifyBasicProvider(BaseEcommerceProvider):
                     "@11ty/eleventy-plugin-syntaxhighlight"
                 ]
             },
-            SSGEngine.ASTRO: {
+            "astro": {
                 "npm_packages": [
                     "@shopify/storefront-api-client",
                     "@astrojs/node",
@@ -342,7 +342,7 @@ class ShopifyBasicProvider(BaseEcommerceProvider):
                 ],
                 "astro_integrations": ["@astrojs/node"]
             },
-            SSGEngine.NEXTJS: {
+            "nextjs": {
                 "npm_packages": [
                     "@shopify/storefront-api-client",
                     "@shopify/react-hooks",
@@ -351,7 +351,7 @@ class ShopifyBasicProvider(BaseEcommerceProvider):
                     "react-dom"
                 ]
             },
-            SSGEngine.NUXT: {
+            "nuxt": {
                 "npm_packages": [
                     "@shopify/storefront-api-client",
                     "@nuxtjs/axios",
@@ -363,18 +363,18 @@ class ShopifyBasicProvider(BaseEcommerceProvider):
 
         return dependencies.get(ssg_engine, {"npm_packages": ["@shopify/storefront-api-client"]})
 
-    def generate_build_configuration(self, ssg_engine: SSGEngine) -> Dict[str, Any]:
+    def generate_build_configuration(self, ssg_engine: SSGEngineType) -> Dict[str, Any]:
         """Generate build configuration for specific SSG engine"""
         base_config = {
             "provider": "shopify_basic",
             "store_domain": self.store_domain,
             "shopify_plan": self.shopify_plan.value,
-            "ssg_engine": ssg_engine.value
+            "ssg_engine": ssg_engine
         }
 
         # SSG-specific configurations
         ssg_configs = {
-            SSGEngine.ELEVENTY: {
+            "eleventy": {
                 "eleventy_config": {
                     "dir": {
                         "input": "src",
@@ -386,7 +386,7 @@ class ShopifyBasicProvider(BaseEcommerceProvider):
                 "build_command": "npx @11ty/eleventy",
                 "output_dir": "dist"
             },
-            SSGEngine.ASTRO: {
+            "astro": {
                 "astro_config": {
                     "output": "static",
                     "integrations": ["@astrojs/node"],
@@ -399,7 +399,7 @@ class ShopifyBasicProvider(BaseEcommerceProvider):
                 "build_command": "npm run build",
                 "output_dir": "dist"
             },
-            SSGEngine.NEXTJS: {
+            "nextjs": {
                 "next_config": {
                     "output": "export",
                     "trailingSlash": True,
@@ -413,7 +413,7 @@ class ShopifyBasicProvider(BaseEcommerceProvider):
                 "build_command": "npm run build && npm run export",
                 "output_dir": "out"
             },
-            SSGEngine.NUXT: {
+            "nuxt": {
                 "nuxt_config": {
                     "ssr": False,
                     "target": "static",
