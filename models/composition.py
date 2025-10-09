@@ -15,6 +15,12 @@ from datetime import datetime
 from enum import Enum
 import uuid
 
+# Import centralized enums for type safety
+from models.component_enums import (
+    SSGEngine, CMSProvider, EcommerceProvider, ProviderType, Environment,
+    IntegrationLevel, InventoryPolicy, HTTPMethod, EventType
+)
+
 
 class ContentType(str, Enum):
     """Content types supported across all providers"""
@@ -153,8 +159,8 @@ class Inventory(BaseModel):
         description="Allow selling when out of stock"
     )
 
-    inventory_policy: Literal["deny", "continue"] = Field(
-        default="deny",
+    inventory_policy: InventoryPolicy = Field(
+        default=InventoryPolicy.DENY,
         description="Policy when out of stock"
     )
 
@@ -361,12 +367,12 @@ class UnifiedContent(BaseModel):
     )
 
     # Provider tracking
-    provider_type: Literal["cms", "ecommerce"] = Field(
+    provider_type: ProviderType = Field(
         ...,
         description="Type of provider that created this content"
     )
 
-    provider_name: str = Field(
+    provider_name: Union[CMSProvider, EcommerceProvider] = Field(
         ...,
         description="Specific provider name (e.g., 'shopify_basic', 'sanity')"
     )
@@ -431,10 +437,7 @@ class ContentEvent(BaseModel):
         description="Unique event identifier"
     )
 
-    event_type: Literal[
-        "content.created", "content.updated", "content.deleted",
-        "inventory.updated", "collection.created", "collection.updated"
-    ] = Field(
+    event_type: EventType = Field(
         ...,
         description="Type of content event"
     )
@@ -450,7 +453,7 @@ class ContentEvent(BaseModel):
         description="Type of the affected content"
     )
 
-    provider_name: str = Field(
+    provider_name: Union[CMSProvider, EcommerceProvider] = Field(
         ...,
         description="Provider that generated the event"
     )
@@ -483,8 +486,8 @@ class ContentEvent(BaseModel):
         description="Client identifier"
     )
 
-    environment: Literal["dev", "staging", "prod"] = Field(
-        default="prod",
+    environment: Environment = Field(
+        default=Environment.PRODUCTION,
         description="Environment context"
     )
 
@@ -519,12 +522,12 @@ class ComponentRegistration(BaseModel):
         description="Unique component identifier"
     )
 
-    component_type: Literal["cms", "ecommerce"] = Field(
+    component_type: ProviderType = Field(
         ...,
         description="Type of component"
     )
 
-    provider_name: str = Field(
+    provider_name: Union[CMSProvider, EcommerceProvider] = Field(
         ...,
         description="Provider name (e.g., 'shopify_basic', 'sanity')"
     )
@@ -567,8 +570,8 @@ class WebhookEndpoint(BaseModel):
         description="API endpoint path"
     )
 
-    http_method: Literal["POST", "PUT", "PATCH"] = Field(
-        default="POST",
+    http_method: HTTPMethod = Field(
+        default=HTTPMethod.POST,
         description="HTTP method for webhook"
     )
 
@@ -601,24 +604,24 @@ class CompositionConfiguration(BaseModel):
     )
 
     # Provider selection
-    cms_provider: str = Field(
+    cms_provider: CMSProvider = Field(
         ...,
         description="CMS provider name"
     )
 
-    ecommerce_provider: str = Field(
+    ecommerce_provider: EcommerceProvider = Field(
         ...,
         description="E-commerce provider name"
     )
 
-    ssg_engine: str = Field(
+    ssg_engine: SSGEngine = Field(
         ...,
         description="Static Site Generator engine"
     )
 
     # Integration configuration
-    integration_level: Literal["minimal", "standard", "full"] = Field(
-        default="standard",
+    integration_level: IntegrationLevel = Field(
+        default=IntegrationLevel.STANDARD,
         description="Level of integration between providers"
     )
 
@@ -675,16 +678,20 @@ class CompositionConfiguration(BaseModel):
     @property
     def is_shopify_composition(self) -> bool:
         """Check if composition uses Shopify"""
-        return self.ecommerce_provider.startswith("shopify")
+        return self.ecommerce_provider in [
+            EcommerceProvider.SHOPIFY_BASIC,
+            EcommerceProvider.SHOPIFY_ADVANCED,
+            EcommerceProvider.SHOPIFY_HEADLESS
+        ]
 
     @computed_field
     @property
     def complexity_level(self) -> str:
         """Estimate composition complexity level"""
         complexity_scores = {
-            ("decap", "snipcart", "eleventy"): "low",
-            ("sanity", "shopify_basic", "astro"): "medium",
-            ("contentful", "shopify_basic", "nextjs"): "high"
+            (CMSProvider.DECAP, EcommerceProvider.SNIPCART, SSGEngine.ELEVENTY): "low",
+            (CMSProvider.SANITY, EcommerceProvider.SHOPIFY_BASIC, SSGEngine.ASTRO): "medium",
+            (CMSProvider.CONTENTFUL, EcommerceProvider.SHOPIFY_BASIC, SSGEngine.NEXTJS): "high"
         }
 
         combination = (self.cms_provider, self.ecommerce_provider, self.ssg_engine)

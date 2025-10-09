@@ -17,6 +17,7 @@ from models.service_config import (
     DeliveryModel,
     IntegrationMode
 )
+from models.component_enums import SSGEngine, CMSProvider, EcommerceProvider
 
 
 def tier1_developer_managed_client(
@@ -24,7 +25,7 @@ def tier1_developer_managed_client(
     company_name: str,
     domain: str,
     contact_email: str,
-    ssg_engine: str = "eleventy",
+    ssg_engine: SSGEngine = SSGEngine.ELEVENTY,
     integration_mode: IntegrationMode = IntegrationMode.DIRECT
 ) -> ClientServiceConfig:
     """
@@ -57,8 +58,8 @@ def tier1_self_managed_client(
     company_name: str,
     domain: str,
     contact_email: str,
-    cms_provider: str = "tina",
-    ssg_engine: str = "astro",
+    cms_provider: CMSProvider = CMSProvider.TINA,
+    ssg_engine: SSGEngine = SSGEngine.ASTRO,
     integration_mode: IntegrationMode = IntegrationMode.DIRECT,
     repository: Optional[str] = None,
     repository_owner: Optional[str] = None
@@ -108,7 +109,7 @@ def tier1_technical_client(
     company_name: str,
     domain: str,
     contact_email: str,
-    ssg_engine: str = "hugo",
+    ssg_engine: SSGEngine = SSGEngine.HUGO,
     integration_mode: IntegrationMode = IntegrationMode.DIRECT
 ) -> ClientServiceConfig:
     """
@@ -141,8 +142,8 @@ def tier1_ecommerce_client(
     company_name: str,
     domain: str,
     contact_email: str,
-    ecommerce_provider: str = "snipcart",
-    ssg_engine: str = "eleventy",
+    ecommerce_provider: EcommerceProvider = EcommerceProvider.SNIPCART,
+    ssg_engine: SSGEngine = SSGEngine.ELEVENTY,
     integration_mode: IntegrationMode = IntegrationMode.DIRECT,
     store_settings: Optional[Dict[str, Any]] = None
 ) -> ClientServiceConfig:
@@ -179,9 +180,9 @@ def tier1_composed_client(
     company_name: str,
     domain: str,
     contact_email: str,
-    cms_provider: str = "tina",
-    ecommerce_provider: str = "snipcart",
-    ssg_engine: str = "astro",
+    cms_provider: CMSProvider = CMSProvider.TINA,
+    ecommerce_provider: EcommerceProvider = EcommerceProvider.SNIPCART,
+    ssg_engine: SSGEngine = SSGEngine.ASTRO,
     integration_mode: IntegrationMode = IntegrationMode.EVENT_DRIVEN,  # Default to event-driven for composition
     cms_settings: Optional[Dict[str, Any]] = None,
     ecommerce_settings: Optional[Dict[str, Any]] = None
@@ -226,8 +227,8 @@ def tier2_professional_client(
     domain: str,
     contact_email: str,
     service_type: ServiceType = ServiceType.CMS_TIER,
-    cms_provider: str = "contentful",
-    ssg_engine: str = "gatsby",
+    cms_provider: CMSProvider = CMSProvider.CONTENTFUL,
+    ssg_engine: SSGEngine = SSGEngine.GATSBY,
     integration_mode: IntegrationMode = IntegrationMode.DIRECT
 ) -> ClientServiceConfig:
     """
@@ -272,9 +273,9 @@ def tier3_enterprise_client(
     delivery_model: DeliveryModel = DeliveryModel.HOSTED,
     service_type: ServiceType = ServiceType.COMPOSED_STACK,
     integration_mode: IntegrationMode = IntegrationMode.EVENT_DRIVEN,  # Enterprise benefits from event-driven
-    cms_provider: str = "contentful",
-    ecommerce_provider: str = "shopify_advanced",
-    ssg_engine: str = "nextjs"
+    cms_provider: CMSProvider = CMSProvider.CONTENTFUL,
+    ecommerce_provider: EcommerceProvider = EcommerceProvider.SHOPIFY_ADVANCED,
+    ssg_engine: SSGEngine = SSGEngine.NEXTJS
 ) -> ClientServiceConfig:
     """
     Template for Tier 3: Enterprise clients ($6,000-60,000+ setup | $250-2,000/month).

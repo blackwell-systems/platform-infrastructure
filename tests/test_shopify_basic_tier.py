@@ -20,8 +20,8 @@ from shared.providers.ecommerce.shopify_basic_provider import (
     ShopifyAPIAccess
 )
 from shared.factories.ecommerce_stack_factory import EcommerceStackFactory
-from shared.ssg.ssg_engines import SSGEngine
-from models.client_config import ClientConfig
+from models.component_enums import SSGEngine
+from models.service_config import ClientServiceConfig
 
 
 class TestShopifyBasicProvider:
@@ -319,7 +319,7 @@ class TestShopifyBasicEcommerceStack:
     @pytest.fixture
     def mock_client_config(self):
         """Mock client configuration for testing"""
-        return MagicMock(spec=ClientConfig)
+        return MagicMock(spec=ClientServiceConfig)
 
     @pytest.fixture
     def mock_scope(self):

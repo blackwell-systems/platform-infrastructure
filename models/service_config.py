@@ -15,6 +15,9 @@ from typing import Dict, Any, List, Optional, Literal, Union
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator, computed_field
 from enum import Enum
 
+# Import component enums for type-safe stack configuration
+from models.component_enums import SSGEngine, CMSProvider, EcommerceProvider, Environment
+
 
 class IntegrationMode(str, Enum):
     """Integration architecture mode"""
@@ -55,7 +58,7 @@ class CMSProviderConfig(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True, validate_assignment=True)
 
-    provider: str = Field(..., description="CMS provider (decap, tina, sanity, contentful, etc.)")
+    provider: CMSProvider = Field(..., description="CMS provider with validated options")
     admin_users: List[str] = Field(default_factory=list, description="Admin user emails")
     settings: Dict[str, Any] = Field(default_factory=dict, description="Provider-specific settings")
 
@@ -73,7 +76,7 @@ class EcommerceProviderConfig(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True, validate_assignment=True)
 
-    provider: str = Field(..., description="E-commerce provider (snipcart, foxy, shopify_basic, etc.)")
+    provider: EcommerceProvider = Field(..., description="E-commerce provider with validated options")
     settings: Dict[str, Any] = Field(default_factory=dict, description="Provider-specific settings")
 
 
@@ -88,6 +91,7 @@ class ServiceIntegrationConfig(BaseModel):
                 {
                     "service_type": "cms_tier",
                     "integration_mode": "direct",
+                    "ssg_engine": "astro",
                     "cms_config": {
                         "provider": "tina",
                         "admin_users": ["admin@example.com"],
@@ -97,6 +101,7 @@ class ServiceIntegrationConfig(BaseModel):
                 {
                     "service_type": "composed_stack",
                     "integration_mode": "event_driven",
+                    "ssg_engine": "astro",
                     "cms_config": {
                         "provider": "contentful",
                         "admin_users": ["editor@company.com"],
@@ -130,7 +135,7 @@ class ServiceIntegrationConfig(BaseModel):
     )
 
     # SSG Engine Selection
-    ssg_engine: str = Field(..., description="SSG engine choice (hugo, eleventy, astro, gatsby, nextjs, nuxt)")
+    ssg_engine: SSGEngine = Field(..., description="SSG engine with validated options")
 
     # Integration Settings
     enable_webhooks: bool = Field(default=True, description="Enable provider webhooks")
@@ -249,9 +254,9 @@ class ClientServiceConfig(BaseModel):
     )
 
     # Deployment Settings
-    environment: Literal["prod", "staging", "dev"] = Field(
-        default="prod",
-        description="Deployment environment"
+    environment: Environment = Field(
+        default=Environment.PRODUCTION,
+        description="Deployment environment with validated options"
     )
     region: str = Field(default="us-east-1", description="AWS region")
 

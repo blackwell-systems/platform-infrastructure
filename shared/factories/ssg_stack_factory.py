@@ -31,6 +31,9 @@ USAGE EXAMPLES:
 from typing import Dict, List, Any, Optional, Type
 from constructs import Construct
 
+# Import centralized enums for type safety
+from models.component_enums import SSGEngine, CMSProvider, EcommerceProvider
+
 # Dynamic imports to handle hyphenated directory names
 import importlib.util
 import sys
@@ -240,8 +243,8 @@ class SSGStackFactory:
     }
 
     # SSG Engine capabilities matrix
-    SSG_ENGINE_CAPABILITIES: Dict[str, Dict[str, Any]] = {
-        "eleventy": {
+    SSG_ENGINE_CAPABILITIES: Dict[SSGEngine, Dict[str, Any]] = {
+        SSGEngine.ELEVENTY: {
             "build_speed": "very_fast",
             "learning_curve": "low",
             "ecosystem": "javascript",
@@ -249,7 +252,7 @@ class SSGStackFactory:
             "template_engines": ["liquid", "nunjucks", "handlebars", "mustache"],
             "setup_complexity": "low"
         },
-        "jekyll": {
+        SSGEngine.JEKYLL: {
             "build_speed": "medium",
             "learning_curve": "medium",
             "ecosystem": "ruby",
@@ -258,7 +261,7 @@ class SSGStackFactory:
             "setup_complexity": "medium",
             "github_pages_native": True
         },
-        "astro": {
+        SSGEngine.ASTRO: {
             "build_speed": "fast",
             "learning_curve": "medium_high",
             "ecosystem": "javascript",
@@ -267,7 +270,7 @@ class SSGStackFactory:
             "setup_complexity": "high",
             "component_islands": True
         },
-        "hugo": {
+        SSGEngine.HUGO: {
             "build_speed": "fastest",
             "learning_curve": "high",
             "ecosystem": "go",
@@ -275,7 +278,7 @@ class SSGStackFactory:
             "template_engines": ["go_templates"],
             "setup_complexity": "high"
         },
-        "gatsby": {
+        SSGEngine.GATSBY: {
             "build_speed": "slow",
             "learning_curve": "high",
             "ecosystem": "react",
@@ -284,7 +287,7 @@ class SSGStackFactory:
             "setup_complexity": "high",
             "graphql_native": True
         },
-        "nextjs": {
+        SSGEngine.NEXTJS: {
             "build_speed": "medium",
             "learning_curve": "high",
             "ecosystem": "react",
@@ -293,7 +296,7 @@ class SSGStackFactory:
             "setup_complexity": "high",
             "hybrid_rendering": True
         },
-        "nuxt": {
+        SSGEngine.NUXT: {
             "build_speed": "medium",
             "learning_curve": "high",
             "ecosystem": "vue",

@@ -19,49 +19,77 @@ A comprehensive infrastructure-as-code platform that democratizes professional w
 
 ## Overview
 
-This platform has undergone a **major architectural transformation**, evolving from hardcoded provider pairings to a flexible, composition-ready system that serves clients from budget-conscious startups ($65/month) to enterprise organizations ($430+/month) using the same unified architecture.
+**The First Universal Web Development Platform That Actually Makes Sense**
 
-### **What Makes This Platform Unique**
+Imagine serving every client—from startups to enterprises—using the exact same infrastructure, while giving them complete freedom to choose any CMS with any e-commerce provider. That's what this platform delivers.
 
-- **Dual-Mode Architecture**: Choose Direct (simple) or Event-Driven (composition-ready) integration per client needs
-- **Universal Composition**: Mix any CMS with any E-commerce provider seamlessly
-- **Cost-Democratic**: Same architecture serves budget and enterprise clients with appropriate provider choices
-- **Future-Proof**: Easy to add new CMS/E-commerce providers without architectural changes
-- **Clean Configuration**: Consolidated from 1,538+ lines of sprawling config to 780 lines of validated models
-- **Production-Ready**: Comprehensive testing with working event-driven integration
+### **The Problems We Solve**
 
-### **Who This Platform Serves**
+**The Industry's Broken Model:**
+- Agencies rebuild infrastructure for every client project
+- Clients get locked into vendor-specific stacks (Shopify + Shopify CMS, WordPress + WooCommerce)
+- Budget clients get substandard solutions, enterprise clients get overengineered complexity
+- Mixing providers (like Sanity CMS + Shopify) requires months of custom integration work
+- Scaling means expensive rewrites and vendor migrations
 
-**For Development Teams:**
-- Consistent, scalable infrastructure patterns across diverse client projects
-- One architecture that scales from simple static sites to complex compositions
+**Our Solution:**
+- **One Architecture, All Clients**: The same infrastructure serves budget startups and Fortune 500 companies
+- **Any CMS + Any E-commerce**: Mix Decap CMS with Shopify, or Contentful with Snipcart—seamlessly
+- **No Vendor Lock-in**: Switch providers without infrastructure changes
+- **Instant Composition**: Add e-commerce to content sites (or vice versa) in minutes, not months
+- **Democratic Access**: Professional-grade features at every tier
 
-**For Web Agencies:**
-- Serve budget clients and enterprise clients with the same operational model
-- Mix best-of-breed providers without vendor lock-in
+### **What Makes This Genuinely Novel**
 
-**For Platform Engineers:**
-- Clean, maintainable architecture with comprehensive validation
-- Event-driven patterns that enable sophisticated integrations
+**Dual-Mode Architecture (Industry First)**
+Every provider works in two modes without code duplication:
+- **Direct Mode**: Traditional, simple workflows for straightforward sites
+- **Event-Driven Mode**: Advanced composition that lets any CMS talk to any e-commerce platform
+
+**Universal Provider Abstraction**
+Unlike platforms that favor specific combinations, we provide genuine freedom:
+- **Budget-Friendly**: Free CMS options with cost-effective e-commerce providers
+- **Professional**: Advanced CMS features with flexible e-commerce solutions
+- **Enterprise**: Full-featured combinations for large-scale operations
+
+**Real-Time Composition**
+Our event-driven system solves the hardest problem in web development: making disparate services work together flawlessly. Content changes in your CMS automatically trigger inventory updates in your e-commerce system, and vice versa.
+
+### **Why Clients Choose This Platform**
+
+**For Startups & Small Businesses:**
+- Get enterprise-grade infrastructure at startup-friendly scale
+- Start simple, scale up without rewrites
+- Access to professional features that were previously enterprise-only
+
+**For Growing Businesses:**
+- Freedom to choose best-of-breed tools without integration hell
+- Predictable scaling path—no surprise vendor lock-in
+- Professional results without agency overhead
+
+**For Enterprise Teams:**
+- Proven reliability with modern flexibility
+- No vendor dependencies—switch providers as business needs change
+- Transparent, modular architecture with clear upgrade paths
 
 ## **Platform Architecture**
 
 **Core Foundation:**
-- **Consolidated Configuration**: Type-safe, validated client configurations with automatic cost estimation
+- **Consolidated Configuration**: Type-safe, validated client configurations with automatic validation
 - **Universal Base Infrastructure**: Shared S3, CloudFront, Route53 patterns across all providers
 - **Dual-Mode Integration Layer**: Solves the complexity of running disparate CMS and e-commerce systems together by providing two integration approaches: Direct mode for simple single-provider setups with traditional webhooks, and Event-Driven mode that creates a unified event system allowing any CMS to work seamlessly with any e-commerce provider through SNS topics, DynamoDB caching, and Lambda orchestration - eliminating the need for custom integration code between providers
 
 **Provider Tiers (All Support Both Modes):**
 
-| **CMS Provider Tiers** | **Direct Mode** | **Event-Driven Mode** | **Monthly Cost** |
-|------------------------|-----------------|------------------------|------------------|
+| **CMS Provider Tiers** | **Direct Mode** | **Event-Driven Mode** | **Tier Level** |
+|------------------------|-----------------|------------------------|----------------|
 | **Decap CMS Tier** | Git webhooks → builds | Git events → SNS → composition | **Budget** |
 | **TinaCMS Tier** | Git webhooks → builds | Git events → SNS → composition | **Budget+** |
 | **Sanity CMS Tier** | Webhooks → builds | API events → SNS → composition | **Professional** |
 | **Contentful CMS Tier** | Webhooks → builds | API events → SNS → composition | **Enterprise** |
 
-| **E-commerce Provider Tiers** | **Direct Mode** | **Event-Driven Mode** | **Monthly Cost** |
-|--------------------------------|-----------------|------------------------|------------------|
+| **E-commerce Provider Tiers** | **Direct Mode** | **Event-Driven Mode** | **Tier Level** |
+|--------------------------------|-----------------|------------------------|----------------|
 | **Snipcart Tier** | Simple integration | Order events → SNS → composition | **Budget** |
 | **Foxy.io Tier** | Advanced integration | Order events → SNS → composition | **Professional** |
 | **Shopify Basic Tier** | Standard integration | Webhook events → SNS → composition | **Enterprise** |
@@ -462,7 +490,6 @@ budget_client = tier1_composed_client(
     integration_mode=IntegrationMode.EVENT_DRIVEN  # Composition-ready
 )
 
-print(f"Monthly cost: Budget tier + transaction fees")
 print(f"Setup: FREE CMS + AWS hosting + event coordination")
 ```
 
@@ -489,7 +516,7 @@ The platform's key innovation is **dual-mode architecture** - every provider sup
 client_config.service_integration.integration_mode = IntegrationMode.DIRECT
 
 # Result: Traditional webhook → build → deploy workflow
-# Cost: Base provider + AWS hosting only
+# Infrastructure: Base provider + AWS hosting only
 ```
 
 ### Event-Driven Mode (Composition-Ready)
@@ -506,7 +533,7 @@ client_config.service_integration.integration_mode = IntegrationMode.DIRECT
 client_config.service_integration.integration_mode = IntegrationMode.EVENT_DRIVEN
 
 # Result: Unified event system with composition capabilities
-# Cost: Base provider + AWS hosting + minimal event infrastructure fee
+# Infrastructure: Base provider + AWS hosting + event infrastructure
 ```
 
 ### Mode Comparison
@@ -516,13 +543,13 @@ client_config.service_integration.integration_mode = IntegrationMode.EVENT_DRIVE
 | **Complexity** | Simple, familiar | Sophisticated, flexible |
 | **Providers** | Single CMS OR E-commerce | Multiple providers composed |
 | **AWS Services** | S3, CloudFront, CodeBuild | + SNS, DynamoDB, Lambda |
-| **Monthly Cost** | Base tier cost | Base tier + event infrastructure |
+| **Infrastructure** | Base tier resources | Base tier + event infrastructure |
 | **Future Flexibility** | Limited to single provider | Easy provider addition/changes |
 | **Analytics** | Basic CloudWatch | Unified cross-provider insights |
 
 ## Composition Examples
 
-### Budget-Friendly Composition ($65-90/month)
+### Budget-Friendly Composition
 
 **Perfect for:** Startups, small businesses, technical teams on tight budgets
 
@@ -533,20 +560,20 @@ budget_composition = tier1_composed_client(
     domain="budgetstartup.com",
     contact_email="admin@budgetstartup.com",
     cms_provider="decap",           # FREE CMS (git-based)
-    ecommerce_provider="snipcart",  # 2% transaction fees only
+    ecommerce_provider="snipcart",  # Transaction-based pricing
     ssg_engine="eleventy",          # Fast builds, simple
     integration_mode=IntegrationMode.EVENT_DRIVEN
 )
 
 # Benefits:
-# FREE content management (Decap CMS)
-# No monthly e-commerce fees (Snipcart)
+# Free content management (Decap CMS)
+# Pay-per-transaction e-commerce (Snipcart)
 # Git-based workflow with full version control
 # Event-driven coordination for future expansion
-# Professional results under budget
+# Professional results on a budget
 ```
 
-### Professional Composition ($180-220/month)
+### Professional Composition
 
 **Perfect for:** Growing businesses, content-heavy sites, design agencies
 
@@ -565,12 +592,12 @@ professional_composition = tier1_composed_client(
 # Benefits:
 # Structured content with real-time collaboration
 # Modern component-based architecture (Astro)
-# Still cost-effective e-commerce
+# Flexible e-commerce solution
 # Event-driven analytics and coordination
 # Scales with business growth
 ```
 
-### Enterprise Composition ($430-580/month)
+### Enterprise Composition
 
 **Perfect for:** Large content teams, enterprise workflows, proven reliability needs
 
@@ -594,7 +621,7 @@ enterprise_composition = tier1_composed_client(
 # Unified analytics across content and commerce
 ```
 
-### Advanced Customization Composition ($300-350/month)
+### Advanced Customization Composition
 
 **Perfect for:** Complex products, subscription models, custom checkout needs
 
@@ -613,7 +640,7 @@ advanced_composition = tier1_composed_client(
 # Benefits:
 # Complex content modeling (Sanity)
 # Advanced e-commerce features: subscriptions, custom checkout
-# Lower transaction fees
+# Competitive transaction rates
 # Modern architecture for complex interactions
 # Event-driven coordination for business logic
 ```
@@ -622,20 +649,20 @@ advanced_composition = tier1_composed_client(
 
 ### CMS Provider Selection Guide
 
-| **Provider Tier** | **Best For** | **SSG Options** | **Monthly Cost** |
-|-------------------|--------------|-----------------|------------------|
-| **Decap CMS** | Budget-conscious, technical teams | Hugo, Eleventy, Astro, Gatsby | **$50-75** |
-| **TinaCMS** | Visual editing, developer + content creator teams | Astro, Eleventy, Next.js, Nuxt | **$60-85** |
-| **Sanity CMS** | Structured content, creative agencies | Astro, Gatsby, Next.js, Nuxt | **$65-90** |
-| **Contentful** | Enterprise workflows, large content teams | Gatsby, Astro, Next.js, Nuxt | **$75-125** |
+| **Provider Tier** | **Best For** | **SSG Options** | **Pricing Model** |
+|-------------------|--------------|-----------------|-------------------|
+| **Decap CMS** | Budget-conscious, technical teams | Hugo, Eleventy, Astro, Gatsby | **Free** |
+| **TinaCMS** | Visual editing, developer + content creator teams | Astro, Eleventy, Next.js, Nuxt | **Freemium** |
+| **Sanity CMS** | Structured content, creative agencies | Astro, Gatsby, Next.js, Nuxt | **Usage-based** |
+| **Contentful** | Enterprise workflows, large content teams | Gatsby, Astro, Next.js, Nuxt | **Subscription** |
 
 ### E-commerce Provider Selection Guide
 
-| **Provider Tier** | **Best For** | **SSG Options** | **Monthly Cost** |
-|-------------------|--------------|-----------------|------------------|
-| **Snipcart** | Budget-conscious, simple products | Hugo, Eleventy, Astro, Gatsby | **$85-125** |
-| **Foxy.io** | Advanced features, subscriptions | Hugo, Eleventy, Astro, Gatsby | **$100-150** |
-| **Shopify Basic** | Proven platform, standard e-commerce | Eleventy, Astro, Next.js, Nuxt | **$75-125** |
+| **Provider Tier** | **Best For** | **SSG Options** | **Pricing Model** |
+|-------------------|--------------|-----------------|-------------------|
+| **Snipcart** | Budget-conscious, simple products | Hugo, Eleventy, Astro, Gatsby | **Transaction-based** |
+| **Foxy.io** | Advanced features, subscriptions | Hugo, Eleventy, Astro, Gatsby | **Subscription + Fees** |
+| **Shopify Basic** | Proven platform, standard e-commerce | Eleventy, Astro, Next.js, Nuxt | **Subscription + Fees** |
 
 ### SSG Engine Selection Guide
 
@@ -652,20 +679,20 @@ advanced_composition = tier1_composed_client(
 
 The platform's unified architecture enables cost-effective scaling from budget to enterprise:
 
-### Budget Scaling Path ($65 → $430/month)
+### Progressive Scaling Path
 
 ```python
-# Stage 1: Budget Startup ($65-90/month)
-# Decap (FREE) + Snipcart (2% fees) + Eleventy (simple)
+# Stage 1: Budget Startup
+# Decap (FREE) + Snipcart (transaction fees) + Eleventy (simple)
 
-# Stage 2: Growing Business ($180-220/month)
-# Sanity ($99) + Snipcart (2% fees) + Astro (modern)
+# Stage 2: Growing Business
+# Sanity (usage-based) + Snipcart (transaction fees) + Astro (modern)
 
-# Stage 3: Professional Team ($300-350/month)
-# Sanity ($199) + Foxy ($20 + 1.5% fees) + Astro (advanced)
+# Stage 3: Professional Team
+# Sanity (professional tier) + Foxy (subscription + fees) + Astro (advanced)
 
-# Stage 4: Enterprise ($430-580/month)
-# Contentful ($300) + Shopify ($29 + 2.9% fees) + Gatsby (React)
+# Stage 4: Enterprise
+# Contentful (enterprise) + Shopify (subscription + fees) + Gatsby (React)
 ```
 
 **Key Benefits:**
@@ -704,7 +731,6 @@ client = tier1_composed_client(
 
 # Step 3: Validate and deploy
 print(f"Stack type: {client.stack_type}")
-print(f"Monthly cost: ${client.monthly_cost_estimate}")
 print(f"Integration mode: {client.service_integration.integration_mode}")
 ```
 
@@ -988,8 +1014,7 @@ client_config = ClientServiceConfig(
     )
 )
 
-# Automatic validation and cost estimation
-print(f"Monthly cost: ${client_config.monthly_cost_estimate}")
+# Automatic validation and configuration
 print(f"Resource prefix: {client_config.resource_prefix}")
 print(f"Stack type: {client_config.stack_type}")
 ```
@@ -1044,7 +1069,7 @@ budget = tier1_composed_client(
     cms_provider='decap', ecommerce_provider='snipcart',
     ssg_engine='eleventy', integration_mode=IntegrationMode.EVENT_DRIVEN
 )
-print(f'Budget: {budget.monthly_cost_estimate}/month')
+print(f'Budget setup: {budget.stack_type}')
 
 # Enterprise composition
 enterprise = tier1_composed_client(
@@ -1052,7 +1077,7 @@ enterprise = tier1_composed_client(
     cms_provider='contentful', ecommerce_provider='shopify_basic',
     ssg_engine='gatsby', integration_mode=IntegrationMode.EVENT_DRIVEN
 )
-print(f'Enterprise: {enterprise.monthly_cost_estimate}/month')
+print(f'Enterprise setup: {enterprise.stack_type}')
 "
 
 # Stack operations
@@ -1074,8 +1099,7 @@ from models.service_config import IntegrationMode
 # Same client, different modes
 print('Direct Mode: Simple webhook → build workflow')
 print('Event-Driven Mode: Unified events → composition workflow')
-print('Cost difference: +$15-25/month for event infrastructure')
-print('Benefit: Future composition and analytics capabilities')
+print('Benefits: Future composition and analytics capabilities')
 "
 
 # Composition examples
@@ -1094,7 +1118,7 @@ uv run python examples/composed_stack_examples.py  # See all composition pattern
 **For Clients:**
 - Start simple (Direct mode) → upgrade to composition when needed
 - Choose best-of-breed providers without vendor lock-in
-- Predictable, scalable pricing as business grows
+- Predictable, scalable architecture as business grows
 
 **For Development Teams:**
 - One architecture serves budget and enterprise clients

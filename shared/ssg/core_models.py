@@ -8,16 +8,12 @@ These models represent build commands, e-commerce integrations, and templates.
 from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+# Import centralized enums for type safety
+from models.component_enums import SSGEngine, EcommerceProvider
 
 # Type definitions
-SSGEngineType = Literal[
-    "eleventy", "hugo", "astro", "jekyll", "nextjs", "nuxt", "gatsby"
-]
-
-ECommerceProvider = Literal[
-    "snipcart", "foxy", "shopify_basic", "shopify_advanced", "shopify_headless", 
-    "woocommerce", "custom_api", "none"
-]
+SSGEngineType = SSGEngine  # Alias for backwards compatibility
+ECommerceProvider = EcommerceProvider  # Alias for backwards compatibility
 
 HostingPattern = Literal[
     "aws",           # Full AWS hosting (S3 + CloudFront + Route53)
@@ -91,7 +87,7 @@ class ECommerceIntegration(BaseModel):
         },
     )
 
-    provider: ECommerceProvider = Field(..., description="E-commerce platform provider")
+    provider: EcommerceProvider = Field(..., description="E-commerce platform provider")
     features: List[str] = Field(..., description="Available e-commerce features")
     setup_complexity: Literal["low", "medium", "high"] = Field(default="medium")
     monthly_cost_range: List[int] = Field(description="Monthly cost range [min, max]")

@@ -21,7 +21,7 @@ from shared.providers.cms.contentful_provider import (
 )
 from shared.factories.ssg_stack_factory import SSGStackFactory
 from shared.ssg.core_models import SSGEngineType
-from models.client_config import ClientConfig
+from models.service_config import ClientServiceConfig
 
 
 class TestContentfulProvider:
@@ -304,7 +304,7 @@ class TestContentfulCMSStack:
     @pytest.fixture
     def mock_client_config(self):
         """Mock client configuration for testing"""
-        return MagicMock(spec=ClientConfig)
+        return MagicMock(spec=ClientServiceConfig)
 
     @pytest.fixture
     def mock_scope(self):
