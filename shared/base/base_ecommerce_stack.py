@@ -31,7 +31,7 @@ from aws_cdk import (
 )
 from constructs import Construct
 
-from shared.base.base_ssg_stack import BaseSSGStack
+from stacks.shared.base_ssg_stack import BaseSSGStack
 from shared.ssg import StaticSiteConfig
 
 

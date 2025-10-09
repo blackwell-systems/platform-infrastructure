@@ -1,26 +1,23 @@
 """
-Base SSG Stack
+Base Web Stack
 
-Abstract base class for all Static Site Generator stacks.
-Provides common infrastructure patterns and utilities for SSG deployments
-with S3, CloudFront, and build pipeline integration.
+Common foundation for all web infrastructure stacks.
+Provides shared AWS infrastructure patterns and utilities.
+
+This serves as the root base class for:
+- BaseSSGStack: Pure SSG implementations
+- ComposedWebStack: CMS/E-commerce/Complex applications
 
 Key Features:
 - Standardized S3 + CloudFront setup
-- Build pipeline integration with CodeBuild
+- Common IAM patterns
 - Environment variable management
 - Cost optimization patterns
 - Security best practices
-
-Usage:
-    class MySSGStack(BaseSSGStack):
-        def __init__(self, scope, construct_id, client_config, **kwargs):
-            super().__init__(scope, construct_id, client_config, **kwargs)
-            self._create_custom_infrastructure()
 """
 
-from abc import ABCMeta, abstractmethod
-from typing import Dict, Any, Optional, List
+from abc import ABCMeta
+from typing import Dict, Any, Optional
 from aws_cdk import (
     Stack,
     aws_s3 as s3,
@@ -42,71 +39,64 @@ class StackABCMeta(ABCMeta, type(Stack)):
 
 class BaseSSGStack(Stack, metaclass=StackABCMeta):
     """
-    Abstract base class for all SSG stack implementations.
+    Foundation class for all web infrastructure stacks.
 
-    Provides common infrastructure patterns while allowing
-    concrete implementations to customize build processes,
-    CMS integration, and deployment strategies.
+    Provides common AWS infrastructure patterns while allowing
+    concrete implementations to customize based on their specific needs.
     """
 
     def __init__(
         self,
         scope: Construct,
         construct_id: str,
-        client_config,
         **kwargs
     ):
         super().__init__(scope, construct_id, **kwargs)
-
-        self.client_config = client_config
 
         # Common infrastructure components (initialized by subclasses)
         self.content_bucket: Optional[s3.Bucket] = None
         self.distribution: Optional[cloudfront.CloudFrontWebDistribution] = None
         self.domain_name: Optional[str] = None
-
-        # Build infrastructure
         self.build_role: Optional[iam.Role] = None
-
-        # Apply standard tags
-        self._apply_standard_tags()
-
-    def _apply_standard_tags(self) -> None:
-        """Apply standard tags from client configuration"""
-        tags = self.client_config.tags
-        for key, value in tags.items():
-            self.tags.set_tag(key, value)
 
     def create_content_bucket(
         self,
-        bucket_name: Optional[str] = None,
-        website_hosting: bool = True
+        bucket_name: str,
+        website_hosting: bool = True,
+        public_access: bool = False
     ) -> s3.Bucket:
         """
-        Create S3 bucket for static content hosting.
+        Create S3 bucket for content storage.
 
         Args:
-            bucket_name: Custom bucket name (defaults to client resource prefix)
+            bucket_name: Bucket name
             website_hosting: Enable static website hosting
+            public_access: Allow public read access (use carefully)
 
         Returns:
             S3 Bucket instance
         """
-        if not bucket_name:
-            bucket_name = f"{self.client_config.resource_prefix}-content"
-
         bucket_props = {
             "bucket_name": bucket_name,
-            "public_read_access": True,
             "removal_policy": RemovalPolicy.DESTROY,
             "auto_delete_objects": True,
-            "block_public_access": s3.BlockPublicAccess(
-                block_public_acls=False,
-                block_public_policy=False,
-                ignore_public_acls=False,
-                restrict_public_buckets=False
-            )
         }
+
+        if public_access:
+            bucket_props.update({
+                "public_read_access": True,
+                "block_public_access": s3.BlockPublicAccess(
+                    block_public_acls=False,
+                    block_public_policy=False,
+                    ignore_public_acls=False,
+                    restrict_public_buckets=False
+                )
+            })
+        else:
+            bucket_props.update({
+                "public_read_access": False,
+                "block_public_access": s3.BlockPublicAccess.BLOCK_ALL
+            })
 
         if website_hosting:
             bucket_props.update({
@@ -115,14 +105,14 @@ class BaseSSGStack(Stack, metaclass=StackABCMeta):
             })
 
         self.content_bucket = s3.Bucket(self, "ContentBucket", **bucket_props)
-
         return self.content_bucket
 
     def create_cloudfront_distribution(
         self,
         origin_bucket: s3.Bucket,
         custom_domain: Optional[str] = None,
-        certificate_arn: Optional[str] = None
+        certificate_arn: Optional[str] = None,
+        use_oai: bool = True
     ) -> cloudfront.CloudFrontWebDistribution:
         """
         Create CloudFront distribution for global content delivery.
@@ -131,37 +121,39 @@ class BaseSSGStack(Stack, metaclass=StackABCMeta):
             origin_bucket: S3 bucket to serve content from
             custom_domain: Custom domain name for the distribution
             certificate_arn: SSL certificate ARN for custom domain
+            use_oai: Use Origin Access Identity for secure S3 access
 
         Returns:
             CloudFront distribution instance
         """
-
-        # Basic behavior configuration
-        default_behavior = cloudfront.Behavior(
-            is_default_behavior=True,
-            allowed_methods=cloudfront.CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
-            cached_methods=cloudfront.CloudFrontAllowedCachedMethods.GET_HEAD_OPTIONS,
-            compress=True,
-            viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-            default_ttl=Duration.hours(24),
-            max_ttl=Duration.days(365),
-            forwarded_values=cloudfront.CfnDistribution.ForwardedValuesProperty(
-                query_string=False,
-                cookies=cloudfront.CfnDistribution.CookiesProperty(forward="none")
+        # Configure origin based on access pattern
+        if use_oai:
+            oai = cloudfront.OriginAccessIdentity(
+                self,
+                "OriginAccessIdentity",
+                comment=f"OAI for {self.node.id}"
             )
-        )
+            origin_bucket.grant_read(oai)
+
+            origin_config = cloudfront.SourceConfiguration(
+                s3_origin_source=cloudfront.S3OriginConfig(
+                    s3_bucket_source=origin_bucket,
+                    origin_access_identity=oai
+                ),
+                behaviors=[self._get_default_behavior()]
+            )
+        else:
+            origin_config = cloudfront.SourceConfiguration(
+                s3_origin_source=cloudfront.S3OriginConfig(
+                    s3_bucket_source=origin_bucket
+                ),
+                behaviors=[self._get_default_behavior()]
+            )
 
         # Distribution configuration
         distribution_props = {
-            "origin_configs": [
-                cloudfront.SourceConfiguration(
-                    s3_origin_source=cloudfront.S3OriginConfig(
-                        s3_bucket_source=origin_bucket
-                    ),
-                    behaviors=[default_behavior]
-                )
-            ],
-            "comment": f"Distribution for {self.client_config.client_id}",
+            "origin_configs": [origin_config],
+            "comment": f"Distribution for {self.node.id}",
             "price_class": cloudfront.PriceClass.PRICE_CLASS_100,  # Cost optimization
             "enabled": True,
             "default_root_object": "index.html"
@@ -186,11 +178,28 @@ class BaseSSGStack(Stack, metaclass=StackABCMeta):
 
         return self.distribution
 
-    def create_build_role(self, additional_policies: Optional[List[iam.PolicyStatement]] = None) -> iam.Role:
+    def _get_default_behavior(self) -> cloudfront.Behavior:
+        """Get default CloudFront behavior configuration"""
+        return cloudfront.Behavior(
+            is_default_behavior=True,
+            allowed_methods=cloudfront.CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
+            cached_methods=cloudfront.CloudFrontAllowedCachedMethods.GET_HEAD_OPTIONS,
+            compress=True,
+            viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+            default_ttl=Duration.hours(24),
+            max_ttl=Duration.days(365),
+            forwarded_values=cloudfront.CfnDistribution.ForwardedValuesProperty(
+                query_string=False,
+                cookies=cloudfront.CfnDistribution.CookiesProperty(forward="none")
+            )
+        )
+
+    def create_build_role(self, role_name: str, additional_policies: Optional[list] = None) -> iam.Role:
         """
         Create IAM role for build processes.
 
         Args:
+            role_name: Name for the IAM role
             additional_policies: Additional policy statements to attach
 
         Returns:
@@ -198,6 +207,7 @@ class BaseSSGStack(Stack, metaclass=StackABCMeta):
         """
         self.build_role = iam.Role(
             self, "BuildRole",
+            role_name=role_name,
             assumed_by=iam.ServicePrincipal("codebuild.amazonaws.com"),
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name("CloudWatchLogsFullAccess")
@@ -234,9 +244,8 @@ class BaseSSGStack(Stack, metaclass=StackABCMeta):
         else:
             raise ValueError("No distribution configured")
 
-    def create_standard_outputs(self) -> None:
+    def create_standard_outputs(self, client_info: Optional[Dict[str, str]] = None) -> None:
         """Create standard CloudFormation outputs"""
-
         # Website URL
         CfnOutput(
             self, "WebsiteURL",
@@ -260,81 +269,26 @@ class BaseSSGStack(Stack, metaclass=StackABCMeta):
                 description="S3 content bucket name"
             )
 
-        # Client information
-        CfnOutput(
-            self, "ClientId",
-            value=self.client_config.client_id,
-            description="Client identifier"
-        )
+        # Client information if provided
+        if client_info:
+            for key, value in client_info.items():
+                CfnOutput(
+                    self, key,
+                    value=value,
+                    description=f"Client {key.lower()}"
+                )
 
-        CfnOutput(
-            self, "ServiceTier",
-            value=self.client_config.service_tier,
-            description="Service tier"
-        )
-
-        CfnOutput(
-            self, "StackType",
-            value=self.client_config.stack_type,
-            description="Stack type"
-        )
-
-    def get_standard_environment_variables(self) -> Dict[str, str]:
-        """Get standard environment variables for build processes"""
-        env_vars = {
-            "CLIENT_ID": self.client_config.client_id,
-            "SERVICE_TIER": self.client_config.service_tier,
-            "STACK_TYPE": self.client_config.stack_type,
-            "ENVIRONMENT": self.client_config.environment,
-        }
-
-        if self.content_bucket:
-            env_vars["BUCKET_NAME"] = self.content_bucket.bucket_name
-
-        if self.distribution:
-            env_vars["DISTRIBUTION_ID"] = self.distribution.distribution_id
-
-        if self.client_config.ssg_engine:
-            env_vars["SSG_ENGINE"] = self.client_config.ssg_engine
-
-        return env_vars
-
-    def estimate_monthly_cost(self) -> Dict[str, float]:
+    def estimate_base_monthly_cost(self) -> Dict[str, float]:
         """
-        Estimate monthly AWS costs for this stack.
+        Estimate base monthly AWS costs.
 
         Returns:
             Dictionary with cost estimates by service
         """
-        # Base cost estimates (USD/month)
-        costs = {
+        return {
             "s3_storage": 5.0,        # ~100GB at $0.05/GB
             "s3_requests": 2.0,       # Standard request charges
             "cloudfront": 8.0,        # ~100GB transfer at $0.085/GB
-            "codebuild": 3.0,         # ~10 builds/month at $0.005/minute
             "route53": 0.50,          # If using custom domain
             "certificate": 0.0,       # ACM certificates are free
         }
-
-        # Adjust based on service tier
-        if self.client_config.service_tier == "tier1":
-            # Reduce estimates for tier1 (lower usage expected)
-            for key in costs:
-                costs[key] *= 0.6
-        elif self.client_config.service_tier == "tier3":
-            # Increase estimates for tier3 (higher usage expected)
-            for key in costs:
-                costs[key] *= 1.5
-
-        costs["total"] = sum(costs.values())
-        return costs
-
-    @abstractmethod
-    def _create_custom_infrastructure(self) -> None:
-        """
-        Create stack-specific infrastructure.
-
-        This method must be implemented by concrete stack classes
-        to define their specific infrastructure requirements.
-        """
-        pass

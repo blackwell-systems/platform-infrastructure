@@ -49,7 +49,7 @@ class TestSSGIntegration:
     def test_base_ssg_stack_integration(self):
         """Test base SSG stack can work with any SSG engine"""
 
-        from shared.base.base_ssg_stack import BaseSSGStack
+        from stacks.shared.base_ssg_stack import BaseSSGStack
 
         # Test with Astro configuration
         ssg_config = StaticSiteConfig(
@@ -181,7 +181,7 @@ class TestRevenueCriticalStacks:
     def test_phase5_foundation_readiness(self):
         """Test Phase 5 foundation: Base SSG stack + first Tier 1 implementation"""
 
-        from shared.base.base_ssg_stack import BaseSSGStack
+        from stacks.shared.base_ssg_stack import BaseSSGStack
 
         app = App()
 

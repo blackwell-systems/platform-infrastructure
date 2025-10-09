@@ -61,7 +61,7 @@ from stacks.cms.tina_cms_stack import TinaCMSStack
 from stacks.cms.sanity_cms_stack import SanityCMSStack
 from stacks.cms.contentful_cms_stack import ContentfulCMSStack
 
-from shared.base.base_ssg_stack import BaseSSGStack
+from stacks.shared.base_ssg_stack import BaseSSGStack
 from shared.ssg import StaticSiteConfig
 
 
