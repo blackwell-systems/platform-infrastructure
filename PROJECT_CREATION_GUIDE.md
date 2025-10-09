@@ -1,8 +1,14 @@
-# Project Creation Guide: Platform Infrastructure Config System
+# Project Creation Guide: Dual-Mode Platform Infrastructure
 
 ## Overview
 
-This guide explains how to create new client projects using the platform infrastructure configuration system. The system supports a tier-based service model with 30 different stack variants across multiple deployment modes.
+This guide explains how to create new client projects using the revolutionary **dual-mode platform infrastructure**. The system provides flexible composition between any CMS and E-commerce provider, with two integration modes: **Direct** (simple webhooks) and **Event-Driven** (composition-ready).
+
+`★ Key Innovation ─────────────────────────────────────`
+• **Universal Composition**: Mix any CMS (Decap, Tina, Sanity, Contentful) with any E-commerce provider (Snipcart, Foxy, Shopify) seamlessly
+• **Dual-Mode Architecture**: Choose Direct mode for simplicity or Event-Driven for advanced composition capabilities
+• **Cost-Democratic**: Same architecture serves $65/month startups to $430/month enterprises through provider choice, not architectural complexity
+`─────────────────────────────────────────────────`
 
 ## 📋 Prerequisites
 
@@ -22,888 +28,520 @@ uv run python -c "import pydantic; print('Pydantic version:', pydantic.__version
 uv run cdk --version
 ```
 
-## 🏗️ Configuration System Architecture
+## 🏗️ Dual-Mode Architecture Overview
 
-### 🎯 Service Tier Architecture
-- **🚀 Tier 1 (Essential)**: Foundation stacks with intelligent SSG selection | $360-3,000 setup | $0-150/month
-  - Marketing Stack (Eleventy), Developer Stack (Jekyll), Modern Performance Stack (Astro)
-- **💼 Tier 2 (Professional)**: Advanced integrations with CMS tiers | $2,400-9,600 setup | $50-400/month
-  - 4 CMS tiers × 7 SSG engines = 28+ optimized combinations with client choice
-- **🛒 E-commerce Integration**: Provider abstraction with flexible SSG pairing
-  - Snipcart tier ($85-125/month), Foxy.io tier ($100-150/month), Shopify tiers
-- **🔄 Migration Specialization**: Automated legacy platform modernization tools
+### 🎯 Integration Modes
+
+**Direct Mode (Simple & Familiar)**:
+- Traditional webhook → build pipeline
+- Perfect for simple websites, single providers
+- Cost: Base provider + AWS hosting only
+
+**Event-Driven Mode (Composition-Ready)**:
+- Unified event system with SNS topics, DynamoDB, Lambda functions
+- Enables seamless CMS + E-commerce composition
+- Cost: Base provider + AWS hosting + ~$15-25/month for event infrastructure
 
 ### 🏭 Core Platform Components
 
-1. **🤖 Intelligent Stack Factories**: Automated stack selection and recommendations
-   - **SSG Stack Factory**: Marketing, Developer, Modern Performance tier automation
-   - **E-commerce Stack Factory**: Provider tier selection with flexible SSG engine pairing
-2. **🎯 ClientConfig**: Pydantic model for client configuration validation and cost estimation
-3. **⚡ SSG Engine System**: 7 SSG engines (Eleventy, Hugo, Astro, Jekyll, Next.js, Nuxt, Gatsby)
-4. **🎨 ThemeRegistry**: Professional theme integration (Minimal Mistakes for Jekyll, etc.)
-5. **🔧 Provider Abstraction**: E-commerce providers (Snipcart, Foxy.io, Shopify) with extensible patterns
-6. **🚀 SharedInfraStack**: Centralized operational infrastructure with cost optimization
-7. **📊 Recommendation Engine**: AI-powered stack suggestions based on client requirements
+1. **🎯 ClientServiceConfig**: Consolidated Pydantic configuration with automatic validation and cost estimation
+2. **⚡ Universal SSG Support**: 6 engines (Hugo, Eleventy, Astro, Gatsby, Next.js, Nuxt.js) across all providers
+3. **🔧 EventDrivenIntegrationLayer**: Central event system enabling unlimited provider composition
+4. **🏗️ BaseSSGStack**: Universal foundation providing S3, CloudFront, Route53 patterns
+5. **🎨 Provider Tier System**: CMS tiers and E-commerce tiers with client choice of SSG engine
+6. **📊 Composition Examples**: Working patterns from $65/month to $430/month price points
 
 ## 🚀 Creating a New Project
 
-### 🏭 Recommended Approach: Stack Factories
+### 🏭 Modern Approach: Direct Stack Creation with Composition
 
-The modern way to create projects is using **intelligent stack factories** that automatically recommend and create optimal infrastructure based on client requirements.
+The modern way to create projects is using **ClientServiceConfig** with direct stack instantiation, enabling full composition flexibility.
 
-#### Step 1: Get Stack Recommendations
-
-```python
-from shared.factories.ssg_stack_factory import SSGStackFactory
-from shared.factories.ecommerce_stack_factory import EcommerceStackFactory
-
-# Get SSG stack recommendations based on client needs
-ssg_recommendations = SSGStackFactory.get_ssg_recommendations({
-    'content_focused': True,        # Marketing/content site
-    'budget_conscious': True,       # Cost optimization important
-    'technical_team': False        # Non-technical client
-})
-
-# Get e-commerce recommendations if needed
-ecommerce_recommendations = EcommerceStackFactory.get_ecommerce_recommendations({
-    'budget_conscious': True,
-    'advanced_ecommerce': False,
-    'prefer_react': False
-})
-
-print(f"Recommended SSG: {ssg_recommendations[0]['stack_type']}")
-print(f"Recommended E-commerce: {ecommerce_recommendations[0]['ecommerce_provider']}")
-```
-
-#### Step 2: Create Stacks Using Factories
+#### Step 1: Define Client Configuration
 
 ```python
-from aws_cdk import App
-from shared.factories.ssg_stack_factory import SSGStackFactory
-from shared.factories.ecommerce_stack_factory import EcommerceStackFactory
-
-app = App()
-
-# Create SSG stack automatically
-ssg_stack = SSGStackFactory.create_ssg_stack(
-    scope=app,
-    client_id="content-business",
-    domain="contentbiz.com",
-    stack_type="marketing"  # From recommendations
+from models.service_config import (
+    ClientServiceConfig, ServiceIntegrationConfig,
+    CMSProviderConfig, EcommerceProviderConfig,
+    IntegrationMode, ServiceType, ServiceTier, ManagementModel
 )
 
-# Create e-commerce stack if needed
-if client_needs_ecommerce:
-    ecommerce_stack = EcommerceStackFactory.create_ecommerce_stack(
-        scope=app,
-        client_id="modern-store",
-        domain="store.com",
-        ecommerce_provider="snipcart",  # Budget-friendly choice
-        ssg_engine="eleventy"           # Fast builds, cost-effective
+# Example 1: Budget-conscious CMS site
+budget_client = ClientServiceConfig(
+    client_id="budget-startup",
+    company_name="Budget Startup Co",
+    domain="budgetstartup.com",
+    contact_email="admin@budgetstartup.com",
+    service_tier=ServiceTier.TIER1,
+    management_model=ManagementModel.SELF_MANAGED,
+    service_integration=ServiceIntegrationConfig(
+        service_type=ServiceType.CMS_TIER,
+        ssg_engine="eleventy",
+        integration_mode=IntegrationMode.DIRECT,  # Simple webhooks
+        cms_config=CMSProviderConfig(
+            provider="decap",
+            settings={
+                "repository": "budget-startup-site",
+                "repository_owner": "budget-startup",
+                "branch": "main"
+            }
+        )
     )
+)
+
+# Example 2: Professional composition (CMS + E-commerce)
+professional_client = ClientServiceConfig(
+    client_id="creative-agency",
+    company_name="Creative Agency Co",
+    domain="creativeagency.com",
+    contact_email="admin@creativeagency.com",
+    service_tier=ServiceTier.TIER1,
+    management_model=ManagementModel.SELF_MANAGED,
+    service_integration=ServiceIntegrationConfig(
+        service_type=ServiceType.COMPOSED_STACK,
+        ssg_engine="astro",
+        integration_mode=IntegrationMode.EVENT_DRIVEN,  # Composition-ready
+        cms_config=CMSProviderConfig(
+            provider="sanity",
+            settings={
+                "project_id": "abc123",
+                "dataset": "production"
+            }
+        ),
+        ecommerce_config=EcommerceProviderConfig(
+            provider="snipcart",
+            settings={
+                "public_api_key": "key123",
+                "currency": "USD"
+            }
+        )
+    )
+)
+
+print(f"Budget client monthly cost: ~${budget_client.monthly_cost_estimate}/month")
+print(f"Professional client monthly cost: ~${professional_client.monthly_cost_estimate}/month")
 ```
 
-#### Step 3: Cost Estimation
-
-```python
-# Get cost estimates automatically
-ssg_cost = SSGStackFactory.estimate_total_cost("marketing")
-ecommerce_cost = EcommerceStackFactory.estimate_total_cost("snipcart", "eleventy")
-
-print(f"SSG Setup: ${ssg_cost['setup_cost_range']}")
-print(f"SSG Monthly: ${ssg_cost['monthly_cost_range']}")
-print(f"E-commerce Setup: ${ecommerce_cost['setup_cost_range']}")
-print(f"E-commerce Monthly: ${ecommerce_cost['monthly_cost_range']}")
-```
-
-#### Step 4: Complete Factory System Example
+#### Step 2: Create Stacks with Dual-Mode Support
 
 ```python
 from aws_cdk import App
-from shared.factories.ssg_stack_factory import SSGStackFactory
-from shared.factories.ecommerce_stack_factory import EcommerceStackFactory
+from stacks.cms.decap_cms_tier_stack import DecapCMSTierStack
+from stacks.cms.sanity_cms_tier_stack import SanityCMSTierStack
+from stacks.ecommerce.snipcart_ecommerce_stack_new import SnipcartEcommerceStack
 
 app = App()
 
-# Example: Content-focused business needs marketing site
-content_requirements = {
-    'content_focused': True,
-    'budget_conscious': True,
-    'technical_team': False
-}
-
-# Get recommendations
-ssg_recommendations = SSGStackFactory.get_ssg_recommendations(content_requirements)
-print(f"Recommended: {ssg_recommendations[0]['stack_type']} with {ssg_recommendations[0]['ssg_engine']}")
-# Output: Recommended: marketing with eleventy
-
-# Create the recommended stack
-marketing_stack = SSGStackFactory.create_ssg_stack(
-    scope=app,
-    client_id="content-business",
-    domain="contentbiz.com",
-    stack_type=ssg_recommendations[0]['stack_type']
+# Create budget CMS stack (Direct mode)
+budget_cms_stack = DecapCMSTierStack(
+    app,
+    "BudgetStartup-CMS-Stack",
+    client_config=budget_client
 )
 
-# Example: Technical team needs documentation site
-tech_requirements = {
-    'technical_team': True,
-    'git_workflow': True,
-    'documentation_site': True
-}
-
-# Get recommendations and create stack
-tech_recommendations = SSGStackFactory.get_ssg_recommendations(tech_requirements)
-docs_stack = SSGStackFactory.create_ssg_stack(
-    scope=app,
-    client_id="tech-docs",
-    domain="docs.techcompany.com",
-    stack_type=tech_recommendations[0]['stack_type'],  # Will be "developer"
-    github_repo="techcompany/documentation",
-    enable_github_pages_fallback=True
+# Create professional composition (Event-driven mode)
+professional_cms_stack = SanityCMSTierStack(
+    app,
+    "CreativeAgency-CMS-Stack",
+    client_config=professional_client
 )
 
-# Example: E-commerce business needs online store
-ecommerce_requirements = {
-    'budget_conscious': True,
-    'simple_products': True,
-    'technical_team': True
-}
-
-# Get e-commerce recommendations
-ecommerce_recommendations = EcommerceStackFactory.get_ecommerce_recommendations(ecommerce_requirements)
-store_stack = EcommerceStackFactory.create_ecommerce_stack(
-    scope=app,
-    client_id="simple-store",
-    domain="store.example.com",
-    ecommerce_provider=ecommerce_recommendations[0]['ecommerce_provider'],  # Will be "snipcart"
-    ssg_engine=ecommerce_recommendations[0]['recommended_ssg']  # Will be "hugo" for technical team
+professional_ecommerce_stack = SnipcartEcommerceStack(
+    app,
+    "CreativeAgency-Ecommerce-Stack",
+    client_config=professional_client
 )
 
 app.synth()
 ```
 
-#### Step 5: Deploy Your Stacks
+#### Step 3: Automatic Cost Estimation
+
+```python
+# Get detailed cost breakdowns
+budget_costs = budget_cms_stack.get_monthly_cost_estimate()
+professional_cms_costs = professional_cms_stack.get_monthly_cost_estimate()
+professional_ecommerce_costs = professional_ecommerce_stack.get_monthly_cost_estimate()
+
+print("Budget Site Costs:")
+for service, cost in budget_costs.items():
+    print(f"  {service}: ${cost}")
+
+print("\nProfessional Composition Costs:")
+print("CMS Stack:")
+for service, cost in professional_cms_costs.items():
+    print(f"  {service}: ${cost}")
+print("E-commerce Stack:")
+for service, cost in professional_ecommerce_costs.items():
+    print(f"  {service}: ${cost}")
+
+total_professional = professional_cms_costs['total'] + professional_ecommerce_costs['total']
+print(f"\nTotal Professional Monthly: ~${total_professional}")
+```
+
+#### Step 4: Complete Composition Examples
+
+```python
+from aws_cdk import App
+from models.client_templates import tier1_composed_client
+
+app = App()
+
+# Budget-friendly composition ($65-90/month)
+budget_composed = tier1_composed_client(
+    client_id="budget-store",
+    company_name="Budget Store",
+    domain="budgetstore.com",
+    contact_email="admin@budgetstore.com",
+    cms_provider="decap",           # FREE CMS
+    ecommerce_provider="snipcart",  # 2% transaction fees only
+    ssg_engine="eleventy",          # Fast, reliable builds
+    integration_mode=IntegrationMode.EVENT_DRIVEN
+)
+
+# Create composed infrastructure
+from stacks.cms.decap_cms_tier_stack import DecapCMSTierStack
+from stacks.ecommerce.snipcart_ecommerce_stack_new import SnipcartEcommerceStack
+
+budget_cms = DecapCMSTierStack(app, "BudgetStore-CMS", client_config=budget_composed)
+budget_ecommerce = SnipcartEcommerceStack(app, "BudgetStore-Ecommerce", client_config=budget_composed)
+
+# Enterprise composition ($430-580/month)
+enterprise_composed = tier1_composed_client(
+    client_id="enterprise-corp",
+    company_name="Enterprise Corp",
+    domain="enterprisecorp.com",
+    contact_email="admin@enterprisecorp.com",
+    cms_provider="contentful",         # Enterprise CMS features
+    ecommerce_provider="shopify_basic", # Proven e-commerce platform
+    ssg_engine="gatsby",               # React ecosystem
+    integration_mode=IntegrationMode.EVENT_DRIVEN
+)
+
+# Create enterprise infrastructure
+from stacks.cms.contentful_cms_stack import ContentfulCMSStack
+from stacks.ecommerce.shopify_basic_ecommerce_stack_new import ShopifyBasicEcommerceStack
+
+enterprise_cms = ContentfulCMSStack(app, "Enterprise-CMS", client_config=enterprise_composed)
+enterprise_ecommerce = ShopifyBasicEcommerceStack(app, "Enterprise-Ecommerce", client_config=enterprise_composed)
+
+app.synth()
+```
+
+#### Step 5: Deploy Your Dual-Mode Infrastructure
 
 ```bash
-# Deploy all stacks created by the factories
-uv run cdk deploy ContentBusiness-Marketing-SSG-Stack
-uv run cdk deploy TechDocs-Developer-SSG-Stack
-uv run cdk deploy SimpleStore-Snipcart-Hugo-Stack
+# Deploy budget site (Direct mode)
+uv run cdk deploy BudgetStartup-CMS-Stack
 
-# Check deployment status
+# Deploy professional composition (Event-driven mode)
+uv run cdk deploy CreativeAgency-CMS-Stack
+uv run cdk deploy CreativeAgency-Ecommerce-Stack
+
+# Deploy composed stacks
+uv run cdk deploy BudgetStore-CMS BudgetStore-Ecommerce
+uv run cdk deploy Enterprise-CMS Enterprise-Ecommerce
+
+# Check all deployments
 uv run cdk list
 ```
 
----
+## 🔧 EventDrivenIntegrationLayer Deep Dive
 
-### 📋 Alternative: Traditional Client Configuration
+When using Event-Driven mode, the **EventDrivenIntegrationLayer** creates a sophisticated event system that enables seamless composition between providers.
 
-For advanced use cases where you need full control, you can still use the traditional client configuration approach:
-
-#### Step 1: Define Client Configuration
-
-Create a client configuration using the `ClientConfig` model:
+### Event Layer Architecture
 
 ```python
-from clients._templates.client_config import ClientConfig, create_client_config
-
-# Method 1: Using the factory function
-client = create_client_config(
-    client_id="acme-corp",
-    company_name="Acme Corporation", 
-    service_tier="tier2",
-    stack_type="wordpress_ecs_professional_stack",
-    domain="acme.com",
-    contact_email="admin@acme.com"
+# Event-driven mode automatically creates:
+integration_layer = EventDrivenIntegrationLayer(
+    scope=stack,
+    construct_id="IntegrationLayer",
+    client_config=client_config
 )
 
-# Method 2: Using template functions
-from clients._templates.client_config import small_business_client
-
-client = small_business_client(
-    client_id="local-biz", 
-    company_name="Local Business",
-    domain="localbiz.com",
-    contact_email="owner@localbiz.com"
-)
-
-# Method 3: Direct instantiation with full control
-client = ClientConfig(
-    client_id="enterprise-co",
-    company_name="Enterprise Company",
-    service_tier="tier3_dual_delivery",
-    stack_type="fastapi_react_vue_stack",
-    deployment_mode="hosted",  # or "template"
-    domain="enterprise.com",
-    environment="prod",  # or "staging", "dev"
-    contact_email="devops@enterprise.com",
-    aws_account="123456789012",  # for template mode
-    region="us-east-1",
-    custom_settings={"tag:Department": "Engineering"}
-)
+# Components created:
+# - SNS Topics: content-events, commerce-events, build-events
+# - DynamoDB Tables: unified-content-cache, build-batching
+# - Lambda Functions: integration-handler, build-trigger, batching-handler
+# - API Gateway: webhook endpoints for all providers
 ```
 
-### Step 2: Validate Configuration
+### Event Flow Examples
 
-The system automatically validates your configuration:
-
-```python
-# Validation happens automatically, but you can check manually:
-try:
-    # This will raise ValidationError if invalid
-    validated_client = ClientConfig.model_validate(client_data)
-    print(f"✓ Configuration valid: {validated_client}")
-except ValidationError as e:
-    print(f"✗ Configuration errors: {e}")
+**Content Update Flow:**
+```
+1. Editor updates content in Sanity CMS
+2. Sanity webhook → API Gateway → Integration Handler
+3. Handler transforms to unified event → SNS Topic
+4. Build Batching Handler receives event
+5. Intelligent batching → CodeBuild trigger
+6. Build completes → S3 → CloudFront invalidation
 ```
 
-### Step 3: Choose Technology Stack
+**E-commerce Order Flow:**
+```
+1. Customer places order via Snipcart
+2. Snipcart webhook → API Gateway → Integration Handler
+3. Handler processes order → Updates inventory in content cache
+4. If product content changed → Triggers build
+5. Order confirmation → Customer notification
+```
 
-#### Available Stack Types by Tier
+### Integration Endpoints
 
-**Tier 1 (Essential) - 11 Stack Variants:**
+The EventDrivenIntegrationLayer creates unified webhook endpoints:
+
 ```python
-# ✅ UPDATED: Flexible Architecture - Client Choice Within Service Types
-tier1_service_types = {
-    # Static Sites (No CMS)
-    "static_sites": [
-        "eleventy_marketing_stack",     # Static marketing sites
-        "astro_portfolio_stack",        # Portfolio/showcase sites
-        "jekyll_github_stack",          # ✅ COMPLETED - GitHub Pages compatible
-        "astro_template_basic_stack"    # Basic Astro template
-    ],
+# Generated endpoints for all providers:
+endpoints = integration_layer.get_integration_endpoints()
 
-    # CMS-Enabled Sites (Client Choice: CMS tier → SSG engine)
-    "cms_sites": {
-        "decap_cms_tier": ["hugo", "eleventy", "astro", "gatsby"],           # $50-75/month
-        "tina_cms_tier": ["astro", "eleventy", "nextjs", "nuxt"],            # $60-85/month
-        "sanity_cms_tier": ["astro", "gatsby", "nextjs", "nuxt"],            # $65-90/month
-        "contentful_cms_tier": ["gatsby", "astro", "nextjs", "nuxt"]         # $75-125/month
-    },
-
-    # E-commerce Sites (Client Choice: Provider tier → SSG engine)
-    "ecommerce_sites": {
-        "snipcart_ecommerce_tier": ["hugo", "eleventy", "astro", "gatsby"],  # $85-125/month
-        "foxy_ecommerce_tier": ["hugo", "eleventy", "astro", "gatsby"],      # $100-150/month
-        "shopify_basic_tier": ["eleventy", "astro", "nextjs", "nuxt"],       # $75-125/month
-        "shopify_standard_dns_stack": []  # DNS-only, no SSG choice needed
-    }
+print(endpoints)
+# Output:
+{
+    "webhook_base_url": "https://abc123.execute-api.us-east-1.amazonaws.com/prod/",
+    "decap_webhook": "https://abc123.execute-api.us-east-1.amazonaws.com/prod/webhooks/decap",
+    "sanity_webhook": "https://abc123.execute-api.us-east-1.amazonaws.com/prod/webhooks/sanity",
+    "snipcart_webhook": "https://abc123.execute-api.us-east-1.amazonaws.com/prod/webhooks/snipcart",
+    "content_api_url": "https://abc123.execute-api.us-east-1.amazonaws.com/prod/content",
+    "health_check_url": "https://abc123.execute-api.us-east-1.amazonaws.com/prod/health"
 }
 ```
 
-#### E-commerce Stack Details
+## 🎯 Provider Selection Guide
 
-**Snipcart E-commerce (Simple):**
-- **Cost**: $29-99/month + 2.0% transaction fee
-- **Best for**: Small stores, digital products, simple catalogs
-- **Setup time**: ~3 hours (low complexity)
-- **Features**: Cart, checkout, inventory, digital products, subscriptions
+### CMS Provider Comparison
 
-**Foxy.io E-commerce (Advanced):**
-- **Cost**: $75-300/month + 1.5% transaction fee  
-- **Best for**: Advanced features, subscriptions, complex catalogs
-- **Setup time**: ~6 hours (high complexity)
-- **Features**: Cart, checkout, inventory, subscriptions, customer portal, advanced shipping
+| Provider | Monthly Cost | Best For | SSG Engines | Integration Modes |
+|----------|-------------|----------|-------------|-------------------|
+| **Decap CMS** | $0 (FREE) | Budget-conscious, technical teams | Hugo, Eleventy, Astro, Gatsby | Direct, Event-Driven |
+| **Tina CMS** | $0-29 | Visual editing, small teams | Astro, Eleventy, Next.js, Nuxt | Direct, Event-Driven |
+| **Sanity CMS** | $0-99 | Structured content, growing businesses | Astro, Gatsby, Next.js, Eleventy | Direct, Event-Driven |
+| **Contentful** | $300+ | Enterprise teams, complex workflows | Gatsby, Astro, Next.js, Nuxt | Direct, Event-Driven |
 
-**Tier 2 (Professional) - 7 Stack Variants:**
-```python
-tier2_stacks = [
-    "astro_advanced_cms_stack",                    # Advanced Astro + CMS
-    "gatsby_headless_cms_stack",                   # Gatsby headless CMS
-    "nextjs_professional_headless_cms_stack",      # Next.js professional
-    "nuxtjs_professional_headless_cms_stack",      # Nuxt.js professional
-    "wordpress_lightsail_stack",                   # WordPress Lightsail
-    "wordpress_ecs_professional_stack",            # WordPress ECS
-    "shopify_aws_basic_integration_stack"          # Shopify + AWS basic
-]
-```
+### E-commerce Provider Comparison
 
-**Dual-Delivery - 5 Stack Variants:**
-```python
-tier3_dual_delivery_stacks = [
-    "shopify_advanced_aws_integration_stack",      # Advanced Shopify + AWS
-    "headless_shopify_custom_frontend_stack",      # Headless Shopify
-    "amplify_custom_development_stack",            # AWS Amplify custom
-    "fastapi_pydantic_api_stack",                  # FastAPI + Pydantic
-    "fastapi_react_vue_stack"                      # FastAPI + React/Vue
-]
-```
+| Provider | Monthly Cost | Transaction Fees | Best For | SSG Engines |
+|----------|-------------|------------------|----------|-------------|
+| **Snipcart** | $29-99 | 2.0% + 30¢ | Simple stores, digital products | Hugo, Eleventy, Astro, Gatsby |
+| **Foxy.io** | $75-300 | 1.5% + 15¢ | Subscriptions, advanced features | Hugo, Eleventy, Astro, Gatsby |
+| **Shopify Basic** | $29+ | 2.9% + 30¢ | Standard e-commerce, inventory | Eleventy, Astro, Next.js, Nuxt |
 
-#### Using Template Functions for Common Cases
+### SSG Engine Selection Matrix
+
+| Engine | Complexity | Build Speed | Best For | CMS Compatibility | E-commerce Compatibility |
+|--------|------------|-------------|----------|-------------------|-------------------------|
+| **Hugo** | Technical | Fastest | Documentation, performance-critical | All CMS providers | All E-commerce providers |
+| **Eleventy** | Intermediate | Very Fast | Business sites, balanced complexity | All CMS providers | All E-commerce providers |
+| **Astro** | Modern | Fast | Component islands, modern sites | All CMS providers | All E-commerce providers |
+| **Gatsby** | Advanced | Good | React ecosystem, GraphQL | All CMS providers | All E-commerce providers |
+| **Next.js** | Advanced | Good | React apps, enterprise features | Tina, Sanity, Contentful | Astro, Next.js, Nuxt compatible |
+| **Nuxt.js** | Advanced | Good | Vue ecosystem, SSR | Tina, Sanity, Contentful | Astro, Next.js, Nuxt compatible |
+
+## 🚀 Advanced Configuration Examples
+
+### Multi-Environment Setup
 
 ```python
-# Individual/Freelancer (Tier 1)
-client = individual_client(
-    "johns-design", "John's Design Studio", 
-    "johnsdesign.com", "john@johnsdesign.com"
+# Development environment
+dev_config = ClientServiceConfig(
+    client_id="acme-corp-dev",
+    company_name="Acme Corporation (Dev)",
+    domain="dev.acme.com",
+    contact_email="dev@acme.com",
+    service_tier=ServiceTier.TIER1,
+    management_model=ManagementModel.SELF_MANAGED,
+    service_integration=ServiceIntegrationConfig(
+        service_type=ServiceType.CMS_TIER,
+        ssg_engine="astro",
+        integration_mode=IntegrationMode.DIRECT,  # Simpler for dev
+        cms_config=CMSProviderConfig(
+            provider="sanity",
+            settings={
+                "project_id": "abc123",
+                "dataset": "development"
+            }
+        )
+    )
 )
 
-# Small Business (Tier 2) 
-client = small_business_client(
-    "acme-corp", "Acme Corporation",
-    "acme.com", "admin@acme.com"
-)
-
-# Enterprise (Dual-Delivery)
-client = enterprise_client(
-    "bigcorp", "BigCorp Industries",
-    "bigcorp.com", "devops@bigcorp.com", 
-    deployment_mode="hosted"  # or "template"
-)
-
-# Technology-Specific Templates
-client = astro_client(
-    "design-studio", "Design Studio",
-    "designstudio.com", "admin@designstudio.com",
-    advanced=True  # Tier 2 vs Tier 1
-)
-
-client = wordpress_client(
-    "local-business", "Local Business", 
-    "localbusiness.com", "admin@localbusiness.com",
-    enterprise=False  # Professional vs Enterprise
-)
-
-client = shopify_client(
-    "online-store", "Online Store",
-    "onlinestore.com", "admin@onlinestore.com",
-    integration_level="basic"  # "dns", "basic", "advanced", "headless"
-)
-
-# E-commerce Specific Templates
-client = snipcart_client(
-    "small-shop", "Small Shop",
-    "smallshop.com", "admin@smallshop.com",
-    complexity="simple"  # "simple", "advanced"
-)
-
-client = foxy_client(
-    "premium-store", "Premium Store",
-    "premiumstore.com", "admin@premiumstore.com",
-    features=["subscriptions", "multi_currency"]  # Advanced features
+# Production environment
+prod_config = ClientServiceConfig(
+    client_id="acme-corp",
+    company_name="Acme Corporation",
+    domain="acme.com",
+    contact_email="admin@acme.com",
+    service_tier=ServiceTier.TIER1,
+    management_model=ManagementModel.SELF_MANAGED,
+    service_integration=ServiceIntegrationConfig(
+        service_type=ServiceType.COMPOSED_STACK,
+        ssg_engine="astro",
+        integration_mode=IntegrationMode.EVENT_DRIVEN,  # Full composition for prod
+        cms_config=CMSProviderConfig(
+            provider="sanity",
+            settings={
+                "project_id": "abc123",
+                "dataset": "production"
+            }
+        ),
+        ecommerce_config=EcommerceProviderConfig(
+            provider="snipcart",
+            settings={
+                "public_api_key": "prod-key123",
+                "currency": "USD"
+            }
+        )
+    )
 )
 ```
 
-### Step 4: Configure SSG Engine (For Static Sites)
+### Template Functions for Quick Setup
 
-For static site stacks, configure the SSG engine:
-
-```python
-from shared.ssg import SSGEngineFactory, StaticSiteConfig
-
-# Create SSG configuration
-ssg_config = StaticSiteConfig(
-    client_id="demo-client",
-    domain="demo-client.com", 
-    ssg_engine="eleventy",  # "eleventy", "hugo", "astro", "jekyll", "nextjs", "nuxt", "gatsby"
-    template_variant="business_modern",
-    performance_tier="optimized",  # "basic", "optimized", "premium"
-    cdn_caching_strategy="moderate"  # "minimal", "moderate", "aggressive"
-)
-
-# Get engine-specific configuration
-engine = ssg_config.get_ssg_config()
-print(f"Engine: {engine.engine_name}")
-print(f"Build commands: {[cmd.command for cmd in engine.build_commands]}")
-print(f"Output directory: {engine.output_directory}")
-
-# ✅ NEW: Jekyll with Minimal Mistakes Theme
-jekyll_config = StaticSiteConfig(
-    client_id="tech-docs",
-    domain="docs.client.com",
-    ssg_engine="jekyll",
-    template_variant="simple_blog",
-    performance_tier="basic",  # Auto-selects hybrid hosting (AWS + GitHub Pages)
-    theme_id="minimal-mistakes",  # Professional theme integration
-    theme_config={
-        "skin": "mint",
-        "author_name": "Technical Team", 
-        "search": True,
-        "navigation": True
-    }
-)
-```
-
-### Step 4b: Configure E-commerce Sites
-
-For e-commerce enabled sites, use the enhanced e-commerce configuration:
+For common use cases, use pre-configured templates:
 
 ```python
-# Simple E-commerce with Snipcart
-snipcart_config = StaticSiteConfig(
-    client_id="online-store",
-    domain="store.example.com",
-    ssg_engine="eleventy",
-    template_variant="snipcart_ecommerce",  # E-commerce template
-    performance_tier="optimized",
+from models.client_templates import (
+    tier1_self_managed_client,
+    tier1_composed_client
+)
+
+# Self-managed CMS client
+cms_client = tier1_self_managed_client(
+    client_id="content-site",
+    company_name="Content Site Co",
+    domain="content.com",
+    contact_email="admin@content.com",
+    cms_provider="tina",
+    ssg_engine="astro"
+)
+
+# Composed CMS + E-commerce client
+composed_client = tier1_composed_client(
+    client_id="full-site",
+    company_name="Full Site Co",
+    domain="fullsite.com",
+    contact_email="admin@fullsite.com",
+    cms_provider="sanity",
     ecommerce_provider="snipcart",
-    ecommerce_config={
-        "store_name": "My Online Store",
-        "currency": "USD",
-        "tax_included": False
-    }
-)
-
-# Advanced E-commerce with Foxy.io
-foxy_config = StaticSiteConfig(
-    client_id="advanced-store",
-    domain="advanced-store.com",
     ssg_engine="astro",
-    template_variant="foxy_ecommerce",  # Advanced e-commerce template
-    performance_tier="premium",
-    ecommerce_provider="foxy",
-    ecommerce_config={
-        "store_name": "Advanced Store",
-        "currency": "USD",
-        "subscription_enabled": True,
-        "multi_currency": True
-    }
+    integration_mode=IntegrationMode.EVENT_DRIVEN
+)
+```
+
+## 🎯 Cost Planning & Decision Framework
+
+### Budget-Based Provider Selection
+
+**Budget-Conscious ($65-90/month)**:
+```python
+budget_client = tier1_composed_client(
+    client_id="budget-startup",
+    company_name="Budget Startup Co",
+    domain="budgetstartup.com",
+    contact_email="admin@budgetstartup.com",
+    cms_provider="decap",           # FREE CMS
+    ecommerce_provider="snipcart",  # 2% transaction fees only
+    ssg_engine="eleventy",          # Fast, reliable builds
+    integration_mode=IntegrationMode.EVENT_DRIVEN
 )
 
-# Get e-commerce integration details
-ecommerce_integration = snipcart_config.get_ecommerce_integration()
-if ecommerce_integration:
-    print(f"Provider: {ecommerce_integration.provider}")
-    print(f"Monthly cost: ${ecommerce_integration.monthly_cost_range[0]}-${ecommerce_integration.monthly_cost_range[1]}")
-    print(f"Transaction fee: {ecommerce_integration.transaction_fee_percent}%")
-    print(f"Setup complexity: {ecommerce_integration.setup_complexity}")
-    print(f"Required AWS services: {ecommerce_integration.aws_services_needed}")
-    
-# Get required environment variables
-env_vars = snipcart_config.get_environment_variables()
-print(f"Required environment variables: {env_vars}")
-
-# Get AWS services needed
-aws_services = snipcart_config.get_required_aws_services()
-print(f"AWS services required: {aws_services}")
+print(f"Monthly cost: ~$65-90 + 2% of sales")
+print(f"Setup: FREE CMS + AWS hosting + event coordination")
 ```
 
-### Step 5: Save Configuration
+**Professional ($180-220/month)**:
+```python
+professional_client = tier1_composed_client(
+    client_id="creative-agency",
+    company_name="Creative Agency Co",
+    domain="creativeagency.com",
+    contact_email="admin@creativeagency.com",
+    cms_provider="sanity",          # Structured content CMS
+    ecommerce_provider="snipcart",  # Cost-effective e-commerce
+    ssg_engine="astro",             # Modern performance
+    integration_mode=IntegrationMode.EVENT_DRIVEN
+)
+```
+
+**Enterprise ($430-580/month)**:
+```python
+enterprise_client = tier1_composed_client(
+    client_id="enterprise-corp",
+    company_name="Enterprise Corp",
+    domain="enterprisecorp.com",
+    contact_email="admin@enterprisecorp.com",
+    cms_provider="contentful",         # Enterprise CMS features
+    ecommerce_provider="shopify_basic", # Proven e-commerce platform
+    ssg_engine="gatsby",               # React ecosystem
+    integration_mode=IntegrationMode.EVENT_DRIVEN
+)
+```
+
+### Mode Selection Logic
 
 ```python
-import json
-from pathlib import Path
+def choose_integration_mode(client_requirements):
+    """Help clients choose the right integration mode"""
 
-# Save client configuration
-client_dir = Path(f"clients/{client.client_id}")
-client_dir.mkdir(exist_ok=True)
+    # Factors favoring Event-Driven mode
+    event_driven_factors = [
+        client_requirements.get("multiple_providers", False),
+        client_requirements.get("future_composition", False),
+        client_requirements.get("analytics_needs", False),
+        client_requirements.get("complex_workflows", False)
+    ]
 
-# Save main config
-config_file = client_dir / "config.json"
-with open(config_file, 'w') as f:
-    json.dump(client.to_dict(), f, indent=2)
+    # Factors favoring Direct mode
+    direct_factors = [
+        client_requirements.get("simple_site", False),
+        client_requirements.get("minimal_cost", False),
+        client_requirements.get("traditional_workflow", False)
+    ]
 
-# Generate deployment name and tags
-print(f"Deployment name: {client.deployment_name}")
-print(f"Resource prefix: {client.resource_prefix}")
-print(f"Tags: {client.tags}")
+    if sum(event_driven_factors) > sum(direct_factors):
+        return IntegrationMode.EVENT_DRIVEN, "Composition capabilities recommended"
+    else:
+        return IntegrationMode.DIRECT, "Simple workflow recommended"
+
+# Usage
+mode, reason = choose_integration_mode({
+    "multiple_providers": True,
+    "future_composition": True
+})
+print(f"Recommended: {mode.value} - {reason}")
 ```
 
-## 📊 Using the Matrix Parser
+## 🚀 Deployment Process
 
-The matrix parser provides dynamic validation and recommendations:
-
-```python
-from clients._templates.matrix_parser import get_matrix
-
-matrix = get_matrix()
-
-# Get stack information
-stack_info = matrix.get_stack_info("wordpress_ecs_professional_stack")
-if stack_info:
-    print(f"Setup cost range: ${stack_info.setup_cost_range[0]:,}-${stack_info.setup_cost_range[1]:,}")
-    print(f"Monthly cost range: ${stack_info.monthly_cost_range[0]}-${stack_info.monthly_cost_range[1]}")
-    print(f"AWS services: {stack_info.aws_services}")
-
-# Get recommendations
-recommendations = matrix.get_recommended_stacks("small_business", "medium_ecommerce")
-print(f"Recommended stacks: {recommendations}")
-
-# Validate pricing
-is_valid = matrix.validate_pricing("wordpress_ecs_professional_stack", setup_cost=5000, monthly_fee=200)
-print(f"Pricing valid: {is_valid}")
-
-# Migration recommendations
-migration_targets = matrix.get_migration_recommendations("magento 1.x")
-print(f"Migration targets: {migration_targets}")
-```
-
-## 🏭 Deployment Process
-
-### Step 6: Deploy Shared Infrastructure (One-time)
+### Step 1: Deploy Shared Infrastructure (One-time)
 
 ```bash
 # Deploy shared operational infrastructure
 uv run cdk deploy WebServices-SharedInfra --context account=123456789012 --context region=us-east-1
 ```
 
-### Step 7: Create Stacks Using Factories
-
-Create stacks using the intelligent factory system:
-
-```python
-# app.py - Modern factory-based approach
-from aws_cdk import App
-from shared.factories.ssg_stack_factory import SSGStackFactory
-from shared.factories.ecommerce_stack_factory import EcommerceStackFactory
-
-app = App()
-
-# Create marketing site stack
-marketing_stack = SSGStackFactory.create_ssg_stack(
-    scope=app,
-    client_id="acme-corp",
-    domain="acme.com",
-    stack_type="marketing"  # Intelligent Eleventy stack with optimizations
-)
-
-# Optional: Add e-commerce if needed
-ecommerce_stack = EcommerceStackFactory.create_ecommerce_stack(
-    scope=app,
-    client_id="acme-store",
-    domain="store.acme.com",
-    ecommerce_provider="snipcart",
-    ssg_engine="eleventy"  # Consistent with marketing site
-)
-
-app.synth()
-```
-
-**Alternative: Traditional Client-Specific Stack** (for advanced users):
-
-```python
-# clients/acme-corp/stack.py - Traditional approach
-from aws_cdk import Stack, App
-from constructs import Construct
-from clients._templates.client_config import ClientConfig
-
-class AcmeCorpStack(Stack):
-    def __init__(self, scope: Construct, construct_id: str, client_config: ClientConfig, **kwargs):
-        super().__init__(scope, construct_id, **kwargs)
-
-        self.client_config = client_config
-
-        # Apply client tags to all resources
-        for key, value in client_config.tags.items():
-            self.add_tags(**{key: value})
-
-        # Create client-specific resources based on factory patterns
-        self._create_resources_via_factories()
-
-    def _create_resources_via_factories(self):
-        # Use factories internally for consistency
-        pass
-```
-
-### Step 8: Deploy Your Stacks
-
-Deploy the factory-created stacks:
+### Step 2: Deploy Client Stacks
 
 ```bash
-# Deploy the stacks created by factories
-uv run cdk deploy AcmeCorp-Marketing-SSG-Stack
-uv run cdk deploy AcmeStore-Snipcart-Eleventy-Stack
+# Deploy CMS-only stack (Direct mode)
+uv run cdk deploy BudgetStartup-CMS-Stack
 
-# Check all available stacks
+# Deploy composed stacks (Event-driven mode)
+uv run cdk deploy CreativeAgency-CMS-Stack
+uv run cdk deploy CreativeAgency-Ecommerce-Stack
+
+# Deploy with parameters if needed
+uv run cdk deploy Enterprise-CMS-Stack --parameters Domain=enterprisecorp.com
+```
+
+### Step 3: Verify Deployment
+
+```bash
+# Check deployment status
 uv run cdk list
 
-# Deploy with custom parameters if needed
-uv run cdk deploy AcmeCorp-Marketing-SSG-Stack --parameters Domain=acme.com
-```
-
-**Alternative: Traditional Client Stack Deployment** (for advanced users):
-
-```python
-# clients/acme-corp/app.py - Traditional approach
-#!/usr/bin/env python3
-import json
-from pathlib import Path
-import aws_cdk as cdk
-from clients._templates.client_config import ClientConfig
-from clients.acme_corp.stack import AcmeCorpStack
-
-def main():
-    app = cdk.App()
-
-    # Load client configuration
-    config_file = Path(__file__).parent / "config.json"
-    with open(config_file) as f:
-        config_data = json.load(f)
-
-    client_config = ClientConfig.from_dict(config_data)
-
-    # Create client stack (now uses factories internally)
-    AcmeCorpStack(
-        app,
-        client_config.deployment_name,
-        client_config=client_config,
-        description=f"Infrastructure for {client_config.company_name}",
-        env=cdk.Environment(
-            account=client_config.aws_account or app.node.try_get_context("account"),
-            region=client_config.region
-        )
-    )
-
-    app.synth()
-
-if __name__ == "__main__":
-    main()
-```
-
-## 🎨 Theme System Integration
-
-### ✅ Minimal Mistakes Theme for Jekyll
-
-The Jekyll stack now includes professional theme integration with the popular minimal-mistakes theme:
-
-```python
-from shared.ssg import StaticSiteConfig
-from shared.factories.ssg_stack_factory import SSGStackFactory
-
-# Create Jekyll site with minimal-mistakes theme using SSG Stack Factory
-jekyll_config = StaticSiteConfig(
-    client_id="professional-docs",
-    domain="docs.professional.com",
-    ssg_engine="jekyll",
-    template_variant="simple_blog",
-    performance_tier="basic",
-    theme_id="minimal-mistakes",  # Professional theme
-    theme_config={
-        "skin": "mint",            # Theme color scheme
-        "author_name": "Company Name",
-        "author_bio": "Professional documentation",
-        "search": True,            # Enable site search
-        "navigation": True,        # Enable main navigation
-        "sidebar": True,           # Enable sidebar
-        "social_sharing": True     # Enable social media sharing
-    }
-)
-
-# Deploy Jekyll stack using SSG Stack Factory
-jekyll_stack = SSGStackFactory.create_ssg_stack(
-    scope=app,
-    client_id="professional-docs",
-    domain="docs.professional.com",
-    stack_type="developer",  # Uses JekyllGitHubStack internally
-    theme_id="minimal-mistakes",
-    theme_config={
-        "skin": "mint",
-        "author_name": "Company Name",
-        "author_bio": "Professional documentation",
-        "search": True,
-        "navigation": True,
-        "sidebar": True,
-        "social_sharing": True
-    }
-)
-```
-
-### Theme Features
-- **GitHub Pages Compatible**: Uses remote_theme method
-- **Professional Design**: Clean, responsive layout from mmistakes/minimal-mistakes
-- **Customizable**: Multiple skins, layouts, and feature options
-- **Automatic Installation**: Theme setup integrated into build process
-- **Environment Variables**: Theme configuration via build environment
-
-### Theme Customization Options
-- **Skins**: `default`, `dark`, `dirt`, `mint`, `plum`, `sunrise`
-- **Layouts**: `single`, `splash`, `archive`, `search`, `home`
-- **Features**: Author profiles, navigation, search, social sharing, comments
-
-## 🛒 E-commerce Configuration Examples
-
-### Snipcart E-commerce Setup
-
-```python
-# Simple Snipcart store
-snipcart_store = StaticSiteConfig(
-    client_id="boutique-store",
-    domain="boutique.example.com",
-    ssg_engine="eleventy",
-    template_variant="snipcart_ecommerce",
-    performance_tier="optimized",
-    ecommerce_provider="snipcart",
-    ecommerce_config={
-        "store_name": "Boutique Store",
-        "currency": "USD",
-        "tax_included": False,
-        "shipping_same_as_billing": True,
-        "inventory_management": True
-    },
-    environment_vars={
-        "SNIPCART_API_KEY": "${SNIPCART_API_KEY}",
-        "SNIPCART_PUBLIC_KEY": "${SNIPCART_PUBLIC_KEY}"
-    }
-)
-
-# Get cost breakdown
-integration = snipcart_store.get_ecommerce_integration()
-print(f"Monthly platform cost: ${integration.monthly_cost_range[0]}-${integration.monthly_cost_range[1]}")
-print(f"Transaction fee: {integration.transaction_fee_percent}%")
-print(f"AWS services needed: {integration.aws_services_needed}")
-```
-
-### Foxy.io Advanced E-commerce Setup
-
-```python
-# Advanced Foxy.io store
-foxy_store = StaticSiteConfig(
-    client_id="premium-electronics",
-    domain="electronics.example.com", 
-    ssg_engine="astro",
-    template_variant="foxy_ecommerce",
-    performance_tier="premium",
-    ecommerce_provider="foxy",
-    ecommerce_config={
-        "store_name": "Premium Electronics",
-        "currency": "USD",
-        "multi_currency": True,
-        "subscription_products": True,
-        "customer_accounts": True,
-        "advanced_shipping": True,
-        "tax_calculation": True
-    },
-    environment_vars={
-        "FOXY_STORE_DOMAIN": "${FOXY_STORE_DOMAIN}",
-        "FOXY_API_KEY": "${FOXY_API_KEY}",
-        "FOXY_WEBHOOK_SECRET": "${FOXY_WEBHOOK_SECRET}"
-    },
-    webhook_endpoints=[
-        "/api/webhooks/foxy/order-created",
-        "/api/webhooks/foxy/subscription-modified"
-    ],
-    requires_backend_api=True
-)
-
-# Get comprehensive setup details
-integration = foxy_store.get_ecommerce_integration()
-print(f"Setup complexity: {integration.setup_complexity}")
-print(f"Build dependencies: {integration.build_dependencies}")
-print(f"AWS services: {integration.aws_services_needed}")
-print(f"Required webhooks: {foxy_store.webhook_endpoints}")
-```
-
-### E-commerce Recommendations Engine
-
-```python
-from shared.ssg import SSGEngineFactory
-
-# Get recommendations by complexity level
-simple_recs = SSGEngineFactory.get_recommended_stack_for_ecommerce("snipcart", "simple")
-for rec in simple_recs:
-    print(f"Engine: {rec['engine']}, Template: {rec['template']}")
-    print(f"Estimated setup: {rec['estimated_hours']} hours")
-    print(f"Monthly cost: ${rec['monthly_cost_range'][0]}-${rec['monthly_cost_range'][1]}")
-
-# Get all e-commerce templates
-ecommerce_templates = SSGEngineFactory.get_ecommerce_templates()
-for engine, templates in ecommerce_templates.items():
-    print(f"\n{engine.upper()} E-commerce Templates:")
-    for template in templates:
-        integration = template.ecommerce_integration
-        if integration:
-            print(f"  - {template.name}: {integration.provider} ({integration.setup_complexity})")
-
-# Get templates by specific provider
-snipcart_templates = SSGEngineFactory.get_templates_by_provider("snipcart")
-foxy_templates = SSGEngineFactory.get_templates_by_provider("foxy")
-```
-
-### E-commerce Cost Planning
-
-```python
-def calculate_ecommerce_costs(client_config, monthly_sales=5000):
-    """Calculate total monthly e-commerce costs including platform fees."""
-    
-    # Get e-commerce integration details
-    if hasattr(client_config, 'get_ecommerce_integration'):
-        integration = client_config.get_ecommerce_integration()
-        if integration:
-            platform_cost = integration.monthly_cost_range[1]  # Use max
-            transaction_fee = (monthly_sales * integration.transaction_fee_percent) / 100
-            
-            # AWS hosting costs (estimated)
-            aws_services = client_config.get_required_aws_services()
-            aws_cost = len(aws_services) * 15  # ~$15 per service
-            
-            total_cost = platform_cost + transaction_fee + aws_cost
-            
-            return {
-                "platform_monthly": platform_cost,
-                "transaction_fees": transaction_fee,
-                "aws_hosting": aws_cost,
-                "total_monthly": total_cost,
-                "cost_per_sale": total_cost / (monthly_sales / 100) if monthly_sales > 0 else 0
-            }
-    
-    return None
-
-# Example usage
-costs = calculate_ecommerce_costs(snipcart_store, monthly_sales=3000)
-if costs:
-    print(f"Total monthly cost: ${costs['total_monthly']:.2f}")
-    print(f"Cost per $100 in sales: ${costs['cost_per_sale']:.2f}")
-```
-
-## 🔧 Advanced Configuration
-
-### Environment-Specific Configs
-
-```python
-# Development environment
-dev_client = ClientConfig(
-    client_id="acme-corp",
-    company_name="Acme Corporation",
-    service_tier="tier2", 
-    stack_type="wordpress_ecs_professional_stack",
-    domain="dev.acme.com",
-    environment="dev",  # Different from prod
-    contact_email="dev@acme.com"
-)
-
-# Staging environment  
-staging_client = ClientConfig(
-    client_id="acme-corp",
-    company_name="Acme Corporation",
-    service_tier="tier2",
-    stack_type="wordpress_ecs_professional_stack", 
-    domain="staging.acme.com",
-    environment="staging",
-    contact_email="staging@acme.com"
-)
-```
-
-### Migration Projects
-
-```python
-# Migration from legacy platform
-migration_client = ClientConfig(
-    client_id="legacy-migrate",
-    company_name="Legacy Company",
-    service_tier="tier2",
-    stack_type="magento_migration_stack", 
-    domain="legacy.com",
-    contact_email="admin@legacy.com",
-    migration_source="magento_1x"  # Source platform
-)
-```
-
-### Dual-Delivery Template Mode
-
-```python
-# Template delivery (client deploys in their AWS account)
-template_client = ClientConfig(
-    client_id="enterprise-template",
-    company_name="Enterprise Template Co",
-    service_tier="tier3_dual_delivery",
-    stack_type="fastapi_react_vue_stack",
-    deployment_mode="template",  # Template delivery
-    domain="enterprise-template.com", 
-    contact_email="devops@enterprise-template.com",
-    aws_account="987654321098",  # Client's AWS account
-    region="eu-west-1"
-)
+# Get stack outputs
+aws cloudformation describe-stacks --stack-name BudgetStartup-CMS-Stack --query 'Stacks[0].Outputs'
 ```
 
 ## ✅ Validation and Testing
@@ -911,84 +549,73 @@ template_client = ClientConfig(
 ### Configuration Validation
 
 ```python
-def validate_client_config(config_data: dict) -> ClientConfig:
+from pydantic import ValidationError
+
+def validate_client_config(config_data: dict) -> ClientServiceConfig:
     """Validate and return client configuration."""
     try:
-        client = ClientConfig.model_validate(config_data)
-        
-        # Additional business rule validation
-        if client.service_tier == "tier1" and client.monthly_cost_range[1] > 150:
-            raise ValueError("Tier 1 clients cannot exceed $150/month AWS costs")
-            
-        if client.deployment_mode == "template" and client.service_tier != "tier3_dual_delivery":
-            raise ValueError("Template mode only available for tier3_dual_delivery tier")
-            
+        client = ClientServiceConfig.model_validate(config_data)
+
+        # Automatic validation includes:
+        # - Client ID format (kebab-case)
+        # - Required fields presence
+        # - Provider settings validation
+        # - SSG engine compatibility
+        # - Cost estimation
+
         return client
-        
+
     except ValidationError as e:
         print(f"Configuration validation failed: {e}")
         raise
-```
 
-### Stack Type Validation
-
-```python
-def validate_stack_type(stack_type: str, service_tier: str) -> bool:
-    """Validate stack type is appropriate for service tier."""
-    
-    # ✅ UPDATED: Flexible Architecture Validation
-    tier_mappings = {
-        "tier1": [
-            # Static Sites
-            "eleventy_marketing_stack", "astro_portfolio_stack",
-            "jekyll_github_stack", "astro_template_basic_stack",
-            # CMS Tiers (via factory patterns)
-            "decap_cms_tier", "tina_cms_tier", "sanity_cms_tier", "contentful_cms_tier",
-            # E-commerce Provider Tiers (via factory patterns)
-            "snipcart_ecommerce_tier", "foxy_ecommerce_tier", "shopify_basic_tier",
-            "shopify_standard_dns_stack"
-        ],
-        "tier2": [
-            "astro_advanced_cms_stack", "gatsby_headless_cms_stack",
-            "nextjs_professional_headless_cms_stack", 
-            "nuxtjs_professional_headless_cms_stack",
-            "wordpress_lightsail_stack", "wordpress_ecs_professional_stack",
-            "shopify_aws_basic_integration_stack"
-        ],
-        "tier3_dual_delivery": [
-            "shopify_advanced_aws_integration_stack",
-            "headless_shopify_custom_frontend_stack",
-            "amplify_custom_development_stack", 
-            "fastapi_pydantic_api_stack", "fastapi_react_vue_stack"
-        ]
+# Example usage
+valid_config = validate_client_config({
+    "client_id": "test-client",
+    "company_name": "Test Company",
+    "domain": "test.com",
+    "contact_email": "test@test.com",
+    "service_tier": "tier1",
+    "management_model": "self_managed",
+    "service_integration": {
+        "service_type": "cms_tier",
+        "ssg_engine": "astro",
+        "integration_mode": "direct",
+        "cms_config": {
+            "provider": "decap",
+            "settings": {
+                "repository": "test-repo",
+                "repository_owner": "test-owner"
+            }
+        }
     }
-    
-    return stack_type in tier_mappings.get(service_tier, [])
+})
 ```
 
-## 🏷️ Tagging and Cost Management
+### Integration Testing
 
-The system automatically applies comprehensive tags for cost allocation:
+```bash
+# Run integration tests
+uv run pytest tests/test_event_driven_integration.py -v
 
-```python
-client = ClientConfig(...)
+# Test specific provider combinations
+uv run pytest tests/test_event_driven_integration.py::TestEventDrivenIntegration::test_composed_stack_creation -v
 
-# Automatic tagging
-tags = client.tags
-# Output:
-{
-    "Client": "acme-corp",
-    "Company": "Acme Corporation", 
-    "Environment": "prod",
-    "StackType": "wordpress_ecs_professional_stack",
-    "ServiceTier": "tier2",
-    "DeploymentMode": "hosted",
-    "BillingGroup": "acme-corp-prod",
-    "CostCenter": "acme-corp", 
-    "Contact": "admin@acme.com",
-    "ManagedBy": "CDK",
-    "Project": "WebServices"
-}
+# Test cost estimation
+uv run python -c "
+from models.client_templates import tier1_composed_client
+from models.service_config import IntegrationMode
+
+client = tier1_composed_client(
+    'test-client', 'Test Company', 'test.com', 'test@test.com',
+    cms_provider='sanity', ecommerce_provider='snipcart',
+    ssg_engine='astro', integration_mode=IntegrationMode.EVENT_DRIVEN
+)
+
+print(f'Monthly cost estimate: ${client.monthly_cost_estimate}')
+print(f'Resource prefix: {client.resource_prefix}')
+print(f'Stack type: {client.stack_type}')
+"
 ```
 
 ## 🚨 Common Pitfalls and Solutions
@@ -997,7 +624,7 @@ tags = client.tags
 ```python
 # ✗ Invalid client IDs
 "Acme Corp"        # Contains spaces
-"acme_corp"        # Contains underscores  
+"acme_corp"        # Contains underscores
 "acme-"            # Ends with hyphen
 "-acme-corp"       # Starts with hyphen
 "acme--corp"       # Double hyphens
@@ -1008,147 +635,189 @@ tags = client.tags
 "client123"        # Numbers allowed
 ```
 
-### 2. Service Tier Mismatches
+### 2. Integration Mode Mismatches
 ```python
 # ✗ Invalid combinations
-ClientConfig(
-    service_tier="tier1",
-    stack_type="wordpress_ecs_professional_stack"  # Tier 2 stack
+# Direct mode with multiple providers
+ClientServiceConfig(
+    service_integration=ServiceIntegrationConfig(
+        service_type=ServiceType.COMPOSED_STACK,  # Requires event-driven
+        integration_mode=IntegrationMode.DIRECT   # Can't compose in direct mode
+    )
 )
 
-ClientConfig(
-    service_tier="tier2", 
-    deployment_mode="template"  # Only tier3_dual_delivery supports template mode
-)
-
-# ✓ Valid combinations  
-ClientConfig(
-    service_tier="tier1",
-    stack_type="eleventy_marketing_stack"  # Tier 1 stack
-)
-
-ClientConfig(
-    service_tier="tier3_dual_delivery",
-    deployment_mode="template"  # Correct tier for template mode
+# ✓ Valid combinations
+# Event-driven mode for composition
+ClientServiceConfig(
+    service_integration=ServiceIntegrationConfig(
+        service_type=ServiceType.COMPOSED_STACK,
+        integration_mode=IntegrationMode.EVENT_DRIVEN  # Correct for composition
+    )
 )
 ```
 
-### 3. Environment Setup Issues
-```bash
-# ✗ Wrong package managers
-pip install aws-cdk-lib    # Don't use pip
-poetry add aws-cdk-lib     # Don't use poetry
-
-# ✓ Correct package manager
-uv add aws-cdk-lib         # Always use uv
-uv sync                    # Install all dependencies
-```
-
-## 📚 Quick Reference
-
-### Template Functions
-- `individual_client()` - Tier 1 individual/freelancer
-- `small_business_client()` - Tier 2 small business  
-- `enterprise_client()` - Dual-delivery enterprise
-- `astro_client()` - Astro-based sites (basic/advanced)
-- `wordpress_client()` - WordPress sites (professional/enterprise)
-- `shopify_client()` - Shopify integrations (dns/basic/advanced/headless)
-- `nextjs_client()` - Next.js applications (professional/enterprise)
-- `snipcart_client()` - Simple e-commerce with Snipcart integration
-- `foxy_client()` - Advanced e-commerce with Foxy.io integration
-
-### Key Properties  
-- `client.deployment_name` - CDK deployment identifier
-- `client.resource_prefix` - AWS resource naming prefix
-- `client.tags` - Complete AWS tagging dict
-- `client.to_dict()` - JSON serialization
-- `ClientConfig.from_dict()` - JSON deserialization
-
-### Essential Commands
-```bash
-uv sync                    # Install dependencies
-uv run python app.py       # Execute with project deps
-uv run cdk deploy          # Deploy infrastructure
-uv run pytest             # Run tests
-uv run black .             # Format code
-uv run ruff check .        # Lint code
-
-# E-commerce specific testing
-uv run python -c "from shared.ssg import SSGEngineFactory; print('E-commerce templates:', SSGEngineFactory.get_ecommerce_templates())"
-```
-
-### Migration and Updates
+### 3. Provider Settings Validation
 ```python
-from clients._templates.matrix_parser import migrate_stack_type
+# ✗ Missing required settings
+CMSProviderConfig(
+    provider="decap",
+    settings={}  # Missing required repository settings
+)
 
-# Update existing configurations
-old_stack = "astro_headless_cms" 
-new_stack = migrate_stack_type(old_stack)  # Returns "astro_template_basic_stack"
+# ✓ Complete provider settings
+CMSProviderConfig(
+    provider="decap",
+    settings={
+        "repository": "my-site",
+        "repository_owner": "my-org",
+        "branch": "main"
+    }
+)
 ```
 
----
+## 📚 Essential Commands Reference
 
-## 🛠️ E-commerce Deployment Checklist
+### Environment Setup
+```bash
+# Install dependencies
+uv sync
 
-When deploying e-commerce sites, follow this checklist:
+# Verify setup
+uv run python -c "import pydantic; print('Pydantic version:', pydantic.__version__)"
+uv run cdk --version
 
-### Pre-deployment
-- [ ] **Provider Setup**: Create account with Snipcart/Foxy.io
-- [ ] **API Keys**: Obtain and secure API keys in AWS Parameter Store
-- [ ] **Domain**: Ensure SSL certificate is ready
-- [ ] **Testing**: Set up sandbox/test environment first
+# Run tests
+uv run pytest tests/test_event_driven_integration.py -v
+```
 
-### Configuration
-- [ ] **Template Selection**: Choose appropriate e-commerce template
-- [ ] **Environment Variables**: Configure all required variables
-- [ ] **Webhooks**: Set up webhook endpoints for order processing
-- [ ] **AWS Services**: Ensure Lambda, SES, and other services are configured
+### Configuration Examples
+```bash
+# Test budget composition
+uv run python -c "
+from models.client_templates import tier1_composed_client
+from models.service_config import IntegrationMode
 
-### Post-deployment
-- [ ] **Payment Testing**: Test checkout flow thoroughly
-- [ ] **Order Processing**: Verify webhook delivery and processing
-- [ ] **Performance**: Monitor site performance under load
-- [ ] **Cost Monitoring**: Set up billing alerts for platform and AWS costs
+budget = tier1_composed_client(
+    'budget-client', 'Budget Client', 'budget.com', 'admin@budget.com',
+    cms_provider='decap', ecommerce_provider='snipcart',
+    ssg_engine='eleventy', integration_mode=IntegrationMode.EVENT_DRIVEN
+)
+print(f'Budget: {budget.monthly_cost_estimate}/month')
+"
+
+# Test enterprise composition
+uv run python -c "
+from models.client_templates import tier1_composed_client
+from models.service_config import IntegrationMode
+
+enterprise = tier1_composed_client(
+    'enterprise-client', 'Enterprise Client', 'enterprise.com', 'admin@enterprise.com',
+    cms_provider='contentful', ecommerce_provider='shopify_basic',
+    ssg_engine='gatsby', integration_mode=IntegrationMode.EVENT_DRIVEN
+)
+print(f'Enterprise: {enterprise.monthly_cost_estimate}/month')
+"
+```
+
+### Stack Operations
+```bash
+# List all available stacks
+uv run cdk list
+
+# Show changes before deploy
+uv run cdk diff
+
+# Deploy specific stack
+uv run cdk deploy [StackName]
+
+# Remove stack
+uv run cdk destroy [StackName]
+```
+
+### Code Quality
+```bash
+# Format code
+uv run black .
+
+# Lint code
+uv run ruff check .
+```
 
 ## 🎯 Next Steps
 
 1. **Set up your development environment** with Python 3.13+ and uv
 2. **Deploy shared infrastructure** using the SharedInfraStack
-3. **Try the intelligent factory system**:
+3. **Try the dual-mode system**:
    ```bash
-   # Get stack recommendations
+   # Test configuration creation
    uv run python -c "
-   from shared.factories.ssg_stack_factory import SSGStackFactory
-   requirements = {'content_focused': True, 'budget_conscious': True}
-   recommendations = SSGStackFactory.get_ssg_recommendations(requirements)
-   print('Recommended:', recommendations[0])
+   from models.service_config import ClientServiceConfig, ServiceIntegrationConfig, CMSProviderConfig, IntegrationMode
+   from models.service_config import ServiceType, ServiceTier, ManagementModel
+
+   config = ClientServiceConfig(
+       client_id='test-client',
+       company_name='Test Company',
+       domain='test.com',
+       contact_email='test@test.com',
+       service_tier=ServiceTier.TIER1,
+       management_model=ManagementModel.SELF_MANAGED,
+       service_integration=ServiceIntegrationConfig(
+           service_type=ServiceType.CMS_TIER,
+           ssg_engine='astro',
+           integration_mode=IntegrationMode.DIRECT,
+           cms_config=CMSProviderConfig(
+               provider='decap',
+               settings={'repository': 'test-repo', 'repository_owner': 'test-owner'}
+           )
+       )
+   )
+   print(f'Configuration valid: {config.client_id}')
+   print(f'Monthly cost: ${config.monthly_cost_estimate}')
    "
    ```
-4. **Create your first stack using factories**:
+
+4. **Create your first dual-mode stack**:
    ```bash
-   # Create and deploy a marketing stack
+   # Create and deploy a CMS stack
    uv run python -c "
    from aws_cdk import App
-   from shared.factories.ssg_stack_factory import SSGStackFactory
+   from stacks.cms.decap_cms_tier_stack import DecapCMSTierStack
+   from models.client_templates import tier1_self_managed_client
 
    app = App()
-   stack = SSGStackFactory.create_ssg_stack(
-       scope=app, client_id='my-business',
-       domain='mybusiness.com', stack_type='marketing'
+   config = tier1_self_managed_client(
+       'my-business', 'My Business', 'mybusiness.com', 'admin@mybusiness.com',
+       cms_provider='decap', ssg_engine='astro'
    )
+   stack = DecapCMSTierStack(app, 'MyBusiness-CMS-Stack', client_config=config)
    app.synth()
    "
-   uv run cdk deploy MyBusiness-Marketing-SSG-Stack
+   uv run cdk deploy MyBusiness-CMS-Stack
    ```
-5. **For e-commerce sites**: Use the EcommerceStackFactory for intelligent provider selection
-6. **Explore advanced features**: Check out the SSG Integration Guide for detailed configurations
-7. **Review cost implications**: Use the built-in cost estimation features in both factories
 
-**Factory System Benefits:**
-- 🎯 **Intelligent Recommendations**: Get stack suggestions based on your specific requirements
-- 🚀 **Consistent Architecture**: All stacks follow proven patterns and best practices
-- 💰 **Cost Transparency**: Built-in cost estimation for setup and monthly expenses
-- 🔧 **Easy Deployment**: Simplified CDK stack creation with minimal configuration
-- 📈 **Scalable Patterns**: Architecture designed for growth from individual to enterprise
+5. **For composition sites**: Use the template functions for intelligent provider combinations
+6. **Explore event-driven capabilities**: Try IntegrationMode.EVENT_DRIVEN for advanced compositions
+7. **Review cost implications**: Use the built-in cost estimation in ClientServiceConfig
 
-This factory-based system provides the foundation for a scalable, well-organized multi-client web services platform with intelligent stack selection, comprehensive e-commerce support, and automated operational monitoring.
+## 📋 Architecture Benefits Summary
+
+**🎯 For Clients:**
+- Start simple (Direct mode) → upgrade to composition when needed
+- Choose best-of-breed providers without vendor lock-in
+- Predictable, scalable pricing as business grows ($65-430/month range)
+
+**🎯 For Development Teams:**
+- One architecture serves budget and enterprise clients
+- Clean, maintainable codebase with comprehensive testing
+- Future-proof: easy to add new CMS/E-commerce providers
+
+**🎯 For Business:**
+- Serve $65/month and $430/month clients with same operational model
+- Democratic access to professional web development
+- Maximum flexibility with minimal complexity
+
+---
+
+**Built with AWS CDK, Python 3.13, uv package management, and dual-mode composition architecture.**
+
+This dual-mode platform provides the foundation for a scalable, well-organized multi-client web services platform with intelligent provider selection, comprehensive composition support, and automated cost optimization.
