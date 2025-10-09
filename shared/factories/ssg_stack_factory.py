@@ -54,6 +54,13 @@ def _import_from_hyphenated_path(module_path: str, class_name: str):
 EleventyMarketingStack = _import_from_hyphenated_path("stacks/hosted-only/tier1/eleventy_marketing_stack", "EleventyMarketingStack")
 JekyllGitHubStack = _import_from_hyphenated_path("stacks/hosted-only/tier1/jekyll_github_stack", "JekyllGitHubStack")
 AstroTemplateBasicStack = _import_from_hyphenated_path("stacks/hosted-only/tier1/astro_template_basic_stack", "AstroTemplateBasicStack")
+
+# Import CMS tier stacks
+from stacks.cms.decap_cms_stack import DecapCMSStack
+from stacks.cms.tina_cms_stack import TinaCMSStack
+from stacks.cms.sanity_cms_stack import SanityCMSStack
+from stacks.cms.contentful_cms_stack import ContentfulCMSStack
+
 from shared.base.base_ssg_stack import BaseSSGStack
 from shared.ssg import StaticSiteConfig
 
@@ -68,13 +75,20 @@ class SSGStackFactory:
 
     # SSG stack class registry organized by use case
     SSG_STACK_CLASSES: Dict[str, Type[BaseSSGStack]] = {
+        # Foundation static site stacks
         "marketing": EleventyMarketingStack,
         "developer": JekyllGitHubStack,
         "modern_performance": AstroTemplateBasicStack,
+
+        # CMS tier stacks (flexible SSG engine support)
+        "decap_cms_tier": DecapCMSStack,
+        "tina_cms_tier": TinaCMSStack,
+        "sanity_cms_tier": SanityCMSStack,
+        "contentful_cms_tier": ContentfulCMSStack,
+
         # Future stacks would be added here:
         # "enterprise": EnterpriseSSGStack,
         # "ecommerce_optimized": EcommerceOptimizedSSGStack,
-        # "cms_integrated": CMSIntegratedSSGStack,
     }
 
     # Business tier information for each stack type
@@ -189,6 +203,39 @@ class SSGStackFactory:
             },
             "sanity_features": ["portable_text", "content_lake", "real_time_sync", "image_transformations", "groq_queries", "content_modeling"],
             "api_capabilities": ["content_delivery_api", "content_management_api", "assets_api", "mutations_api", "real_time_updates"]
+        },
+        "contentful_cms_tier": {
+            "tier_name": "Contentful CMS - Enterprise Content Management with Advanced Workflows",
+            "monthly_cost_range": (75, 500),  # AWS hosting + Contentful subscription (Team to Business plans)
+            "setup_cost_range": (2100, 4800),  # Enterprise complexity and customization requirements
+            "target_market": ["enterprise_content_teams", "large_organizations", "complex_workflows", "multi_brand_companies", "international_businesses"],
+            "best_for": "Enterprise-grade content management with advanced workflows, team collaboration, and multi-language support",
+            "complexity_level": "high",
+            "cms_provider": "contentful",
+            "cms_type": "api_based",
+            "ssg_engine_options": ["gatsby", "astro", "nextjs", "nuxt"],
+            "template_variants": ["enterprise_workflows", "multi_language", "team_collaboration"],
+            "key_features": ["enterprise_workflows", "team_collaboration", "multi_language_support", "content_versioning", "scheduled_publishing", "advanced_permissions"],
+            "hosting_pattern": "aws_optimized",
+            "performance_tier": "enterprise",
+            "cms_features": ["content_workflows", "approval_processes", "team_permissions", "multi_environment", "advanced_analytics", "enterprise_security"],
+            "ideal_client_profile": {
+                "budget": "enterprise",
+                "technical_comfort": "medium_to_high",
+                "content_volume": "large_to_enterprise",
+                "team_size": "10+_people",
+                "workflow_preference": "enterprise_workflows"
+            },
+            "contentful_features": ["content_workflows", "localization", "content_versioning", "team_collaboration", "enterprise_security", "dedicated_support"],
+            "api_capabilities": ["graphql_api", "rest_api", "preview_api", "management_api", "images_api", "webhook_automation"],
+            "enterprise_benefits": [
+                "Advanced content workflows with approval processes",
+                "Team collaboration with granular permissions",
+                "Multi-environment content management (dev/staging/prod)",
+                "Advanced analytics and content performance tracking",
+                "Enterprise security and compliance features",
+                "Dedicated support and SLA guarantees"
+            ]
         }
     }
 
@@ -525,6 +572,78 @@ class SSGStackFactory:
                     "Assets API",
                     "Mutations API",
                     "Real-time updates"
+                ]
+            })
+
+        # CMS recommendations - Contentful CMS tier (Enterprise focused)
+        if (requirements.get("content_management", False) or
+            requirements.get("cms_needed", False) or
+            requirements.get("enterprise_cms", False) or
+            requirements.get("team_collaboration", False) or
+            requirements.get("content_workflows", False) or
+            requirements.get("multi_language", False) or
+            requirements.get("large_content_team", False)):
+
+            # Determine best SSG engine for Contentful CMS based on requirements
+            recommended_ssg = "gatsby"  # Default for Contentful (excellent GraphQL integration)
+            if requirements.get("modern_features", False) and not requirements.get("react_preferred", False):
+                recommended_ssg = "astro"
+            elif requirements.get("react_preferred", False) or requirements.get("full_stack", False):
+                recommended_ssg = "nextjs"
+            elif requirements.get("vue_preferred", False):
+                recommended_ssg = "nuxt"
+
+            recommendations.append({
+                "stack_type": "contentful_cms_tier",
+                "ssg_engine": recommended_ssg,
+                "ssg_engine_options": ["gatsby", "astro", "nextjs", "nuxt"],
+                "monthly_cost": "$75-500",
+                "setup_cost": "$2,100-4,800",
+                "reason": "Enterprise-grade content management with advanced workflows, team collaboration, and multi-language support",
+                "best_for": "Enterprise content teams, large organizations, complex workflows, multi-brand companies, international businesses",
+                "complexity": "High",
+                "build_time": "Medium",
+                "cms_provider": "contentful",
+                "cms_cost": "$300-500+/month",
+                "key_benefits": [
+                    "Enterprise content workflows",
+                    "Advanced team collaboration",
+                    "Multi-language support",
+                    "Content versioning",
+                    "Scheduled publishing",
+                    "Advanced permissions",
+                    "Enterprise security",
+                    "Dedicated support"
+                ],
+                "ideal_for": {
+                    "budget": "Enterprise ($300-500+/month)",
+                    "team_size": "10+ people",
+                    "content_volume": "Large to enterprise",
+                    "technical_comfort": "Medium to high (API-based workflow)"
+                },
+                "contentful_features": [
+                    "Content workflows and approval processes",
+                    "Team collaboration with granular permissions",
+                    "Multi-environment content management",
+                    "Advanced analytics and performance tracking",
+                    "Enterprise security and compliance",
+                    "Dedicated support and SLA guarantees"
+                ],
+                "api_capabilities": [
+                    "GraphQL API",
+                    "REST API",
+                    "Preview API",
+                    "Management API",
+                    "Images API",
+                    "Webhook automation"
+                ],
+                "enterprise_benefits": [
+                    "Professional content workflows with approval processes",
+                    "Team collaboration with granular permissions",
+                    "Multi-environment content management (dev/staging/prod)",
+                    "Advanced analytics and content performance tracking",
+                    "Enterprise security and compliance features",
+                    "Dedicated support and SLA guarantees"
                 ]
             })
 
