@@ -57,7 +57,6 @@
   "pathMetadata": false,
   "assetMetadata": false,
   "notices": false,
-  "build": "npm run build",
   "metadata": {
     "project": {
       "name": "web-services-infrastructure",

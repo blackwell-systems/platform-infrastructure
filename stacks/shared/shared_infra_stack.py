@@ -32,6 +32,9 @@ from aws_cdk import (
     aws_cloudwatch as cloudwatch,
 )
 from aws_cdk import (
+    aws_cloudwatch_actions as cloudwatch_actions,
+)
+from aws_cdk import (
     aws_iam as iam,
 )
 from aws_cdk import (
@@ -42,6 +45,9 @@ from aws_cdk import (
 )
 from aws_cdk import (
     aws_sns as sns,
+)
+from aws_cdk import (
+    aws_sns_subscriptions as sns_subscriptions,
 )
 
 from constructs import Construct
@@ -118,7 +124,7 @@ class SharedInfraStack(Stack):
 
         # Subscribe email to all topics
         for topic in [self.critical_alerts_topic, self.business_notifications_topic, self.cost_alerts_topic]:
-            topic.add_subscription(sns.EmailSubscription(self.notification_email))
+            topic.add_subscription(sns_subscriptions.EmailSubscription(self.notification_email))
 
     def _create_operational_monitoring(self) -> None:
         """Create centralized operational monitoring dashboard."""
@@ -234,7 +240,7 @@ class SharedInfraStack(Stack):
             evaluation_periods=1,
             comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD
         ).add_alarm_action(
-            cloudwatch.SnsAction(self.cost_alerts_topic)
+            cloudwatch_actions.SnsAction(self.cost_alerts_topic)
         )
 
     def _create_tier_cost_tracking(self) -> None:
@@ -276,7 +282,7 @@ class SharedInfraStack(Stack):
                 comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
                 treat_missing_data=cloudwatch.TreatMissingData.NOT_BREACHING
             )
-            tier_alarm.add_alarm_action(cloudwatch.SnsAction(self.cost_alerts_topic))
+            tier_alarm.add_alarm_action(cloudwatch_actions.SnsAction(self.cost_alerts_topic))
 
             # Per-client cost anomaly detection for higher tiers
             if tier in ["tier2", "tier3"]:
@@ -300,7 +306,7 @@ class SharedInfraStack(Stack):
                     threshold=anomaly_threshold,
                     evaluation_periods=2,
                     comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD
-                ).add_alarm_action(cloudwatch.SnsAction(self.business_notifications_topic))
+                ).add_alarm_action(cloudwatch_actions.SnsAction(self.business_notifications_topic))
 
         # Overall business cost protection alarm
         cloudwatch.Alarm(
@@ -318,7 +324,7 @@ class SharedInfraStack(Stack):
             threshold=5000,  # Total business budget protection
             evaluation_periods=1,
             comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD
-        ).add_alarm_action(cloudwatch.SnsAction(self.critical_alerts_topic))
+        ).add_alarm_action(cloudwatch_actions.SnsAction(self.critical_alerts_topic))
 
     def _create_shared_storage(self) -> None:
         """Create shared storage for operational data and backups."""
@@ -327,7 +333,6 @@ class SharedInfraStack(Stack):
         self.operational_bucket = s3.Bucket(
             self,
             "OperationalBucket",
-            bucket_name=f"web-services-operations-{self.account}-{self.region}",
             versioned=True,
             encryption=s3.BucketEncryption.S3_MANAGED,
             block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
@@ -355,7 +360,6 @@ class SharedInfraStack(Stack):
         self.backup_coordination_bucket = s3.Bucket(
             self,
             "BackupCoordinationBucket",
-            bucket_name=f"web-services-backups-{self.account}-{self.region}",
             versioned=True,
             encryption=s3.BucketEncryption.S3_MANAGED,
             block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
