@@ -37,7 +37,9 @@ from aws_cdk import (
 from constructs import Construct
 
 from models.service_config import ClientServiceConfig
-from models.composition import ContentEvent, UnifiedContent
+# Import event models and interfaces from blackwell-core
+from blackwell_core.models.events import ContentEvent, UnifiedContent
+from blackwell_core.interfaces.integration_layer import BaseIntegrationLayer
 from shared.composition.optimized_content_cache import OptimizedContentCache
 from shared.composition.provider_adapter_registry import ProviderAdapterRegistry
 from shared.interfaces.composable_component import ComponentRegistry
@@ -46,7 +48,7 @@ from shared.interfaces.composable_component import ComponentRegistry
 logger = logging.getLogger(__name__)
 
 
-class EventDrivenIntegrationLayer(Construct):
+class EventDrivenIntegrationLayer(Construct, BaseIntegrationLayer):
     """
     Central integration layer orchestrating event-driven CMS + E-commerce composition.
 
@@ -579,6 +581,191 @@ class EventDrivenIntegrationLayer(Construct):
         # Integration layer performance, costs, and reliability metrics
         # Implementation would go here in a production system
         pass
+
+    # Implementation of BaseIntegrationLayer abstract methods
+
+    def process_content_event(
+        self,
+        event: ContentEvent,
+        context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Process a content event through the AWS integration layer.
+
+        This implementation uses AWS services (Lambda, SNS, DynamoDB) to process
+        the event and trigger appropriate downstream actions.
+        """
+        try:
+            # Validate event
+            if not event.client_id:
+                raise ValueError("Content event must have client_id")
+
+            # Create SNS message attributes for filtering
+            message_attributes = {
+                'event_type': {'DataType': 'String', 'StringValue': event.event_type},
+                'content_type': {'DataType': 'String', 'StringValue': event.content_type},
+                'provider_name': {'DataType': 'String', 'StringValue': event.provider_name},
+                'requires_build': {'DataType': 'String', 'StringValue': str(event.requires_build)},
+                'environment': {'DataType': 'String', 'StringValue': event.environment},
+                'client_id': {'DataType': 'String', 'StringValue': event.client_id}
+            }
+
+            # Publish to SNS topic for downstream processing
+            import boto3
+            sns_client = boto3.client('sns')
+
+            response = sns_client.publish(
+                TopicArn=self.content_events_topic.topic_arn,
+                Message=event.model_dump_json(),
+                MessageAttributes=message_attributes
+            )
+
+            return {
+                'status': 'success',
+                'message_id': response['MessageId'],
+                'event_id': event.event_id,
+                'processing_time_ms': 0  # Would be calculated in real implementation
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to process content event: {e}")
+            return {
+                'status': 'error',
+                'error': str(e),
+                'event_id': event.event_id if hasattr(event, 'event_id') else 'unknown'
+            }
+
+    def normalize_provider_content(
+        self,
+        provider_name: str,
+        raw_content: Dict[str, Any],
+        event_type: str
+    ) -> List[UnifiedContent]:
+        """
+        Normalize raw provider content using the provider adapter registry.
+        """
+        try:
+            # Use the provider adapter registry for normalization
+            registry = ProviderAdapterRegistry()
+            return registry.normalize_content(
+                provider_name=provider_name,
+                webhook_data=raw_content,
+                headers={'X-Event-Type': event_type}
+            )
+        except Exception as e:
+            logger.error(f"Content normalization failed for {provider_name}: {e}")
+            raise
+
+    def trigger_build(
+        self,
+        client_id: str,
+        build_context: Dict[str, Any],
+        priority: str = "normal"
+    ) -> Dict[str, Any]:
+        """
+        Trigger site build using AWS CodeBuild through the build trigger handler.
+        """
+        try:
+            # Create build trigger event
+            build_event = ContentEvent(
+                event_type="build.triggered",
+                content_id=f"build-{client_id}",
+                content_type="build",
+                provider_name="build_system",
+                client_id=client_id,
+                content_data=build_context
+            )
+
+            # Process through the build trigger handler
+            result = self.process_content_event(build_event, {"priority": priority})
+
+            return {
+                'build_triggered': True,
+                'build_context': build_context,
+                'priority': priority,
+                'trigger_result': result
+            }
+
+        except Exception as e:
+            logger.error(f"Build trigger failed for {client_id}: {e}")
+            return {
+                'build_triggered': False,
+                'error': str(e),
+                'client_id': client_id
+            }
+
+    def validate_provider_compatibility(
+        self,
+        cms_provider: str,
+        ecommerce_provider: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Validate provider combination using the provider adapter registry.
+        """
+        try:
+            registry = ProviderAdapterRegistry()
+
+            # Check if providers are registered
+            cms_supported = registry.get_handler(cms_provider) is not None
+            ecommerce_supported = (
+                ecommerce_provider is None or
+                registry.get_handler(ecommerce_provider) is not None
+            )
+
+            is_compatible = cms_supported and ecommerce_supported
+
+            warnings = []
+            if not cms_supported:
+                warnings.append(f"CMS provider '{cms_provider}' is not supported")
+            if ecommerce_provider and not ecommerce_supported:
+                warnings.append(f"E-commerce provider '{ecommerce_provider}' is not supported")
+
+            return {
+                'is_compatible': is_compatible,
+                'cms_provider': cms_provider,
+                'ecommerce_provider': ecommerce_provider,
+                'warnings': warnings,
+                'supported_cms_providers': registry.get_supported_providers("cms"),
+                'supported_ecommerce_providers': registry.get_supported_providers("ecommerce")
+            }
+
+        except Exception as e:
+            logger.error(f"Provider compatibility check failed: {e}")
+            return {
+                'is_compatible': False,
+                'error': str(e)
+            }
+
+    def get_content_cache_status(self, client_id: str) -> Dict[str, Any]:
+        """
+        Get current status of unified content cache from DynamoDB.
+        """
+        try:
+            import boto3
+            dynamodb = boto3.resource('dynamodb')
+            table = dynamodb.Table(self.unified_content_cache.table_name)
+
+            # Get basic table statistics
+            response = table.scan(
+                FilterExpression="begins_with(content_id, :client)",
+                ExpressionAttributeValues={':client': f"{client_id}#"},
+                Select='COUNT'
+            )
+
+            return {
+                'client_id': client_id,
+                'cached_items': response['Count'],
+                'table_name': self.unified_content_cache.table_name,
+                'status': 'healthy'
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to get cache status for {client_id}: {e}")
+            return {
+                'client_id': client_id,
+                'status': 'error',
+                'error': str(e)
+            }
 
     def get_integration_endpoints(self) -> Dict[str, str]:
         """Get integration endpoints for provider configuration."""
