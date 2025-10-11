@@ -58,6 +58,12 @@ EleventyMarketingStack = _import_from_hyphenated_path("stacks/hosted-only/tier1/
 JekyllGitHubStack = _import_from_hyphenated_path("stacks/hosted-only/tier1/jekyll_github_stack", "JekyllGitHubStack")
 AstroTemplateBasicStack = _import_from_hyphenated_path("stacks/hosted-only/tier1/astro_template_basic_stack", "AstroTemplateBasicStack")
 
+# Import new SSG template business service stacks
+HugoTemplateStack = _import_from_hyphenated_path("stacks/hosted-only/tier1/hugo_template_stack", "HugoTemplateStack")
+GatsbyTemplateStack = _import_from_hyphenated_path("stacks/hosted-only/tier1/gatsby_template_stack", "GatsbyTemplateStack")
+NextJSTemplateStack = _import_from_hyphenated_path("stacks/hosted-only/tier1/nextjs_template_stack", "NextJSTemplateStack")
+NuxtTemplateStack = _import_from_hyphenated_path("stacks/hosted-only/tier1/nuxt_template_stack", "NuxtTemplateStack")
+
 # Import CMS tier stacks
 from stacks.cms.decap_cms_tier_stack import DecapCMSTierStack as DecapCMSStack
 from stacks.cms.tina_cms_tier_stack import TinaCMSTierStack as TinaCMSStack
@@ -82,6 +88,12 @@ class SSGStackFactory:
         "marketing": EleventyMarketingStack,
         "developer": JekyllGitHubStack,
         "modern_performance": AstroTemplateBasicStack,
+
+        # SSG template business service stacks (developer ecosystem coverage)
+        "hugo_template": HugoTemplateStack,           # Performance-critical technical teams
+        "gatsby_template": GatsbyTemplateStack,       # React ecosystem developers
+        "nextjs_template": NextJSTemplateStack,       # Full-stack React applications
+        "nuxt_template": NuxtTemplateStack,           # Vue ecosystem developers
 
         # CMS tier stacks (flexible SSG engine support)
         "decap_cms_tier": DecapCMSStack,
@@ -239,6 +251,60 @@ class SSGStackFactory:
                 "Enterprise security and compliance features",
                 "Dedicated support and SLA guarantees"
             ]
+        },
+
+        # SSG Template Business Service Stacks (Developer Ecosystem Coverage)
+        "hugo_template": {
+            "tier_name": "Hugo Template - Performance-Critical Technical Teams",
+            "monthly_cost_range": (80, 105),
+            "setup_cost_range": (960, 2160),
+            "target_market": ["technical_teams", "performance_critical_sites", "documentation_sites", "enterprise_technical"],
+            "best_for": "Ultra-fast static sites with complex content relationships and technical documentation",
+            "complexity_level": "medium_to_high",
+            "ssg_engine": "hugo",
+            "template_variants": ["documentation", "technical_blog", "performance_site"],
+            "key_features": ["ultra_fast_builds", "technical_documentation", "multi_language", "complex_taxonomies", "performance_optimization"],
+            "hosting_pattern": "aws_optimized",
+            "performance_tier": "maximum"
+        },
+        "gatsby_template": {
+            "tier_name": "Gatsby Template - React Ecosystem with GraphQL",
+            "monthly_cost_range": (85, 110),
+            "setup_cost_range": (1200, 2400),
+            "target_market": ["react_developers", "component_driven_teams", "content_heavy_sites", "javascript_teams"],
+            "best_for": "React-based static sites with GraphQL data layer and component architecture",
+            "complexity_level": "medium_to_high",
+            "ssg_engine": "gatsby",
+            "template_variants": ["react_business", "content_blog", "portfolio_showcase"],
+            "key_features": ["react_components", "graphql_data_layer", "plugin_ecosystem", "image_optimization", "component_reusability"],
+            "hosting_pattern": "aws_optimized",
+            "performance_tier": "optimized"
+        },
+        "nextjs_template": {
+            "tier_name": "Next.js Template - Enterprise Full-Stack React Foundation",
+            "monthly_cost_range": (85, 115),
+            "setup_cost_range": (1440, 3360),
+            "target_market": ["fullstack_developers", "enterprise_teams", "business_applications", "scalable_architecture"],
+            "best_for": "Enterprise-ready React applications with static export and full-stack growth path",
+            "complexity_level": "high",
+            "ssg_engine": "nextjs",
+            "template_variants": ["business_app", "marketing_site", "saas_landing"],
+            "key_features": ["enterprise_patterns", "typescript_first", "api_routes_ready", "static_export", "full_stack_growth"],
+            "hosting_pattern": "aws_optimized",
+            "performance_tier": "enterprise"
+        },
+        "nuxt_template": {
+            "tier_name": "Nuxt Template - Vue Ecosystem with Modern Patterns",
+            "monthly_cost_range": (85, 115),
+            "setup_cost_range": (1200, 2880),
+            "target_market": ["vue_developers", "composition_api_teams", "progressive_applications", "vue_ecosystem"],
+            "best_for": "Modern Vue 3 applications with Composition API and progressive enhancement features",
+            "complexity_level": "medium",
+            "ssg_engine": "nuxt",
+            "template_variants": ["vue_business", "content_site", "vue_portfolio"],
+            "key_features": ["vue_3_composition_api", "progressive_enhancement", "pinia_state_management", "modern_patterns", "vue_ecosystem"],
+            "hosting_pattern": "aws_optimized",
+            "performance_tier": "optimized"
         }
     }
 
@@ -654,6 +720,131 @@ class SSGStackFactory:
                     "Enterprise security and compliance features",
                     "Dedicated support and SLA guarantees"
                 ]
+            })
+
+        # SSG Template Business Service recommendations - Hugo (Performance-focused)
+        if (requirements.get("performance_critical", False) or
+            requirements.get("technical_team", False) or
+            requirements.get("documentation_site", False) or
+            requirements.get("build_speed", False) or
+            requirements.get("large_content_volume", False)):
+
+            recommendations.append({
+                "stack_type": "hugo_template",
+                "ssg_engine": "hugo",
+                "monthly_cost": "$80-105",
+                "setup_cost": "$960-2,160",
+                "reason": "Ultra-fast builds (1000+ pages/second) ideal for performance-critical technical sites",
+                "best_for": "Technical documentation, performance-critical sites, large content volumes",
+                "complexity": "Medium to High",
+                "build_time": "Fastest (1000+ pages/second)",
+                "key_benefits": [
+                    "Ultra-fast build performance",
+                    "Excellent for technical documentation",
+                    "Multi-language support",
+                    "Complex taxonomy management",
+                    "Go-based stability and performance"
+                ],
+                "ideal_for": {
+                    "budget": "Performance-focused ($80-105/month)",
+                    "team_size": "Technical teams (2-15 people)",
+                    "content_volume": "Large to enterprise scale",
+                    "technical_comfort": "High (Go templates and technical workflows)"
+                }
+            })
+
+        # SSG Template Business Service recommendations - Gatsby (React ecosystem)
+        if (requirements.get("react_preferred", False) or
+            requirements.get("component_architecture", False) or
+            requirements.get("graphql_preferred", False) or
+            requirements.get("javascript_team", False) or
+            (requirements.get("modern_features", False) and requirements.get("react_experience", False))):
+
+            recommendations.append({
+                "stack_type": "gatsby_template",
+                "ssg_engine": "gatsby",
+                "monthly_cost": "$85-110",
+                "setup_cost": "$1,200-2,400",
+                "reason": "React ecosystem with GraphQL data layer and rich plugin ecosystem",
+                "best_for": "React teams, component-driven development, content-heavy sites with complex data",
+                "complexity": "Medium to High",
+                "build_time": "Medium (with powerful data layer)",
+                "key_benefits": [
+                    "React component architecture",
+                    "Powerful GraphQL data layer",
+                    "Rich plugin ecosystem",
+                    "Advanced image optimization",
+                    "Component reusability patterns"
+                ],
+                "ideal_for": {
+                    "budget": "React-focused ($85-110/month)",
+                    "team_size": "React teams (2-10 people)",
+                    "content_volume": "Medium to large with complex relationships",
+                    "technical_comfort": "Medium to high (React and GraphQL knowledge)"
+                }
+            })
+
+        # SSG Template Business Service recommendations - Next.js (Full-stack React)
+        if (requirements.get("react_preferred", False) or
+            requirements.get("full_stack", False) or
+            requirements.get("enterprise_features", False) or
+            requirements.get("business_applications", False) or
+            requirements.get("typescript_preferred", False) or
+            requirements.get("api_integration", False)):
+
+            recommendations.append({
+                "stack_type": "nextjs_template",
+                "ssg_engine": "nextjs",
+                "monthly_cost": "$85-115",
+                "setup_cost": "$1,440-3,360",
+                "reason": "Enterprise-ready React framework with static export and full-stack growth path",
+                "best_for": "Enterprise teams, business applications, full-stack React with future server-side needs",
+                "complexity": "High",
+                "build_time": "Medium to Fast",
+                "key_benefits": [
+                    "Enterprise-grade patterns",
+                    "TypeScript-first development",
+                    "API routes ready for activation",
+                    "Static export with growth path",
+                    "Full-stack architecture foundation"
+                ],
+                "ideal_for": {
+                    "budget": "Enterprise-focused ($85-115/month)",
+                    "team_size": "Full-stack teams (3-20 people)",
+                    "content_volume": "Business application scale",
+                    "technical_comfort": "High (React, TypeScript, full-stack patterns)"
+                }
+            })
+
+        # SSG Template Business Service recommendations - Nuxt (Vue ecosystem)
+        if (requirements.get("vue_preferred", False) or
+            requirements.get("composition_api", False) or
+            requirements.get("progressive_applications", False) or
+            requirements.get("vue_team", False) or
+            (requirements.get("modern_features", False) and requirements.get("vue_experience", False))):
+
+            recommendations.append({
+                "stack_type": "nuxt_template",
+                "ssg_engine": "nuxt",
+                "monthly_cost": "$85-115",
+                "setup_cost": "$1,200-2,880",
+                "reason": "Modern Vue 3 framework with Composition API and progressive enhancement",
+                "best_for": "Vue teams, modern component patterns, progressive applications",
+                "complexity": "Medium",
+                "build_time": "Fast",
+                "key_benefits": [
+                    "Vue 3 Composition API patterns",
+                    "Progressive enhancement features",
+                    "Pinia state management",
+                    "Modern Vue ecosystem integration",
+                    "Developer-friendly Vue workflows"
+                ],
+                "ideal_for": {
+                    "budget": "Vue-focused ($85-115/month)",
+                    "team_size": "Vue teams (2-10 people)",
+                    "content_volume": "Small to large applications",
+                    "technical_comfort": "Medium (Vue 3 and Composition API familiarity)"
+                }
             })
 
         # Enterprise/Advanced recommendations (future)
