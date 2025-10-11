@@ -23,7 +23,7 @@ from pydantic import ValidationError
 
 from models.cms_config import CMSIntegrationConfig, sanity_cms_config
 from clients._templates.client_config import create_client_config
-from shared.factories.ssg_stack_factory import SSGStackFactory
+from shared.factories.platform_stack_factory import PlatformStackFactory
 from shared.providers.cms.factory import CMSProviderFactory
 from stacks.cms.sanity_cms_tier_stack import SanityCMSTierStack
 
@@ -255,7 +255,7 @@ class TestSSGFactoryIntegration:
     def test_sanity_cms_tier_in_stack_tiers(self):
         """Test that Sanity CMS tier is registered in factory"""
 
-        stack_info = SSGStackFactory.get_stack_tier_info("sanity_cms_tier")
+        stack_info = PlatformStackFactory.get_stack_metadata("sanity_cms_tier")
 
         assert stack_info is not None
         assert stack_info["tier_name"] == "Sanity CMS - Structured Content with Real-Time APIs"
@@ -275,7 +275,7 @@ class TestSSGFactoryIntegration:
             "api_first": True
         }
 
-        recommendations = SSGStackFactory.get_ssg_recommendations(requirements)
+        recommendations = PlatformStackFactory.get_recommendations(requirements)
 
         # Should include Sanity CMS tier
         sanity_recommendations = [r for r in recommendations if r["stack_type"] == "sanity_cms_tier"]
@@ -294,7 +294,7 @@ class TestSSGFactoryIntegration:
             "structured_content": True
         }
 
-        recommendations = SSGStackFactory.get_ssg_recommendations(requirements)
+        recommendations = PlatformStackFactory.get_recommendations(requirements)
         sanity_rec = next(r for r in recommendations if r["stack_type"] == "sanity_cms_tier")
 
         assert "Structured content schemas" in sanity_rec["key_benefits"]
@@ -309,7 +309,7 @@ class TestSSGFactoryIntegration:
             "api_first": True
         }
 
-        recommendations = SSGStackFactory.get_ssg_recommendations(requirements)
+        recommendations = PlatformStackFactory.get_recommendations(requirements)
         sanity_rec = next(r for r in recommendations if r["stack_type"] == "sanity_cms_tier")
 
         # Should recommend Next.js as default for API-first approach
@@ -324,7 +324,7 @@ class TestSSGFactoryIntegration:
             "advanced_cms": True
         }
 
-        recommendations = SSGStackFactory.get_ssg_recommendations(requirements)
+        recommendations = PlatformStackFactory.get_recommendations(requirements)
         sanity_rec = next(r for r in recommendations if r["stack_type"] == "sanity_cms_tier")
 
         assert sanity_rec["complexity"] == "Medium to High"
@@ -476,7 +476,7 @@ class TestCostEstimation:
     def test_sanity_setup_cost_by_ssg_engine(self):
         """Test that setup costs vary appropriately by SSG engine complexity"""
 
-        stack_info = SSGStackFactory.get_stack_tier_info("sanity_cms_tier")
+        stack_info = PlatformStackFactory.get_stack_metadata("sanity_cms_tier")
         setup_range = stack_info["setup_cost_range"]
 
         # Should have reasonable setup cost range
@@ -487,7 +487,7 @@ class TestCostEstimation:
     def test_monthly_cost_includes_cms_and_hosting(self):
         """Test that monthly costs include both CMS and hosting"""
 
-        stack_info = SSGStackFactory.get_stack_tier_info("sanity_cms_tier")
+        stack_info = PlatformStackFactory.get_stack_metadata("sanity_cms_tier")
         monthly_range = stack_info["monthly_cost_range"]
 
         # Should include hosting + Sanity CMS costs
@@ -555,7 +555,7 @@ class TestSanityCMSIntegration:
         }
 
         # 2. Get recommendations
-        recommendations = SSGStackFactory.get_ssg_recommendations(requirements)
+        recommendations = PlatformStackFactory.get_recommendations(requirements)
 
         # 3. Should recommend Sanity CMS tier
         sanity_rec = next((r for r in recommendations if r["stack_type"] == "sanity_cms_tier"), None)

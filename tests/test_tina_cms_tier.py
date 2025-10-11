@@ -21,7 +21,7 @@ from pydantic import ValidationError
 
 from models.cms_config import CMSIntegrationConfig, tina_cms_config
 from clients._templates.client_config import create_client_config
-from shared.factories.ssg_stack_factory import SSGStackFactory
+from shared.factories.platform_stack_factory import PlatformStackFactory
 from shared.providers.cms.factory import CMSProviderFactory
 from stacks.cms.tina_cms_tier_stack import TinaCMSTierStack
 
@@ -225,7 +225,7 @@ class TestSSGFactoryIntegration:
     def test_tina_cms_tier_in_stack_tiers(self):
         """Test that Tina CMS tier is registered in factory"""
 
-        stack_info = SSGStackFactory.get_stack_tier_info("tina_cms_tier")
+        stack_info = PlatformStackFactory.get_stack_metadata("tina_cms_tier")
 
         assert stack_info is not None
         assert stack_info["tier_name"] == "Tina CMS - Visual Editing with Git Workflow"
@@ -244,7 +244,7 @@ class TestSSGFactoryIntegration:
             "collaboration": True
         }
 
-        recommendations = SSGStackFactory.get_ssg_recommendations(requirements)
+        recommendations = PlatformStackFactory.get_recommendations(requirements)
 
         # Should include Tina CMS tier
         tina_recommendations = [r for r in recommendations if r["stack_type"] == "tina_cms_tier"]
@@ -263,7 +263,7 @@ class TestSSGFactoryIntegration:
             "visual_editing": True
         }
 
-        recommendations = SSGStackFactory.get_ssg_recommendations(requirements)
+        recommendations = PlatformStackFactory.get_recommendations(requirements)
         tina_rec = next(r for r in recommendations if r["stack_type"] == "tina_cms_tier")
 
         assert "Visual editing interface" in tina_rec["key_benefits"]
@@ -277,7 +277,7 @@ class TestSSGFactoryIntegration:
             "react_preferred": True
         }
 
-        recommendations = SSGStackFactory.get_ssg_recommendations(requirements)
+        recommendations = PlatformStackFactory.get_recommendations(requirements)
         tina_rec = next(r for r in recommendations if r["stack_type"] == "tina_cms_tier")
 
         # Should recommend either Next.js or Gatsby (both React-based)
@@ -292,7 +292,7 @@ class TestSSGFactoryIntegration:
             "visual_editing": True
         }
 
-        recommendations = SSGStackFactory.get_ssg_recommendations(requirements)
+        recommendations = PlatformStackFactory.get_recommendations(requirements)
         tina_rec = next(r for r in recommendations if r["stack_type"] == "tina_cms_tier")
 
         assert tina_rec["ssg_engine"] == "astro"
@@ -419,7 +419,7 @@ class TestCostEstimation:
     def test_tina_setup_cost_by_ssg_engine(self):
         """Test that setup costs vary appropriately by SSG engine complexity"""
 
-        stack_info = SSGStackFactory.get_stack_tier_info("tina_cms_tier")
+        stack_info = PlatformStackFactory.get_stack_metadata("tina_cms_tier")
         setup_range = stack_info["setup_cost_range"]
 
         # Should have reasonable setup cost range
@@ -430,7 +430,7 @@ class TestCostEstimation:
     def test_monthly_cost_includes_cms_and_hosting(self):
         """Test that monthly costs include both CMS and hosting"""
 
-        stack_info = SSGStackFactory.get_stack_tier_info("tina_cms_tier")
+        stack_info = PlatformStackFactory.get_stack_metadata("tina_cms_tier")
         monthly_range = stack_info["monthly_cost_range"]
 
         # Should include hosting + optional Tina Cloud costs
@@ -498,7 +498,7 @@ class TestTinaCMSIntegration:
         }
 
         # 2. Get recommendations
-        recommendations = SSGStackFactory.get_ssg_recommendations(requirements)
+        recommendations = PlatformStackFactory.get_recommendations(requirements)
 
         # 3. Should recommend Tina CMS tier
         tina_rec = next((r for r in recommendations if r["stack_type"] == "tina_cms_tier"), None)

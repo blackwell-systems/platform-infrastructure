@@ -19,7 +19,7 @@ from shared.providers.cms.contentful_provider import (
     ContentfulEnvironment,
     ContentfulAPIType
 )
-from shared.factories.ssg_stack_factory import SSGStackFactory
+from shared.factories.platform_stack_factory import PlatformStackFactory
 from shared.ssg.core_models import SSGEngineType
 from models.service_config import ClientServiceConfig
 
@@ -418,12 +418,12 @@ class TestContentfulFactoryIntegration:
 
     def test_contentful_tier_in_stack_registry(self):
         """Test that Contentful CMS tier is registered in factory"""
-        assert "contentful_cms_tier" in SSGStackFactory.SSG_STACK_CLASSES
-        assert SSGStackFactory.SSG_STACK_CLASSES["contentful_cms_tier"] == ContentfulCMSStack
+        assert "contentful_cms_tier" in PlatformStackFactory.STACK_REGISTRY
+        assert PlatformStackFactory.STACK_REGISTRY["contentful_cms_tier"] == ContentfulCMSStack
 
     def test_contentful_tier_information(self):
         """Test Contentful tier information in factory"""
-        contentful_info = SSGStackFactory.STACK_TIERS["contentful_cms_tier"]
+        contentful_info = PlatformStackFactory.STACK_METADATA["contentful_cms_tier"]
 
         assert contentful_info["tier_name"] == "Contentful CMS - Enterprise Content Management with Advanced Workflows"
         assert contentful_info["monthly_cost_range"] == (75, 500)
@@ -443,7 +443,7 @@ class TestContentfulFactoryIntegration:
             "multi_language": True
         }
 
-        recommendations = SSGStackFactory.get_ssg_recommendations(requirements)
+        recommendations = PlatformStackFactory.get_recommendations(requirements)
 
         # Should recommend Contentful CMS tier
         contentful_recs = [r for r in recommendations if r["stack_type"] == "contentful_cms_tier"]
@@ -463,7 +463,7 @@ class TestContentfulFactoryIntegration:
             "enterprise_cms": True,
             "react_preferred": True
         }
-        recommendations = SSGStackFactory.get_ssg_recommendations(react_requirements)
+        recommendations = PlatformStackFactory.get_recommendations(react_requirements)
         contentful_rec = next(r for r in recommendations if r["stack_type"] == "contentful_cms_tier")
         assert contentful_rec["ssg_engine"] == "nextjs"
 
@@ -473,7 +473,7 @@ class TestContentfulFactoryIntegration:
             "enterprise_cms": True,
             "vue_preferred": True
         }
-        recommendations = SSGStackFactory.get_ssg_recommendations(vue_requirements)
+        recommendations = PlatformStackFactory.get_recommendations(vue_requirements)
         contentful_rec = next(r for r in recommendations if r["stack_type"] == "contentful_cms_tier")
         assert contentful_rec["ssg_engine"] == "nuxt"
 
@@ -483,7 +483,7 @@ class TestContentfulFactoryIntegration:
             "enterprise_cms": True,
             "modern_features": True
         }
-        recommendations = SSGStackFactory.get_ssg_recommendations(modern_requirements)
+        recommendations = PlatformStackFactory.get_recommendations(modern_requirements)
         contentful_rec = next(r for r in recommendations if r["stack_type"] == "contentful_cms_tier")
         assert contentful_rec["ssg_engine"] == "astro"
 
@@ -495,7 +495,7 @@ class TestContentfulFactoryIntegration:
             "simple_content": True
         }
 
-        recommendations = SSGStackFactory.get_ssg_recommendations(budget_requirements)
+        recommendations = PlatformStackFactory.get_recommendations(budget_requirements)
 
         # Should recommend cheaper alternatives first
         if len(recommendations) > 1:
