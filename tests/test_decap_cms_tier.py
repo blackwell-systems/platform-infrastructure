@@ -20,7 +20,7 @@ from pydantic import ValidationError
 
 from models.cms_config import CMSIntegrationConfig, decap_cms_config
 from clients._templates.client_config import create_client_config
-from shared.factories.ssg_stack_factory import SSGStackFactory
+from shared.factories.platform_stack_factory import PlatformStackFactory
 from shared.providers.cms.factory import CMSProviderFactory
 from stacks.cms.decap_cms_tier_stack import DecapCMSTierStack
 
@@ -185,7 +185,7 @@ class TestSSGFactoryIntegration:
     def test_decap_cms_tier_in_stack_tiers(self):
         """Test that Decap CMS tier is registered in factory"""
 
-        stack_info = SSGStackFactory.get_stack_tier_info("decap_cms_tier")
+        stack_info = PlatformStackFactory.get_stack_metadata("decap_cms_tier")
 
         assert stack_info is not None
         assert stack_info["tier_name"] == "Decap CMS - Free Git-Based Content Management"
@@ -205,7 +205,7 @@ class TestSSGFactoryIntegration:
             "git_workflow": True
         }
 
-        recommendations = SSGStackFactory.get_ssg_recommendations(requirements)
+        recommendations = PlatformStackFactory.get_recommendations(requirements)
 
         # Should include Decap CMS tier
         decap_recommendations = [r for r in recommendations if r["stack_type"] == "decap_cms_tier"]
@@ -224,7 +224,7 @@ class TestSSGFactoryIntegration:
             "performance_critical": True
         }
 
-        recommendations = SSGStackFactory.get_ssg_recommendations(requirements)
+        recommendations = PlatformStackFactory.get_recommendations(requirements)
         decap_rec = next(r for r in recommendations if r["stack_type"] == "decap_cms_tier")
 
         assert decap_rec["ssg_engine"] == "hugo"
@@ -237,7 +237,7 @@ class TestSSGFactoryIntegration:
             "modern_features": True
         }
 
-        recommendations = SSGStackFactory.get_ssg_recommendations(requirements)
+        recommendations = PlatformStackFactory.get_recommendations(requirements)
         decap_rec = next(r for r in recommendations if r["stack_type"] == "decap_cms_tier")
 
         assert decap_rec["ssg_engine"] == "astro"
@@ -250,7 +250,7 @@ class TestSSGFactoryIntegration:
             "react_preferred": True
         }
 
-        recommendations = SSGStackFactory.get_ssg_recommendations(requirements)
+        recommendations = PlatformStackFactory.get_recommendations(requirements)
         decap_rec = next(r for r in recommendations if r["stack_type"] == "decap_cms_tier")
 
         assert decap_rec["ssg_engine"] == "gatsby"
@@ -347,7 +347,7 @@ class TestCostEstimation:
     def test_decap_setup_cost_by_ssg_engine(self):
         """Test that setup costs vary appropriately by SSG engine complexity"""
 
-        stack_info = SSGStackFactory.get_stack_tier_info("decap_cms_tier")
+        stack_info = PlatformStackFactory.get_stack_metadata("decap_cms_tier")
         setup_range = stack_info["setup_cost_range"]
 
         # Should have reasonable setup cost range
@@ -358,7 +358,7 @@ class TestCostEstimation:
     def test_monthly_cost_includes_hosting_only(self):
         """Test that monthly costs only include hosting (no CMS fees)"""
 
-        stack_info = SSGStackFactory.get_stack_tier_info("decap_cms_tier")
+        stack_info = PlatformStackFactory.get_stack_metadata("decap_cms_tier")
         monthly_range = stack_info["monthly_cost_range"]
 
         # Should be hosting-only costs (no CMS fees)
@@ -424,7 +424,7 @@ class TestDecapCMSIntegration:
         }
 
         # 2. Get recommendations
-        recommendations = SSGStackFactory.get_ssg_recommendations(requirements)
+        recommendations = PlatformStackFactory.get_recommendations(requirements)
 
         # 3. Should recommend Decap CMS tier
         decap_rec = next((r for r in recommendations if r["stack_type"] == "decap_cms_tier"), None)

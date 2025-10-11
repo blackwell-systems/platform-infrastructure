@@ -19,7 +19,7 @@ from shared.providers.ecommerce.shopify_basic_provider import (
     ShopifyPlan,
     ShopifyAPIAccess
 )
-from shared.factories.ecommerce_stack_factory import EcommerceStackFactory
+from shared.factories.platform_stack_factory import PlatformStackFactory
 from models.component_enums import SSGEngine
 from models.service_config import ClientServiceConfig
 
@@ -433,12 +433,12 @@ class TestShopifyBasicFactoryIntegration:
 
     def test_shopify_basic_in_stack_registry(self):
         """Test that Shopify Basic is registered in factory"""
-        assert "shopify_basic" in EcommerceStackFactory.ECOMMERCE_STACK_CLASSES
-        assert EcommerceStackFactory.ECOMMERCE_STACK_CLASSES["shopify_basic"] == ShopifyBasicEcommerceStack
+        assert "shopify_basic_ecommerce" in PlatformStackFactory.STACK_REGISTRY
+        assert PlatformStackFactory.STACK_REGISTRY["shopify_basic_ecommerce"] == ShopifyBasicEcommerceStack
 
     def test_shopify_basic_tier_information(self):
         """Test Shopify Basic tier information in factory"""
-        shopify_info = EcommerceStackFactory.PROVIDER_TIERS["shopify_basic"]
+        shopify_info = PlatformStackFactory.STACK_METADATA["shopify_basic_ecommerce"]
 
         assert shopify_info["tier_name"] == "Shopify Basic - Performance E-commerce with Flexible SSG"
         assert shopify_info["monthly_cost_range"] == (75, 125)
@@ -456,7 +456,7 @@ class TestShopifyBasicFactoryIntegration:
             "performance_critical": True
         }
 
-        recommendations = EcommerceStackFactory.get_ecommerce_recommendations(requirements)
+        recommendations = PlatformStackFactory.get_recommendations(requirements)
 
         # Should recommend Shopify Basic
         shopify_recs = [r for r in recommendations if r["ecommerce_provider"] == "shopify_basic"]
@@ -475,7 +475,7 @@ class TestShopifyBasicFactoryIntegration:
             "agency_alternative": True,
             "prefer_react": True
         }
-        recommendations = EcommerceStackFactory.get_ecommerce_recommendations(react_requirements)
+        recommendations = PlatformStackFactory.get_recommendations(react_requirements)
         shopify_rec = next(r for r in recommendations if r["ecommerce_provider"] == "shopify_basic")
         assert shopify_rec["recommended_ssg"] == "nextjs"
 
@@ -484,7 +484,7 @@ class TestShopifyBasicFactoryIntegration:
             "shopify_theme_upgrade": True,
             "prefer_vue": True
         }
-        recommendations = EcommerceStackFactory.get_ecommerce_recommendations(vue_requirements)
+        recommendations = PlatformStackFactory.get_recommendations(vue_requirements)
         shopify_rec = next(r for r in recommendations if r["ecommerce_provider"] == "shopify_basic")
         assert shopify_rec["recommended_ssg"] == "nuxt"
 
@@ -494,7 +494,7 @@ class TestShopifyBasicFactoryIntegration:
             "performance_critical": True,
             "technical_team": True
         }
-        recommendations = EcommerceStackFactory.get_ecommerce_recommendations(performance_requirements)
+        recommendations = PlatformStackFactory.get_recommendations(performance_requirements)
         shopify_rec = next(r for r in recommendations if r["ecommerce_provider"] == "shopify_basic")
         assert shopify_rec["recommended_ssg"] == "astro"
 
@@ -506,7 +506,7 @@ class TestShopifyBasicFactoryIntegration:
             "monthly_budget": 500
         }
 
-        recommendations = EcommerceStackFactory.get_ecommerce_recommendations(enterprise_requirements)
+        recommendations = PlatformStackFactory.get_recommendations(enterprise_requirements)
 
         # Should recommend Shopify Advanced for enterprise
         shopify_recs = [r for r in recommendations if r["ecommerce_provider"].startswith("shopify")]
@@ -516,8 +516,8 @@ class TestShopifyBasicFactoryIntegration:
 
     def test_cost_estimation_accuracy(self):
         """Test cost estimation accuracy for Shopify Basic"""
-        cost_info = EcommerceStackFactory.estimate_total_cost(
-            ecommerce_provider="shopify_basic",
+        cost_info = PlatformStackFactory.estimate_total_cost(
+            stack_type="shopify_basic_ecommerce",
             ssg_engine="astro",
             client_requirements={"monthly_sales": 10000}
         )
