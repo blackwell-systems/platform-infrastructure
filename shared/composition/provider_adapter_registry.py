@@ -15,7 +15,10 @@ import importlib
 import logging
 from dataclasses import dataclass
 
-from models.composition import UnifiedContent, ContentEvent
+# Import event models from blackwell-core
+from blackwell_core.models.events import UnifiedContent, ContentEvent
+# Import provider interfaces from blackwell-core
+from blackwell_core.adapters.interfaces import IProviderHandler as BaseIProviderHandler
 from shared.interfaces.composable_component import ComposableComponent
 
 
@@ -34,28 +37,44 @@ class ProviderAdapter:
     priority: int = 100  # Lower numbers = higher priority
 
 
-class IProviderHandler(ABC):
-    """Interface for provider-specific content handlers"""
+class IProviderHandler(BaseIProviderHandler):
+    """
+    Platform-specific provider handler interface extending blackwell-core interface.
+
+    This interface adds webhook-specific methods that return UnifiedContent objects
+    directly, which is more convenient for the integration layer implementation.
+    """
 
     @abstractmethod
-    def normalize_webhook_data(self, webhook_data: Dict[str, Any], event_type: str) -> List[UnifiedContent]:
-        """Normalize webhook data to unified content schema"""
+    def normalize_webhook_data_to_unified(self, webhook_data: Dict[str, Any], event_type: str) -> List[UnifiedContent]:
+        """
+        Normalize webhook data directly to unified content schema.
+
+        This is a platform-specific method that extends the core interface
+        with direct UnifiedContent object creation for webhook processing.
+
+        Args:
+            webhook_data: Raw webhook data
+            event_type: Type of webhook event
+
+        Returns:
+            List of UnifiedContent objects ready for caching and processing
+        """
         pass
 
-    @abstractmethod
-    def validate_webhook_signature(self, body: Dict[str, Any], headers: Dict[str, str]) -> bool:
-        """Validate webhook signature for security"""
-        pass
+    def normalize_webhook_data(self, webhook_data: Dict[str, Any], event_type: str) -> Dict[str, Any]:
+        """
+        Implementation of base interface method - delegates to unified method.
 
-    @abstractmethod
-    def get_supported_events(self) -> List[str]:
-        """Get list of supported webhook events"""
-        pass
-
-    @abstractmethod
-    def extract_event_type(self, headers: Dict[str, str], body: Dict[str, Any]) -> str:
-        """Extract event type from webhook"""
-        pass
+        This maintains compatibility with the blackwell-core interface while
+        providing the webhook-specific functionality.
+        """
+        unified_content_list = self.normalize_webhook_data_to_unified(webhook_data, event_type)
+        return {
+            "unified_content": [content.model_dump() for content in unified_content_list],
+            "event_type": event_type,
+            "content_count": len(unified_content_list)
+        }
 
 
 class ProviderAdapterRegistry:
@@ -236,8 +255,8 @@ class ProviderAdapterRegistry:
             # Extract event type
             event_type = handler.extract_event_type(headers, webhook_data)
 
-            # Normalize content
-            unified_content = handler.normalize_webhook_data(webhook_data, event_type)
+            # Normalize content using platform-specific method
+            unified_content = handler.normalize_webhook_data_to_unified(webhook_data, event_type)
 
             logger.info(f"Normalized {len(unified_content)} items from {provider_name} webhook")
             return unified_content
@@ -479,9 +498,21 @@ class BaseProviderHandler(IProviderHandler):
         """Get supported events - should be overridden"""
         return []
 
-    def normalize_webhook_data(self, webhook_data: Dict[str, Any], event_type: str) -> List[UnifiedContent]:
-        """Normalize webhook data - must be implemented by subclasses"""
-        raise NotImplementedError("Subclasses must implement normalize_webhook_data")
+    def normalize_webhook_data_to_unified(self, webhook_data: Dict[str, Any], event_type: str) -> List[UnifiedContent]:
+        """Normalize webhook data to unified content - must be implemented by subclasses"""
+        raise NotImplementedError("Subclasses must implement normalize_webhook_data_to_unified")
+
+    def get_provider_name(self) -> str:
+        """Get the provider name - required by base interface."""
+        return self.provider_name
+
+    def get_provider_type(self) -> str:
+        """Get the provider type - must be overridden by subclasses."""
+        raise NotImplementedError("Subclasses must implement get_provider_type")
+
+    def validate_configuration(self, config: Dict[str, Any]) -> bool:
+        """Validate provider configuration - default implementation."""
+        return isinstance(config, dict)
 
 
 # Usage example in Lambda
