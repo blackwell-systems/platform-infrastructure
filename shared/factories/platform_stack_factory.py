@@ -38,6 +38,14 @@ import logging
 # Import centralized enums for type safety
 from models.component_enums import SSGEngine, CMSProvider, EcommerceProvider
 
+# Import S3 Provider Registry from blackwell-core
+try:
+    from blackwell_core.registry import default_registry
+    REGISTRY_AVAILABLE = True
+except ImportError as e:
+    default_registry = None
+    REGISTRY_AVAILABLE = False
+
 # Establish base directory for portable imports
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -947,8 +955,41 @@ class PlatformStackFactory:
 
     @classmethod
     def get_stack_metadata(cls, stack_type: str) -> Dict[str, Any]:
-        """Get detailed metadata for a specific stack type."""
-        return cls.STACK_METADATA.get(stack_type, {})
+        """
+        Get detailed metadata for a specific stack type with registry integration.
+
+        Uses multi-tier fallback system:
+        1. S3 Provider Registry (distributed, globally cached)
+        2. Embedded STACK_METADATA (local fallback)
+        3. Empty dict (graceful degradation)
+
+        Args:
+            stack_type: Stack type identifier
+
+        Returns:
+            Stack metadata dictionary
+        """
+
+        # Primary: Try S3 Provider Registry
+        if REGISTRY_AVAILABLE and default_registry:
+            try:
+                _log('debug', f"Fetching {stack_type} metadata from S3 Provider Registry")
+                registry_data = default_registry.get_stack_metadata_sync(stack_type)
+                if registry_data:
+                    _log('debug', f"✅ Retrieved {stack_type} from registry")
+                    return registry_data
+            except Exception as e:
+                _log('warning', f"Registry fetch failed for {stack_type}: {e}, using embedded data")
+
+        # Secondary: Use embedded STACK_METADATA
+        embedded_data = cls.STACK_METADATA.get(stack_type, {})
+        if embedded_data:
+            _log('debug', f"Using embedded metadata for {stack_type}")
+            return embedded_data
+
+        # Tertiary: Graceful degradation
+        _log('warning', f"No metadata available for stack type: {stack_type}")
+        return {}
 
     @classmethod
     def validate_stack_type(cls, stack_type: str) -> bool:
@@ -1020,6 +1061,48 @@ class PlatformStackFactory:
             "complexity_level": metadata["complexity_level"],
             "category": metadata["category"]
         }
+
+    @classmethod
+    def get_registry_status(cls) -> Dict[str, Any]:
+        """
+        Get S3 Provider Registry status for operational monitoring.
+
+        Returns:
+            Registry status dictionary with health information
+        """
+        if not REGISTRY_AVAILABLE or not default_registry:
+            return {
+                "available": False,
+                "reason": "Registry not imported or initialized",
+                "health": "unavailable",
+                "metadata_source": "embedded"
+            }
+
+        try:
+            health_status = default_registry.get_health_status()
+            cache_stats = default_registry.get_cache_stats()
+
+            return {
+                "available": True,
+                "health": health_status["status"],
+                "uptime_score": health_status["uptime_score"],
+                "base_url": health_status["base_url"],
+                "cache_hit_ratio": health_status["cache_hit_ratio"],
+                "consecutive_failures": health_status["consecutive_failures"],
+                "cache_entries": cache_stats["cache_entries"],
+                "fresh_entries": cache_stats["fresh_entries"],
+                "http_client": health_status["http_client"],
+                "fallback_available": health_status["fallback_available"],
+                "metadata_source": "registry" if health_status["status"] == "healthy" else "embedded"
+            }
+
+        except Exception as e:
+            return {
+                "available": True,
+                "health": "error",
+                "error": str(e),
+                "metadata_source": "embedded"
+            }
 
 
 # ===== CONVENIENCE FUNCTIONS FOR COMMON USE CASES =====

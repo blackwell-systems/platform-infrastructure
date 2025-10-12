@@ -1,0 +1,37 @@
+{
+  "best_for": "Technical sites with Git-based workflows and GitHub Pages compatibility",
+  "category": "foundation_ssg_service",
+  "complexity_level": "medium_to_high",
+  "hosting_pattern": "github_compatible",
+  "key_features": [
+    "github_pages_compatible",
+    "git_workflow",
+    "theme_system",
+    "dual_hosting"
+  ],
+  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "monthly_cost_range": [
+    0,
+    25
+  ],
+  "performance_tier": "basic",
+  "schema_version": "1.0.0",
+  "setup_cost_range": [
+    800,
+    1800
+  ],
+  "ssg_engine": "jekyll",
+  "stack_type": "developer",
+  "target_market": [
+    "developers",
+    "technical_writers",
+    "open_source_projects",
+    "documentation_sites"
+  ],
+  "template_variants": [
+    "technical_blog",
+    "documentation",
+    "simple_blog"
+  ],
+  "tier_name": "Developer-Focused Git Workflow"
+}

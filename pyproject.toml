@@ -19,6 +19,8 @@ dependencies = [
     # Basic utilities for client config validation
     "pydantic>=2.0.0",
     "boto3>=1.26.0",
+    "jsonschema>=4.25.1",
+    "blackwell-core",
 ]
 
 [project.optional-dependencies]
@@ -40,3 +42,6 @@ select = ["E", "W", "F", "I"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["stacks", "clients", "shared", "tools", "constructs"]
+
+[tool.uv.sources]
+blackwell-core = { path = "../blackwell-core", editable = true }

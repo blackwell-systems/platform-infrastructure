@@ -1,0 +1,38 @@
+{
+  "best_for": "Ultra-fast static sites with complex content relationships and technical documentation",
+  "category": "ssg_template_business_service",
+  "complexity_level": "medium_to_high",
+  "hosting_pattern": "aws_optimized",
+  "key_features": [
+    "ultra_fast_builds",
+    "technical_documentation",
+    "multi_language",
+    "complex_taxonomies",
+    "performance_optimization"
+  ],
+  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "monthly_cost_range": [
+    80,
+    105
+  ],
+  "performance_tier": "maximum",
+  "schema_version": "1.0.0",
+  "setup_cost_range": [
+    960,
+    2160
+  ],
+  "ssg_engine": "hugo",
+  "stack_type": "hugo_template",
+  "target_market": [
+    "technical_teams",
+    "performance_critical_sites",
+    "documentation_sites",
+    "enterprise_technical"
+  ],
+  "template_variants": [
+    "documentation",
+    "performance_blog",
+    "technical_portfolio"
+  ],
+  "tier_name": "Hugo Template - Performance-Critical Technical Teams"
+}

@@ -1,0 +1,37 @@
+{
+  "best_for": "Modern sites requiring interactive features with optimal performance",
+  "category": "foundation_ssg_service",
+  "complexity_level": "medium_to_high",
+  "hosting_pattern": "aws_optimized",
+  "key_features": [
+    "component_islands",
+    "partial_hydration",
+    "framework_agnostic",
+    "performance_optimized"
+  ],
+  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "monthly_cost_range": [
+    60,
+    85
+  ],
+  "performance_tier": "premium",
+  "schema_version": "1.0.0",
+  "setup_cost_range": [
+    1200,
+    2400
+  ],
+  "ssg_engine": "astro",
+  "stack_type": "modern_performance",
+  "target_market": [
+    "modern_businesses",
+    "agencies",
+    "performance_critical_sites",
+    "interactive_applications"
+  ],
+  "template_variants": [
+    "modern_interactive",
+    "component_islands",
+    "performance_optimized"
+  ],
+  "tier_name": "Modern High-Performance Interactive"
+}

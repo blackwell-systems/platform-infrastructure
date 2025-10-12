@@ -18,9 +18,14 @@ import hashlib
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
+# New enhanced interfaces
+from blackwell_core.adapters.interfaces import ICMSAdapter
+from blackwell_core.models.events import ContentEvent, UnifiedContent
+
+# Legacy interfaces for backward compatibility
 from shared.composition.provider_adapter_registry import IProviderHandler, BaseProviderHandler
 from models.composition import (
-    UnifiedContent, ContentType, ContentStatus,
+    ContentType, ContentStatus,
     MediaAsset, SEOMetadata
 )
 
@@ -28,7 +33,7 @@ from models.composition import (
 logger = logging.getLogger(__name__)
 
 
-class SanityCMSHandler(BaseProviderHandler):
+class SanityCMSHandler(ICMSAdapter):
     """
     Sanity CMS provider handler implementing structured content management.
 
@@ -40,8 +45,13 @@ class SanityCMSHandler(BaseProviderHandler):
     - Perfect for modern content workflows
     """
 
+    # Required class attributes for new interface
+    provider_name = "sanity"
+    provider_type = "cms"
+    supported_events = ["content.created", "content.updated", "content.deleted", "content.published"]
+    api_version = "v1"
+
     def __init__(self):
-        super().__init__("sanity")
 
         # Sanity-specific configuration
         self.supported_webhook_events = [
@@ -61,6 +71,208 @@ class SanityCMSHandler(BaseProviderHandler):
         }
 
         logger.info("Sanity CMS adapter initialized")
+
+    def transform_event(self, raw_data: Dict[str, Any]) -> ContentEvent:
+        """
+        Transform Sanity webhook data to standardized ContentEvent.
+        """
+        try:
+            # Extract document data
+            document = raw_data
+            if 'document' in raw_data:
+                document = raw_data['document']
+
+            # Determine event type and action
+            event_type = "content.updated"  # Default
+            action = "updated"
+
+            # Map Sanity webhook events
+            sanity_event = raw_data.get('webhook_event') or raw_data.get('_type', 'document.update')
+            if sanity_event == 'document.create':
+                event_type = "content.created"
+                action = "created"
+            elif sanity_event == 'document.delete':
+                event_type = "content.deleted"
+                action = "deleted"
+            elif sanity_event == 'document.publish':
+                event_type = "content.published"
+                action = "published"
+
+            # Extract content information
+            content_id = f"sanity:{document.get('_id', 'unknown')}"
+            content_type = self._determine_content_type(document).value
+
+            return ContentEvent(
+                event_type=event_type,
+                provider=self.provider_name,
+                client_id=self._extract_client_id(document),
+                payload=raw_data,
+                content_id=content_id,
+                content_type=content_type,
+                action=action,
+                author=document.get('_createdBy')
+            )
+
+        except Exception as e:
+            logger.error(f"Error transforming Sanity event: {str(e)}", exc_info=True)
+            return ContentEvent(
+                event_type="content.updated",
+                provider=self.provider_name,
+                client_id="unknown",
+                payload=raw_data,
+                content_id="unknown",
+                content_type="article",
+                action="updated"
+            )
+
+    def validate_webhook_signature(self, body: bytes, headers: Dict[str, str]) -> bool:
+        """
+        Validate Sanity webhook signature.
+        """
+        try:
+            # Get Sanity signature
+            signature_header = headers.get('sanity-webhook-signature', '')
+            if not signature_header:
+                logger.warning("No Sanity webhook signature found")
+                return True  # Allow for development/testing
+
+            # Extract signature (format: "sha256=<signature>")
+            if not signature_header.startswith('sha256='):
+                logger.warning(f"Invalid Sanity signature format: {signature_header}")
+                return True
+
+            signature = signature_header[7:]  # Remove 'sha256=' prefix
+
+            # Get webhook secret
+            webhook_secret = self._get_webhook_secret()
+            if not webhook_secret:
+                logger.info("No webhook secret configured for Sanity CMS - allowing request")
+                return True
+
+            # Calculate expected signature
+            expected_signature = hmac.new(
+                webhook_secret.encode('utf-8'),
+                body,
+                hashlib.sha256
+            ).hexdigest()
+
+            # Compare signatures
+            is_valid = hmac.compare_digest(signature, expected_signature)
+
+            if not is_valid:
+                logger.warning("Invalid Sanity webhook signature")
+
+            return is_valid
+
+        except Exception as e:
+            logger.error(f"Sanity signature validation error: {str(e)}")
+            return False
+
+    def get_capabilities(self) -> List[str]:
+        """
+        Return list of features this Sanity adapter supports.
+        """
+        return [
+            "webhooks",
+            "content_fetch",
+            "content_listing",
+            "portable_text",
+            "structured_content",
+            "real_time_collaboration",
+            "groq_queries",
+            "asset_management",
+            "seo_optimization"
+        ]
+
+    def normalize_content(self, raw_data: Dict[str, Any]) -> UnifiedContent:
+        """
+        Convert Sanity data to unified content schema.
+        Uses the existing comprehensive normalization logic.
+        """
+        try:
+            # Use existing detailed normalization method
+            result = self._normalize_sanity_document(raw_data, "content.updated")
+            return result if result else self._create_fallback_content(raw_data)
+
+        except Exception as e:
+            logger.error(f"Error normalizing Sanity content: {str(e)}")
+            return self._create_fallback_content(raw_data)
+
+    def fetch_content_by_id(self, content_id: str) -> Optional[UnifiedContent]:
+        """
+        Retrieve specific content item by ID.
+        """
+        try:
+            # Parse Sanity content ID
+            if content_id.startswith('sanity:'):
+                sanity_id = content_id[7:]
+
+                # Mock implementation - would use Sanity Content API
+                mock_data = {
+                    '_id': sanity_id,
+                    '_type': 'post',
+                    'title': f'Sanity Content {sanity_id}',
+                    'slug': {'current': f'sanity-content-{sanity_id}'},
+                    '_createdAt': datetime.utcnow().isoformat(),
+                    '_updatedAt': datetime.utcnow().isoformat(),
+                    'published': True
+                }
+
+                return self.normalize_content(mock_data)
+
+            return None
+
+        except Exception as e:
+            logger.error(f"Error fetching Sanity content {content_id}: {str(e)}")
+            return None
+
+    def list_content(self, content_type: Optional[str] = None, limit: int = 100) -> List[UnifiedContent]:
+        """
+        List content items with optional filtering.
+        """
+        try:
+            # Mock implementation - would use Sanity Content API with GROQ
+            mock_content = []
+            content_types = [content_type] if content_type else ['post', 'page']
+
+            for i in range(min(limit, 5)):  # Mock 5 items
+                for ct in content_types:
+                    if len(mock_content) >= limit:
+                        break
+
+                    mock_data = {
+                        '_id': f'{ct}_{i}',
+                        '_type': ct,
+                        'title': f'Sample {ct.title()} {i}',
+                        'slug': {'current': f'sample-{ct}-{i}'},
+                        '_createdAt': datetime.utcnow().isoformat(),
+                        '_updatedAt': datetime.utcnow().isoformat(),
+                        'published': True
+                    }
+                    mock_content.append(self.normalize_content(mock_data))
+
+            return mock_content
+
+        except Exception as e:
+            logger.error(f"Error listing Sanity content: {str(e)}")
+            return []
+
+    def _extract_client_id(self, document: Dict[str, Any]) -> str:
+        """Extract client ID from Sanity document."""
+        return document.get('_projectId', self._get_project_id())
+
+    def _create_fallback_content(self, raw_data: Dict[str, Any]) -> UnifiedContent:
+        """Create a fallback UnifiedContent object."""
+        return UnifiedContent(
+            id=f"sanity:{raw_data.get('_id', 'unknown')}",
+            title=raw_data.get('title', 'Unknown Content'),
+            slug=raw_data.get('slug', {}).get('current', 'unknown') if isinstance(raw_data.get('slug'), dict) else 'unknown',
+            content_type="article",
+            provider_type="cms",
+            provider_name=self.provider_name,
+            created_at=datetime.utcnow().isoformat(),
+            updated_at=datetime.utcnow().isoformat()
+        )
 
     def normalize_webhook_data(self, webhook_data: Dict[str, Any], event_type: str) -> List[UnifiedContent]:
         """
@@ -100,53 +312,6 @@ class SanityCMSHandler(BaseProviderHandler):
             logger.error(f"Sanity CMS normalization error: {str(e)}", exc_info=True)
             return []
 
-    def validate_webhook_signature(self, body: Dict[str, Any], headers: Dict[str, str]) -> bool:
-        """
-        Validate Sanity webhook signature.
-
-        Sanity uses HMAC-SHA256 for webhook signature validation to ensure
-        authenticity and prevent malicious requests.
-        """
-
-        try:
-            # Get Sanity signature
-            signature_header = headers.get('sanity-webhook-signature', '')
-            if not signature_header:
-                logger.warning("No Sanity webhook signature found")
-                return True  # Allow for development/testing
-
-            # Extract signature (format: "sha256=<signature>")
-            if not signature_header.startswith('sha256='):
-                logger.warning(f"Invalid Sanity signature format: {signature_header}")
-                return True
-
-            signature = signature_header[7:]  # Remove 'sha256=' prefix
-
-            # Get webhook secret
-            webhook_secret = self._get_webhook_secret()
-            if not webhook_secret:
-                logger.info("No webhook secret configured for Sanity CMS - allowing request")
-                return True
-
-            # Calculate expected signature
-            body_str = json.dumps(body, separators=(',', ':'), sort_keys=True)
-            expected_signature = hmac.new(
-                webhook_secret.encode('utf-8'),
-                body_str.encode('utf-8'),
-                hashlib.sha256
-            ).hexdigest()
-
-            # Compare signatures
-            is_valid = hmac.compare_digest(signature, expected_signature)
-
-            if not is_valid:
-                logger.warning("Invalid Sanity webhook signature")
-
-            return is_valid
-
-        except Exception as e:
-            logger.error(f"Sanity signature validation error: {str(e)}")
-            return False
 
     def extract_event_type(self, headers: Dict[str, str], body: Dict[str, Any]) -> str:
         """Extract event type from Sanity webhook."""

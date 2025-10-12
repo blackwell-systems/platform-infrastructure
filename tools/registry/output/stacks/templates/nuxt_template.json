@@ -1,0 +1,38 @@
+{
+  "best_for": "Modern Vue 3 applications with Composition API and progressive enhancement features",
+  "category": "ssg_template_business_service",
+  "complexity_level": "medium_to_high",
+  "hosting_pattern": "aws_optimized",
+  "key_features": [
+    "vue_3_composition_api",
+    "progressive_enhancement",
+    "pinia_state_management",
+    "modern_patterns",
+    "vue_ecosystem"
+  ],
+  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "monthly_cost_range": [
+    85,
+    115
+  ],
+  "performance_tier": "optimized",
+  "schema_version": "1.0.0",
+  "setup_cost_range": [
+    1200,
+    2880
+  ],
+  "ssg_engine": "nuxt",
+  "stack_type": "nuxt_template",
+  "target_market": [
+    "vue_developers",
+    "composition_api_teams",
+    "progressive_applications",
+    "vue_ecosystem"
+  ],
+  "template_variants": [
+    "vue_business",
+    "content_site",
+    "vue_portfolio"
+  ],
+  "tier_name": "Nuxt Template - Vue Ecosystem with Modern Patterns"
+}

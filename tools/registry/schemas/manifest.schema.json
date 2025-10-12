@@ -1,0 +1,146 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://registry.blackwell.dev/schemas/manifest.schema.json",
+  "title": "Provider Registry Manifest",
+  "description": "Registry manifest containing schema version and provider catalog",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "last_updated",
+    "providers",
+    "stacks",
+    "cdn_urls"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of the registry schema"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of last registry update"
+    },
+    "providers": {
+      "type": "object",
+      "description": "Catalog of available providers by category",
+      "properties": {
+        "cms": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9_-]+$"
+          },
+          "description": "Available CMS providers"
+        },
+        "ecommerce": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9_-]+$"
+          },
+          "description": "Available E-commerce providers"
+        },
+        "ssg": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9_-]+$"
+          },
+          "description": "Available SSG engines"
+        }
+      },
+      "required": ["cms", "ecommerce", "ssg"],
+      "additionalProperties": false
+    },
+    "stacks": {
+      "type": "object",
+      "description": "Catalog of available stack types by category",
+      "properties": {
+        "templates": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9_-]+$"
+          },
+          "description": "SSG template business service stacks"
+        },
+        "foundation": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9_-]+$"
+          },
+          "description": "Foundation SSG service stacks"
+        },
+        "cms-tiers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9_-]+$"
+          },
+          "description": "CMS tier service stacks"
+        },
+        "ecommerce-tiers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9_-]+$"
+          },
+          "description": "E-commerce tier service stacks"
+        },
+        "composed": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9_-]+$"
+          },
+          "description": "Composed service stacks"
+        }
+      },
+      "required": ["templates", "foundation", "cms-tiers", "ecommerce-tiers", "composed"],
+      "additionalProperties": false
+    },
+    "cdn_urls": {
+      "type": "object",
+      "description": "CDN URLs for registry access",
+      "properties": {
+        "base": {
+          "type": "string",
+          "format": "uri",
+          "description": "Base URL for registry CDN"
+        },
+        "manifest": {
+          "type": "string",
+          "format": "uri",
+          "description": "Direct URL to manifest.json"
+        }
+      },
+      "required": ["base", "manifest"],
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional registry metadata",
+      "properties": {
+        "total_providers": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of providers across all categories"
+        },
+        "total_stacks": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of stack types"
+        },
+        "registry_version": {
+          "type": "string",
+          "description": "Registry deployment version"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

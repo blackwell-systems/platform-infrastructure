@@ -1,0 +1,46 @@
+{
+  "best_for": "Professional structured content management with real-time APIs and advanced querying",
+  "category": "cms_tier_service",
+  "cms_provider": "sanity",
+  "cms_type": "api_based",
+  "complexity_level": "medium_to_high",
+  "hosting_pattern": "aws_optimized",
+  "key_features": [
+    "structured_content",
+    "groq_querying",
+    "real_time_apis",
+    "content_validation",
+    "advanced_media",
+    "webhook_automation"
+  ],
+  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "monthly_cost_range": [
+    65,
+    280
+  ],
+  "performance_tier": "premium",
+  "schema_version": "1.0.0",
+  "setup_cost_range": [
+    1440,
+    3360
+  ],
+  "ssg_engine_options": [
+    "nextjs",
+    "astro",
+    "gatsby",
+    "eleventy"
+  ],
+  "stack_type": "sanity_cms_tier",
+  "target_market": [
+    "professional_content_teams",
+    "api_first_developers",
+    "structured_content_needs",
+    "enterprise_ready"
+  ],
+  "template_variants": [
+    "structured_content",
+    "api_driven",
+    "professional_editorial"
+  ],
+  "tier_name": "Sanity CMS - Structured Content with Real-Time APIs"
+}

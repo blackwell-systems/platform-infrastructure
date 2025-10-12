@@ -1,0 +1,36 @@
+{
+  "best_for": "Modern sites requiring interactive features with optimal performance",
+  "build_speed": "fast",
+  "category": "ssg_template_business_service",
+  "complexity_level": "medium_to_high",
+  "display_name": "Astro",
+  "ecosystem": "multi_framework",
+  "hosting_pattern": "aws_optimized",
+  "key_features": [
+    "component_islands",
+    "partial_hydration",
+    "framework_agnostic",
+    "performance_optimized"
+  ],
+  "language": "javascript",
+  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "monthly_cost_range": [
+    75,
+    115
+  ],
+  "performance_tier": "optimized",
+  "provider_name": "astro",
+  "provider_type": "ssg",
+  "schema_version": "1.0.0",
+  "setup_cost_range": [
+    1000,
+    2500
+  ],
+  "ssg_engine": "astro",
+  "target_market": [
+    "developers",
+    "technical_teams",
+    "agencies"
+  ],
+  "tier_name": "Astro - Modern High-Performance Framework"
+}

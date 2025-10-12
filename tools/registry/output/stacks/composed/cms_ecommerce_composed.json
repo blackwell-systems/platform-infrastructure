@@ -1,0 +1,41 @@
+{
+  "best_for": "Sites requiring both professional content management and e-commerce capabilities",
+  "category": "composed_service",
+  "complexity_level": "high",
+  "hosting_pattern": "aws_optimized",
+  "key_features": [
+    "unified_content_commerce",
+    "cross_domain_events",
+    "shared_user_management",
+    "integrated_analytics"
+  ],
+  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "monthly_cost_range": [
+    140,
+    405
+  ],
+  "performance_tier": "enterprise",
+  "provider_combinations": "flexible",
+  "schema_version": "1.0.0",
+  "setup_cost_range": [
+    2160,
+    5760
+  ],
+  "ssg_engine_options": [
+    "astro",
+    "gatsby",
+    "nextjs"
+  ],
+  "stack_type": "cms_ecommerce_composed",
+  "target_market": [
+    "content_driven_stores",
+    "editorial_ecommerce",
+    "complex_business_models"
+  ],
+  "template_variants": [
+    "content_store",
+    "editorial_commerce",
+    "magazine_shop"
+  ],
+  "tier_name": "Composed CMS + E-commerce Stack"
+}

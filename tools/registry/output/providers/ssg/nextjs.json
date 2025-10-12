@@ -1,0 +1,37 @@
+{
+  "best_for": "Enterprise-ready React applications with static export and full-stack growth path",
+  "build_speed": "medium",
+  "category": "ssg_template_business_service",
+  "complexity_level": "medium_to_high",
+  "display_name": "Next.js",
+  "ecosystem": "react",
+  "hosting_pattern": "aws_optimized",
+  "key_features": [
+    "enterprise_patterns",
+    "typescript_first",
+    "api_routes_ready",
+    "static_export",
+    "full_stack_growth"
+  ],
+  "language": "javascript",
+  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "monthly_cost_range": [
+    75,
+    115
+  ],
+  "performance_tier": "optimized",
+  "provider_name": "nextjs",
+  "provider_type": "ssg",
+  "schema_version": "1.0.0",
+  "setup_cost_range": [
+    1000,
+    2500
+  ],
+  "ssg_engine": "nextjs",
+  "target_market": [
+    "developers",
+    "technical_teams",
+    "agencies"
+  ],
+  "tier_name": "Next.js - Enterprise Full-Stack React Foundation"
+}

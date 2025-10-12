@@ -1,0 +1,33 @@
+{
+  "best_for": "Enterprise performance at small business prices - 80-90% cost reduction vs agencies",
+  "category": "ecommerce_tier_service",
+  "complexity_level": "medium_to_high",
+  "display_name": "Shopify Basic",
+  "ecommerce_type": "hosted_platform",
+  "hosting_pattern": "aws_optimized",
+  "key_features": [
+    "shopify_storefront_api",
+    "real_time_sync",
+    "webhook_automation",
+    "performance_optimization"
+  ],
+  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "monthly_cost_range": [
+    75,
+    125
+  ],
+  "performance_tier": "optimized",
+  "provider_name": "shopify_basic",
+  "provider_type": "ecommerce",
+  "schema_version": "1.0.0",
+  "setup_cost_range": [
+    1600,
+    3200
+  ],
+  "target_market": [
+    "small_businesses",
+    "agencies",
+    "developers"
+  ],
+  "tier_name": "Shopify Basic - Performance E-commerce with Flexible SSG"
+}
