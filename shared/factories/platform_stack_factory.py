@@ -254,235 +254,235 @@ class PlatformStackFactory:
         "hugo_template": {
             "tier_name": "Hugo Template - Performance-Critical Technical Teams",
             "category": "ssg_template_business_service",
-            "monthly_cost_range": (80, 105),
-            "setup_cost_range": (960, 2160),
-            "target_market": ["technical_teams", "performance_critical_sites", "documentation_sites", "enterprise_technical"],
+            "target_audience": ["technical_teams", "performance_critical_sites", "documentation_sites", "enterprise_technical"],
             "best_for": "Ultra-fast static sites with complex content relationships and technical documentation",
             "complexity_level": "medium_to_high",
+            "technical_requirements": ["go_templating", "markdown_expertise", "build_pipeline_knowledge"],
             "ssg_engine": "hugo",
             "template_variants": ["documentation", "performance_blog", "technical_portfolio"],
             "key_features": ["ultra_fast_builds", "technical_documentation", "multi_language", "complex_taxonomies", "performance_optimization"],
             "hosting_pattern": "aws_optimized",
-            "performance_tier": "maximum"
+            "performance_tier": "maximum",
+            "use_cases": ["high_traffic_sites", "documentation_portals", "technical_blogs", "enterprise_websites"]
         },
         "gatsby_template": {
             "tier_name": "Gatsby Template - React Ecosystem with GraphQL",
             "category": "ssg_template_business_service",
-            "monthly_cost_range": (85, 110),
-            "setup_cost_range": (1200, 2400),
-            "target_market": ["react_developers", "component_driven_teams", "content_heavy_sites", "javascript_teams"],
+            "target_audience": ["react_developers", "component_driven_teams", "content_heavy_sites", "javascript_teams"],
             "best_for": "React-based static sites with GraphQL data layer and component architecture",
             "complexity_level": "medium_to_high",
+            "technical_requirements": ["react_knowledge", "graphql_understanding", "javascript_es6", "component_architecture"],
             "ssg_engine": "gatsby",
             "template_variants": ["react_business", "content_blog", "portfolio_showcase"],
             "key_features": ["react_components", "graphql_data_layer", "plugin_ecosystem", "image_optimization", "component_reusability"],
             "hosting_pattern": "aws_optimized",
-            "performance_tier": "optimized"
+            "performance_tier": "optimized",
+            "use_cases": ["content_heavy_websites", "portfolio_sites", "business_blogs", "component_showcases"]
         },
         "nextjs_template": {
             "tier_name": "Next.js Template - Enterprise Full-Stack React Foundation",
             "category": "ssg_template_business_service",
-            "monthly_cost_range": (85, 115),
-            "setup_cost_range": (1440, 3360),
-            "target_market": ["fullstack_developers", "enterprise_teams", "business_applications", "scalable_architecture"],
+            "target_audience": ["fullstack_developers", "enterprise_teams", "business_applications", "scalable_architecture"],
             "best_for": "Enterprise-ready React applications with static export and full-stack growth path",
             "complexity_level": "high",
+            "technical_requirements": ["react_advanced", "typescript_proficiency", "next_js_concepts", "full_stack_architecture"],
             "ssg_engine": "nextjs",
             "template_variants": ["business_app", "marketing_site", "saas_landing"],
             "key_features": ["enterprise_patterns", "typescript_first", "api_routes_ready", "static_export", "full_stack_growth"],
             "hosting_pattern": "aws_optimized",
-            "performance_tier": "enterprise"
+            "performance_tier": "enterprise",
+            "use_cases": ["enterprise_applications", "saas_platforms", "business_websites", "scalable_web_apps"]
         },
         "nuxt_template": {
             "tier_name": "Nuxt Template - Vue Ecosystem with Modern Patterns",
             "category": "ssg_template_business_service",
-            "monthly_cost_range": (85, 115),
-            "setup_cost_range": (1200, 2880),
-            "target_market": ["vue_developers", "composition_api_teams", "progressive_applications", "vue_ecosystem"],
+            "target_audience": ["vue_developers", "composition_api_teams", "progressive_applications", "vue_ecosystem"],
             "best_for": "Modern Vue 3 applications with Composition API and progressive enhancement features",
             "complexity_level": "medium",
+            "technical_requirements": ["vue_3_knowledge", "composition_api", "nuxt_framework", "modern_javascript"],
             "ssg_engine": "nuxt",
             "template_variants": ["vue_business", "content_site", "vue_portfolio"],
             "key_features": ["vue_3_composition_api", "progressive_enhancement", "pinia_state_management", "modern_patterns", "vue_ecosystem"],
             "hosting_pattern": "aws_optimized",
-            "performance_tier": "optimized"
+            "performance_tier": "optimized",
+            "use_cases": ["progressive_web_apps", "vue_business_sites", "modern_portfolios", "spa_websites"]
         },
 
         # === FOUNDATION SSG STACK METADATA ===
         "marketing": {
             "tier_name": "Marketing-Optimized Static Sites",
             "category": "foundation_ssg_service",
-            "monthly_cost_range": (75, 100),
-            "setup_cost_range": (1200, 2400),
-            "target_market": ["small_businesses", "marketing_agencies", "content_creators", "professionals"],
+            "target_audience": ["small_businesses", "marketing_agencies", "content_creators", "professionals"],
             "best_for": "Content-driven marketing sites with fast loading and SEO optimization",
             "complexity_level": "low_to_medium",
+            "technical_requirements": ["basic_html_css", "content_management", "seo_understanding"],
             "ssg_engine": "eleventy",
             "template_variants": ["business_modern", "corporate_clean", "marketing_focused"],
-            "key_features": ["fast_builds", "seo_optimized", "cost_effective", "developer_managed"],
+            "key_features": ["fast_builds", "seo_optimized", "content_focused", "developer_managed"],
             "hosting_pattern": "aws_optimized",
-            "performance_tier": "optimized"
+            "performance_tier": "optimized",
+            "use_cases": ["business_websites", "marketing_campaigns", "corporate_sites", "professional_portfolios"]
         },
         "developer": {
             "tier_name": "Developer-Focused Git Workflow",
             "category": "foundation_ssg_service",
-            "monthly_cost_range": (0, 25),  # Can use GitHub Pages for $0
-            "setup_cost_range": (800, 1800),
-            "target_market": ["developers", "technical_writers", "open_source_projects", "documentation_sites"],
+            "target_audience": ["developers", "technical_writers", "open_source_projects", "documentation_sites"],
             "best_for": "Technical sites with Git-based workflows and GitHub Pages compatibility",
             "complexity_level": "medium",
+            "technical_requirements": ["git_proficiency", "ruby_basics", "liquid_templating", "github_workflow"],
             "ssg_engine": "jekyll",
             "template_variants": ["technical_blog", "documentation", "simple_blog"],
             "key_features": ["github_pages_compatible", "git_workflow", "theme_system", "dual_hosting"],
             "hosting_pattern": "github_compatible",
-            "performance_tier": "basic"
+            "performance_tier": "basic",
+            "use_cases": ["technical_blogs", "project_documentation", "personal_sites", "open_source_projects"]
         },
         "modern_performance": {
             "tier_name": "Modern High-Performance Interactive",
             "category": "foundation_ssg_service",
-            "monthly_cost_range": (60, 85),
-            "setup_cost_range": (1200, 2400),
-            "target_market": ["modern_businesses", "agencies", "performance_critical_sites", "interactive_applications"],
+            "target_audience": ["modern_businesses", "agencies", "performance_critical_sites", "interactive_applications"],
             "best_for": "Modern sites requiring interactive features with optimal performance",
             "complexity_level": "medium_to_high",
+            "technical_requirements": ["modern_javascript", "component_architecture", "build_tools", "performance_optimization"],
             "ssg_engine": "astro",
             "template_variants": ["modern_interactive", "component_islands", "performance_optimized"],
             "key_features": ["component_islands", "partial_hydration", "framework_agnostic", "performance_optimized"],
             "hosting_pattern": "aws_optimized",
-            "performance_tier": "premium"
+            "performance_tier": "premium",
+            "use_cases": ["interactive_websites", "modern_web_apps", "performance_critical_sites", "component_showcases"]
         },
 
         # === CMS TIER METADATA ===
         "decap_cms_tier": {
             "tier_name": "Decap CMS - Free Git-Based Content Management",
             "category": "cms_tier_service",
-            "monthly_cost_range": (50, 75),  # No CMS fees, only hosting
-            "setup_cost_range": (960, 2640),  # Varies by SSG engine choice
-            "target_market": ["budget_conscious_businesses", "technical_teams", "small_to_medium_content", "git_workflow_users"],
-            "best_for": "Budget-friendly content management with full git workflow control",
+            "target_audience": ["technical_teams", "developer_focused_teams", "small_to_medium_content", "git_workflow_users"],
+            "best_for": "Git-based content management with developer-friendly workflow and version control",
             "complexity_level": "low_to_medium",
+            "technical_requirements": ["git_proficiency", "markdown_knowledge", "basic_yaml", "github_workflow"],
             "cms_provider": "decap",
             "cms_type": "git_based",
             "ssg_engine_options": ["hugo", "eleventy", "astro", "gatsby"],
             "template_variants": ["git_cms_basic", "markdown_focused", "developer_friendly"],
             "key_features": ["free_cms", "git_workflow", "markdown_editing", "github_oauth", "version_control", "no_vendor_lock_in"],
             "hosting_pattern": "aws_optimized",
-            "performance_tier": "optimized"
+            "performance_tier": "optimized",
+            "use_cases": ["developer_blogs", "technical_documentation", "small_business_sites", "version_controlled_content"]
         },
         "tina_cms_tier": {
             "tier_name": "Tina CMS - Visual Editing with Git Workflow",
             "category": "cms_tier_service",
-            "monthly_cost_range": (60, 125),  # Includes optional Tina Cloud features
-            "setup_cost_range": (1200, 2880),  # Higher complexity due to visual editor integration
-            "target_market": ["content_creators", "agencies", "visual_editing_preference", "collaboration_teams"],
+            "target_audience": ["content_creators", "agencies", "visual_editing_preference", "collaboration_teams"],
             "best_for": "Visual content editing with git-based storage and real-time collaboration",
             "complexity_level": "medium",
+            "technical_requirements": ["react_familiarity", "git_basics", "graphql_understanding", "modern_javascript"],
             "cms_provider": "tina",
             "cms_type": "hybrid",
             "ssg_engine_options": ["nextjs", "astro", "gatsby"],
             "template_variants": ["visual_editor", "react_based", "collaboration_focused"],
             "key_features": ["visual_editing", "real_time_preview", "git_workflow", "react_based", "graphql_api", "collaboration"],
             "hosting_pattern": "aws_optimized",
-            "performance_tier": "optimized"
+            "performance_tier": "optimized",
+            "use_cases": ["content_marketing", "agency_projects", "collaborative_editing", "visual_content_creation"]
         },
         "sanity_cms_tier": {
             "tier_name": "Sanity CMS - Structured Content with Real-Time APIs",
             "category": "cms_tier_service",
-            "monthly_cost_range": (65, 280),  # Hosting + Sanity CMS plans (Free to Business)
-            "setup_cost_range": (1440, 3360),  # High complexity due to API integration and structured content
-            "target_market": ["professional_content_teams", "api_first_developers", "structured_content_needs", "enterprise_ready"],
+            "target_audience": ["professional_content_teams", "api_first_developers", "structured_content_needs", "enterprise_ready"],
             "best_for": "Professional structured content management with real-time APIs and advanced querying",
             "complexity_level": "medium_to_high",
+            "technical_requirements": ["api_integration", "structured_content_modeling", "groq_query_language", "webhook_setup"],
             "cms_provider": "sanity",
             "cms_type": "api_based",
             "ssg_engine_options": ["nextjs", "astro", "gatsby", "eleventy"],
             "template_variants": ["structured_content", "api_driven", "professional_editorial"],
             "key_features": ["structured_content", "groq_querying", "real_time_apis", "content_validation", "advanced_media", "webhook_automation"],
             "hosting_pattern": "aws_optimized",
-            "performance_tier": "premium"
+            "performance_tier": "premium",
+            "use_cases": ["professional_publishing", "api_driven_sites", "structured_data_management", "real_time_content_sync"]
         },
         "contentful_cms_tier": {
             "tier_name": "Contentful CMS - Enterprise Content Management with Advanced Workflows",
             "category": "cms_tier_service",
-            "monthly_cost_range": (75, 500),  # AWS hosting + Contentful subscription (Team to Business plans)
-            "setup_cost_range": (2100, 4800),  # Enterprise complexity and customization requirements
-            "target_market": ["enterprise_content_teams", "large_organizations", "complex_workflows", "multi_brand_companies", "international_businesses"],
+            "target_audience": ["enterprise_content_teams", "large_organizations", "complex_workflows", "multi_brand_companies", "international_businesses"],
             "best_for": "Enterprise-grade content management with advanced workflows, team collaboration, and multi-language support",
             "complexity_level": "high",
+            "technical_requirements": ["enterprise_api_integration", "workflow_management", "multi_language_setup", "advanced_permissions"],
             "cms_provider": "contentful",
             "cms_type": "api_based",
             "ssg_engine_options": ["gatsby", "astro", "nextjs", "nuxt"],
             "template_variants": ["enterprise_workflows", "multi_language", "team_collaboration"],
             "key_features": ["enterprise_workflows", "team_collaboration", "multi_language_support", "content_versioning", "scheduled_publishing", "advanced_permissions"],
             "hosting_pattern": "aws_optimized",
-            "performance_tier": "enterprise"
+            "performance_tier": "enterprise",
+            "use_cases": ["enterprise_publishing", "multi_brand_management", "international_content", "complex_editorial_workflows"]
         },
 
         # === E-COMMERCE TIER METADATA ===
         "snipcart_ecommerce": {
             "tier_name": "Snipcart E-commerce - Simple E-commerce Integration",
             "category": "ecommerce_tier_service",
-            "monthly_cost_range": (85, 125),
-            "setup_cost_range": (960, 2640),
-            "target_market": ["individuals", "small_businesses", "simple_stores"],
-            "best_for": "Budget-friendly e-commerce with fast setup",
+            "target_audience": ["individuals", "small_businesses", "simple_stores", "quick_setup_needs"],
+            "best_for": "Simple e-commerce integration with fast setup and minimal technical complexity",
             "complexity_level": "low_to_medium",
+            "technical_requirements": ["basic_html_css", "javascript_basics", "payment_setup", "product_management"],
             "ecommerce_provider": "snipcart",
             "provider_type": "simple_integration",
             "ssg_engine_options": ["hugo", "eleventy", "astro", "gatsby"],
             "template_variants": ["simple_store", "digital_products", "catalog_basic"],
             "key_features": ["simple_integration", "secure_checkout", "inventory_management", "basic_analytics"],
             "hosting_pattern": "aws_optimized",
-            "performance_tier": "optimized"
+            "performance_tier": "optimized",
+            "use_cases": ["small_online_stores", "digital_product_sales", "simple_catalogs", "quick_e_commerce_setup"]
         },
         "foxy_ecommerce": {
             "tier_name": "Foxy E-commerce - Advanced E-commerce Features",
             "category": "ecommerce_tier_service",
-            "monthly_cost_range": (100, 150),
-            "setup_cost_range": (1200, 3000),
-            "target_market": ["small_businesses", "growing_companies", "subscription_services"],
-            "best_for": "Advanced features, subscriptions, complex workflows",
+            "target_audience": ["small_businesses", "growing_companies", "subscription_services", "advanced_features_needs"],
+            "best_for": "Advanced e-commerce features including subscriptions and complex pricing workflows",
             "complexity_level": "medium_to_high",
+            "technical_requirements": ["api_integration", "webhook_setup", "subscription_management", "advanced_configuration"],
             "ecommerce_provider": "foxy",
             "provider_type": "advanced_platform",
             "ssg_engine_options": ["eleventy", "astro", "gatsby"],
             "template_variants": ["subscription_store", "advanced_catalog", "custom_checkout"],
             "key_features": ["subscription_management", "advanced_checkout", "webhook_automation", "complex_pricing"],
             "hosting_pattern": "aws_optimized",
-            "performance_tier": "premium"
+            "performance_tier": "premium",
+            "use_cases": ["subscription_businesses", "complex_product_catalogs", "advanced_checkout_flows", "recurring_billing"]
         },
         "shopify_basic_ecommerce": {
             "tier_name": "Shopify Basic - Performance E-commerce with Flexible SSG",
             "category": "ecommerce_tier_service",
-            "monthly_cost_range": (75, 125),
-            "setup_cost_range": (1600, 3200),
-            "target_market": ["small_medium_stores", "performance_focused_brands", "agency_alternatives", "shopify_theme_upgrades"],
-            "best_for": "Enterprise performance at small business prices - 80-90% cost reduction vs agencies",
+            "target_audience": ["small_medium_stores", "performance_focused_brands", "agency_alternatives", "shopify_theme_upgrades"],
+            "best_for": "High-performance e-commerce leveraging Shopify's platform with custom frontend flexibility",
             "complexity_level": "medium",
+            "technical_requirements": ["shopify_storefront_api", "graphql_queries", "webhook_integration", "performance_optimization"],
             "ecommerce_provider": "shopify_basic",
             "provider_type": "hosted_platform",
             "ssg_engine_options": ["eleventy", "astro", "nextjs", "nuxt"],
             "template_variants": ["performance_optimized", "static_site_ecommerce", "agency_alternative"],
             "key_features": ["shopify_storefront_api", "real_time_sync", "webhook_automation", "performance_optimization"],
             "hosting_pattern": "aws_optimized",
-            "performance_tier": "premium"
+            "performance_tier": "premium",
+            "use_cases": ["performance_focused_stores", "custom_shopify_frontends", "headless_e_commerce", "high_traffic_stores"]
         },
 
         # === COMPOSED STACK METADATA (SOLVES OWNERSHIP CRISIS) ===
         "cms_ecommerce_composed": {
             "tier_name": "Composed CMS + E-commerce Stack",
             "category": "composed_service",
-            "monthly_cost_range": (140, 405),  # Combined range based on provider choices
-            "setup_cost_range": (2160, 5760),  # Combined setup complexity
-            "target_market": ["content_driven_stores", "editorial_ecommerce", "complex_business_models"],
-            "best_for": "Sites requiring both professional content management and e-commerce capabilities",
+            "target_audience": ["content_driven_stores", "editorial_ecommerce", "complex_business_models", "integrated_publishing"],
+            "best_for": "Sites requiring both professional content management and e-commerce capabilities with unified orchestration",
             "complexity_level": "high",
+            "technical_requirements": ["multi_provider_integration", "event_driven_architecture", "cross_domain_orchestration", "unified_user_management"],
             "provider_combinations": "flexible", # CMS + E-commerce provider choice
             "ssg_engine_options": ["astro", "gatsby", "nextjs"],  # SSGs supporting both integrations
             "template_variants": ["content_store", "editorial_commerce", "magazine_shop"],
             "key_features": ["unified_content_commerce", "cross_domain_events", "shared_user_management", "integrated_analytics"],
             "hosting_pattern": "aws_optimized",
-            "performance_tier": "enterprise"
+            "performance_tier": "enterprise",
+            "use_cases": ["content_driven_e_commerce", "editorial_shopping", "magazine_stores", "integrated_publishing_platforms"]
         }
     }
 
@@ -673,23 +673,24 @@ class PlatformStackFactory:
         requirements: Dict[str, Any]
     ) -> List[Dict[str, Any]]:
         """
-        Get intelligent stack recommendations across all service tiers.
+        Get intelligent stack recommendations based on technical capabilities and use cases.
 
         This unified recommendation engine analyzes client requirements and
-        suggests optimal stack configurations from all available options.
+        suggests optimal stack configurations based on technical fit and capabilities.
 
         Args:
-            requirements: Dictionary of client requirements and preferences
+            requirements: Dictionary of client requirements and technical preferences
 
         Returns:
-            List of recommended stacks sorted by suitability
+            List of recommended stacks sorted by capability match score
 
         Example:
             requirements = {
-                'budget_conscious': True,
-                'technical_team': True,
+                'project_type': 'business_site',
+                'technical_level': 'intermediate',
                 'performance_critical': True,
-                'content_management': True
+                'content_management': True,
+                'framework_preference': 'react'
             }
             recommendations = get_recommendations(requirements)
         """
@@ -703,21 +704,20 @@ class PlatformStackFactory:
             requirements.get("documentation_site", False) or
             requirements.get("build_speed", False)):
 
+            stack_metadata = cls.get_stack_metadata("hugo_template")
             recommendations.append({
                 "stack_type": "hugo_template",
-                "category": "ssg_template_business_service",
+                "category": stack_metadata.get("category", "ssg_template_business_service"),
                 "ssg_engine": "hugo",
-                "monthly_cost": "$80-105",
-                "setup_cost": "$960-2,160",
+                "tier_name": stack_metadata.get("tier_name", "Hugo Template"),
+                "complexity_level": stack_metadata.get("complexity_level", "medium_to_high"),
                 "reason": "Ultra-fast builds (1000+ pages/second) ideal for performance-critical technical sites",
-                "best_for": "Technical documentation, performance-critical sites, large content volumes",
-                "complexity": "Medium to High",
-                "key_benefits": [
-                    "Ultra-fast build performance",
-                    "Excellent for technical documentation",
-                    "Multi-language support",
-                    "Complex taxonomy management"
-                ]
+                "best_for": stack_metadata.get("best_for", "Technical documentation, performance-critical sites"),
+                "technical_requirements": stack_metadata.get("technical_requirements", []),
+                "key_features": stack_metadata.get("key_features", []),
+                "use_cases": stack_metadata.get("use_cases", []),
+                "performance_tier": stack_metadata.get("performance_tier", "maximum"),
+                "target_audience": stack_metadata.get("target_audience", [])
             })
 
         # Gatsby Template (React ecosystem)
@@ -725,21 +725,20 @@ class PlatformStackFactory:
             requirements.get("component_architecture", False) or
             requirements.get("graphql_preferred", False)):
 
+            stack_metadata = cls.get_stack_metadata("gatsby_template")
             recommendations.append({
                 "stack_type": "gatsby_template",
-                "category": "ssg_template_business_service",
+                "category": stack_metadata.get("category", "ssg_template_business_service"),
                 "ssg_engine": "gatsby",
-                "monthly_cost": "$85-110",
-                "setup_cost": "$1,200-2,400",
+                "tier_name": stack_metadata.get("tier_name", "Gatsby Template"),
+                "complexity_level": stack_metadata.get("complexity_level", "medium_to_high"),
                 "reason": "React ecosystem with GraphQL data layer and rich plugin ecosystem",
-                "best_for": "React teams, component-driven development, content-heavy sites",
-                "complexity": "Medium to High",
-                "key_benefits": [
-                    "React component architecture",
-                    "Powerful GraphQL data layer",
-                    "Rich plugin ecosystem",
-                    "Advanced image optimization"
-                ]
+                "best_for": stack_metadata.get("best_for", "React teams, component-driven development"),
+                "technical_requirements": stack_metadata.get("technical_requirements", []),
+                "key_features": stack_metadata.get("key_features", []),
+                "use_cases": stack_metadata.get("use_cases", []),
+                "performance_tier": stack_metadata.get("performance_tier", "optimized"),
+                "target_audience": stack_metadata.get("target_audience", [])
             })
 
         # Next.js Template (Full-stack React)
@@ -748,21 +747,20 @@ class PlatformStackFactory:
             requirements.get("enterprise_features", False) or
             requirements.get("typescript_preferred", False)):
 
+            stack_metadata = cls.get_stack_metadata("nextjs_template")
             recommendations.append({
                 "stack_type": "nextjs_template",
-                "category": "ssg_template_business_service",
+                "category": stack_metadata.get("category", "ssg_template_business_service"),
                 "ssg_engine": "nextjs",
-                "monthly_cost": "$85-115",
-                "setup_cost": "$1,440-3,360",
+                "tier_name": stack_metadata.get("tier_name", "Next.js Template"),
+                "complexity_level": stack_metadata.get("complexity_level", "high"),
                 "reason": "Enterprise-ready React framework with static export and full-stack growth path",
-                "best_for": "Enterprise teams, business applications, full-stack React development",
-                "complexity": "High",
-                "key_benefits": [
-                    "Enterprise-grade patterns",
-                    "TypeScript-first development",
-                    "API routes ready for activation",
-                    "Full-stack architecture foundation"
-                ]
+                "best_for": stack_metadata.get("best_for", "Enterprise teams, business applications"),
+                "technical_requirements": stack_metadata.get("technical_requirements", []),
+                "key_features": stack_metadata.get("key_features", []),
+                "use_cases": stack_metadata.get("use_cases", []),
+                "performance_tier": stack_metadata.get("performance_tier", "enterprise"),
+                "target_audience": stack_metadata.get("target_audience", [])
             })
 
         # Nuxt Template (Vue ecosystem)
@@ -770,86 +768,254 @@ class PlatformStackFactory:
             requirements.get("composition_api", False) or
             requirements.get("progressive_applications", False)):
 
+            stack_metadata = cls.get_stack_metadata("nuxt_template")
             recommendations.append({
                 "stack_type": "nuxt_template",
-                "category": "ssg_template_business_service",
+                "category": stack_metadata.get("category", "ssg_template_business_service"),
                 "ssg_engine": "nuxt",
-                "monthly_cost": "$85-115",
-                "setup_cost": "$1,200-2,880",
+                "tier_name": stack_metadata.get("tier_name", "Nuxt Template"),
+                "complexity_level": stack_metadata.get("complexity_level", "medium"),
                 "reason": "Modern Vue 3 framework with Composition API and progressive enhancement",
-                "best_for": "Vue teams, modern component patterns, progressive applications",
-                "complexity": "Medium",
-                "key_benefits": [
-                    "Vue 3 Composition API patterns",
-                    "Progressive enhancement features",
-                    "Pinia state management",
-                    "Modern Vue ecosystem integration"
-                ]
+                "best_for": stack_metadata.get("best_for", "Vue teams, modern component patterns"),
+                "technical_requirements": stack_metadata.get("technical_requirements", []),
+                "key_features": stack_metadata.get("key_features", []),
+                "use_cases": stack_metadata.get("use_cases", []),
+                "performance_tier": stack_metadata.get("performance_tier", "optimized"),
+                "target_audience": stack_metadata.get("target_audience", [])
+            })
+
+        # === FOUNDATION SSG RECOMMENDATIONS ===
+
+        # Marketing-focused sites
+        if (requirements.get("marketing_site", False) or
+            requirements.get("seo_focused", False) or
+            requirements.get("small_business", False)):
+
+            stack_metadata = cls.get_stack_metadata("marketing")
+            recommendations.append({
+                "stack_type": "marketing",
+                "category": stack_metadata.get("category", "foundation_ssg_service"),
+                "ssg_engine": "eleventy",
+                "tier_name": stack_metadata.get("tier_name", "Marketing-Optimized Static Sites"),
+                "complexity_level": stack_metadata.get("complexity_level", "low_to_medium"),
+                "reason": "Content-driven marketing sites optimized for SEO and fast loading",
+                "best_for": stack_metadata.get("best_for", "Content-driven marketing sites"),
+                "technical_requirements": stack_metadata.get("technical_requirements", []),
+                "key_features": stack_metadata.get("key_features", []),
+                "use_cases": stack_metadata.get("use_cases", []),
+                "performance_tier": stack_metadata.get("performance_tier", "optimized"),
+                "target_audience": stack_metadata.get("target_audience", [])
+            })
+
+        # Developer-focused sites
+        if (requirements.get("developer_site", False) or
+            requirements.get("git_workflow", False) or
+            requirements.get("github_pages", False)):
+
+            stack_metadata = cls.get_stack_metadata("developer")
+            recommendations.append({
+                "stack_type": "developer",
+                "category": stack_metadata.get("category", "foundation_ssg_service"),
+                "ssg_engine": "jekyll",
+                "tier_name": stack_metadata.get("tier_name", "Developer-Focused Git Workflow"),
+                "complexity_level": stack_metadata.get("complexity_level", "medium"),
+                "reason": "Technical sites with Git-based workflows and GitHub Pages compatibility",
+                "best_for": stack_metadata.get("best_for", "Technical sites with Git workflows"),
+                "technical_requirements": stack_metadata.get("technical_requirements", []),
+                "key_features": stack_metadata.get("key_features", []),
+                "use_cases": stack_metadata.get("use_cases", []),
+                "performance_tier": stack_metadata.get("performance_tier", "basic"),
+                "target_audience": stack_metadata.get("target_audience", [])
+            })
+
+        # Modern performance sites
+        if (requirements.get("interactive_features", False) or
+            requirements.get("component_islands", False) or
+            requirements.get("modern_tooling", False)):
+
+            stack_metadata = cls.get_stack_metadata("modern_performance")
+            recommendations.append({
+                "stack_type": "modern_performance",
+                "category": stack_metadata.get("category", "foundation_ssg_service"),
+                "ssg_engine": "astro",
+                "tier_name": stack_metadata.get("tier_name", "Modern High-Performance Interactive"),
+                "complexity_level": stack_metadata.get("complexity_level", "medium_to_high"),
+                "reason": "Modern sites requiring interactive features with optimal performance",
+                "best_for": stack_metadata.get("best_for", "Modern sites with interactive features"),
+                "technical_requirements": stack_metadata.get("technical_requirements", []),
+                "key_features": stack_metadata.get("key_features", []),
+                "use_cases": stack_metadata.get("use_cases", []),
+                "performance_tier": stack_metadata.get("performance_tier", "premium"),
+                "target_audience": stack_metadata.get("target_audience", [])
             })
 
         # === CMS TIER RECOMMENDATIONS ===
 
         if requirements.get("content_management", False) or requirements.get("cms_needed", False):
 
-            # Budget-conscious CMS: Decap CMS
-            if requirements.get("budget_conscious", False):
+            # Git-based CMS for technical teams
+            if (requirements.get("technical_team", False) or
+                requirements.get("git_workflow", False) or
+                requirements.get("simple_cms", False)):
+
                 recommended_ssg = cls._recommend_ssg_engine("decap_cms_tier", requirements)
+                stack_metadata = cls.get_stack_metadata("decap_cms_tier")
                 recommendations.append({
                     "stack_type": "decap_cms_tier",
-                    "category": "cms_tier_service",
+                    "category": stack_metadata.get("category", "cms_tier_service"),
                     "ssg_engine": recommended_ssg,
-                    "ssg_engine_options": ["hugo", "eleventy", "astro", "gatsby"],
-                    "monthly_cost": "$50-75",
-                    "setup_cost": "$960-2,640",
-                    "reason": "Free git-based CMS with full content management capabilities",
-                    "best_for": "Budget-conscious sites, technical teams, git workflow",
-                    "complexity": "Low to Medium",
-                    "key_benefits": [
-                        "Completely free CMS",
-                        "Git-based workflow",
-                        "Choose your SSG engine",
-                        "No vendor lock-in"
-                    ]
+                    "ssg_engine_options": stack_metadata.get("ssg_engine_options", []),
+                    "tier_name": stack_metadata.get("tier_name", "Decap CMS"),
+                    "complexity_level": stack_metadata.get("complexity_level", "low_to_medium"),
+                    "reason": "Git-based CMS with developer-friendly workflow and version control",
+                    "best_for": stack_metadata.get("best_for", "Technical teams, git workflow"),
+                    "technical_requirements": stack_metadata.get("technical_requirements", []),
+                    "key_features": stack_metadata.get("key_features", []),
+                    "use_cases": stack_metadata.get("use_cases", []),
+                    "performance_tier": stack_metadata.get("performance_tier", "optimized"),
+                    "target_audience": stack_metadata.get("target_audience", [])
                 })
 
-            # Visual editing preference: Tina CMS
-            if requirements.get("visual_editing", False):
+            # Visual editing CMS
+            if (requirements.get("visual_editing", False) or
+                requirements.get("content_creators", False) or
+                requirements.get("real_time_preview", False)):
+
                 recommended_ssg = cls._recommend_ssg_engine("tina_cms_tier", requirements)
+                stack_metadata = cls.get_stack_metadata("tina_cms_tier")
                 recommendations.append({
                     "stack_type": "tina_cms_tier",
-                    "category": "cms_tier_service",
+                    "category": stack_metadata.get("category", "cms_tier_service"),
                     "ssg_engine": recommended_ssg,
-                    "ssg_engine_options": ["nextjs", "astro", "gatsby"],
-                    "monthly_cost": "$60-125",
-                    "setup_cost": "$1,200-2,880",
-                    "reason": "Visual editing CMS with git-based storage and real-time collaboration",
-                    "best_for": "Content creators, agencies, visual editing preference",
-                    "complexity": "Medium",
-                    "key_benefits": [
-                        "Visual editing interface",
-                        "Real-time preview",
-                        "Git-based storage",
-                        "React-based admin"
-                    ]
+                    "ssg_engine_options": stack_metadata.get("ssg_engine_options", []),
+                    "tier_name": stack_metadata.get("tier_name", "Tina CMS"),
+                    "complexity_level": stack_metadata.get("complexity_level", "medium"),
+                    "reason": "Visual content editing with git-based storage and real-time collaboration",
+                    "best_for": stack_metadata.get("best_for", "Content creators, visual editing"),
+                    "technical_requirements": stack_metadata.get("technical_requirements", []),
+                    "key_features": stack_metadata.get("key_features", []),
+                    "use_cases": stack_metadata.get("use_cases", []),
+                    "performance_tier": stack_metadata.get("performance_tier", "optimized"),
+                    "target_audience": stack_metadata.get("target_audience", [])
+                })
+
+            # Professional structured CMS
+            if (requirements.get("structured_content", False) or
+                requirements.get("professional_publishing", False) or
+                requirements.get("api_first", False)):
+
+                recommended_ssg = cls._recommend_ssg_engine("sanity_cms_tier", requirements)
+                stack_metadata = cls.get_stack_metadata("sanity_cms_tier")
+                recommendations.append({
+                    "stack_type": "sanity_cms_tier",
+                    "category": stack_metadata.get("category", "cms_tier_service"),
+                    "ssg_engine": recommended_ssg,
+                    "ssg_engine_options": stack_metadata.get("ssg_engine_options", []),
+                    "tier_name": stack_metadata.get("tier_name", "Sanity CMS"),
+                    "complexity_level": stack_metadata.get("complexity_level", "medium_to_high"),
+                    "reason": "Professional structured content management with real-time APIs",
+                    "best_for": stack_metadata.get("best_for", "Professional content teams, structured content"),
+                    "technical_requirements": stack_metadata.get("technical_requirements", []),
+                    "key_features": stack_metadata.get("key_features", []),
+                    "use_cases": stack_metadata.get("use_cases", []),
+                    "performance_tier": stack_metadata.get("performance_tier", "premium"),
+                    "target_audience": stack_metadata.get("target_audience", [])
+                })
+
+            # Enterprise CMS
+            if (requirements.get("enterprise_features", False) or
+                requirements.get("team_collaboration", False) or
+                requirements.get("multi_language", False)):
+
+                recommended_ssg = cls._recommend_ssg_engine("contentful_cms_tier", requirements)
+                stack_metadata = cls.get_stack_metadata("contentful_cms_tier")
+                recommendations.append({
+                    "stack_type": "contentful_cms_tier",
+                    "category": stack_metadata.get("category", "cms_tier_service"),
+                    "ssg_engine": recommended_ssg,
+                    "ssg_engine_options": stack_metadata.get("ssg_engine_options", []),
+                    "tier_name": stack_metadata.get("tier_name", "Contentful CMS"),
+                    "complexity_level": stack_metadata.get("complexity_level", "high"),
+                    "reason": "Enterprise-grade content management with advanced workflows",
+                    "best_for": stack_metadata.get("best_for", "Enterprise teams, complex workflows"),
+                    "technical_requirements": stack_metadata.get("technical_requirements", []),
+                    "key_features": stack_metadata.get("key_features", []),
+                    "use_cases": stack_metadata.get("use_cases", []),
+                    "performance_tier": stack_metadata.get("performance_tier", "enterprise"),
+                    "target_audience": stack_metadata.get("target_audience", [])
                 })
 
         # === E-COMMERCE TIER RECOMMENDATIONS ===
 
         if requirements.get("ecommerce_needed", False) or requirements.get("online_store", False):
 
-            # Simple e-commerce: Snipcart
-            if requirements.get("budget_conscious", False) or requirements.get("simple_store", False):
+            # Simple e-commerce
+            if (requirements.get("simple_store", False) or
+                requirements.get("digital_products", False) or
+                requirements.get("quick_setup", False)):
+
                 recommended_ssg = cls._recommend_ssg_engine("snipcart_ecommerce", requirements)
+                stack_metadata = cls.get_stack_metadata("snipcart_ecommerce")
                 recommendations.append({
                     "stack_type": "snipcart_ecommerce",
-                    "category": "ecommerce_tier_service",
+                    "category": stack_metadata.get("category", "ecommerce_tier_service"),
                     "ssg_engine": recommended_ssg,
-                    "ssg_engine_options": ["hugo", "eleventy", "astro", "gatsby"],
-                    "monthly_cost": "$85-125",
-                    "setup_cost": "$960-2,640",
-                    "reason": "Budget-friendly e-commerce with fast setup and flexible SSG choice",
-                    "best_for": "Small stores, digital products, simple catalogs",
-                    "complexity": "Low to Medium"
+                    "ssg_engine_options": stack_metadata.get("ssg_engine_options", []),
+                    "tier_name": stack_metadata.get("tier_name", "Snipcart E-commerce"),
+                    "complexity_level": stack_metadata.get("complexity_level", "low_to_medium"),
+                    "reason": "Simple e-commerce integration with fast setup and minimal complexity",
+                    "best_for": stack_metadata.get("best_for", "Simple stores, digital products"),
+                    "technical_requirements": stack_metadata.get("technical_requirements", []),
+                    "key_features": stack_metadata.get("key_features", []),
+                    "use_cases": stack_metadata.get("use_cases", []),
+                    "performance_tier": stack_metadata.get("performance_tier", "optimized"),
+                    "target_audience": stack_metadata.get("target_audience", [])
+                })
+
+            # Advanced e-commerce features
+            if (requirements.get("subscription_services", False) or
+                requirements.get("advanced_checkout", False) or
+                requirements.get("recurring_billing", False)):
+
+                recommended_ssg = cls._recommend_ssg_engine("foxy_ecommerce", requirements)
+                stack_metadata = cls.get_stack_metadata("foxy_ecommerce")
+                recommendations.append({
+                    "stack_type": "foxy_ecommerce",
+                    "category": stack_metadata.get("category", "ecommerce_tier_service"),
+                    "ssg_engine": recommended_ssg,
+                    "ssg_engine_options": stack_metadata.get("ssg_engine_options", []),
+                    "tier_name": stack_metadata.get("tier_name", "Foxy E-commerce"),
+                    "complexity_level": stack_metadata.get("complexity_level", "medium_to_high"),
+                    "reason": "Advanced e-commerce features including subscriptions and complex pricing",
+                    "best_for": stack_metadata.get("best_for", "Subscription services, advanced features"),
+                    "technical_requirements": stack_metadata.get("technical_requirements", []),
+                    "key_features": stack_metadata.get("key_features", []),
+                    "use_cases": stack_metadata.get("use_cases", []),
+                    "performance_tier": stack_metadata.get("performance_tier", "premium"),
+                    "target_audience": stack_metadata.get("target_audience", [])
+                })
+
+            # Performance-focused e-commerce
+            if (requirements.get("performance_critical", False) or
+                requirements.get("high_traffic", False) or
+                requirements.get("custom_frontend", False)):
+
+                recommended_ssg = cls._recommend_ssg_engine("shopify_basic_ecommerce", requirements)
+                stack_metadata = cls.get_stack_metadata("shopify_basic_ecommerce")
+                recommendations.append({
+                    "stack_type": "shopify_basic_ecommerce",
+                    "category": stack_metadata.get("category", "ecommerce_tier_service"),
+                    "ssg_engine": recommended_ssg,
+                    "ssg_engine_options": stack_metadata.get("ssg_engine_options", []),
+                    "tier_name": stack_metadata.get("tier_name", "Shopify Basic"),
+                    "complexity_level": stack_metadata.get("complexity_level", "medium"),
+                    "reason": "High-performance e-commerce with Shopify platform and custom frontend flexibility",
+                    "best_for": stack_metadata.get("best_for", "Performance-focused stores, custom frontends"),
+                    "technical_requirements": stack_metadata.get("technical_requirements", []),
+                    "key_features": stack_metadata.get("key_features", []),
+                    "use_cases": stack_metadata.get("use_cases", []),
+                    "performance_tier": stack_metadata.get("performance_tier", "premium"),
+                    "target_audience": stack_metadata.get("target_audience", [])
                 })
 
         # === COMPOSED STACK RECOMMENDATIONS ===
@@ -857,30 +1023,28 @@ class PlatformStackFactory:
         if (requirements.get("content_management", False) and
             requirements.get("ecommerce_needed", False)):
 
+            stack_metadata = cls.get_stack_metadata("cms_ecommerce_composed")
             recommendations.append({
                 "stack_type": "cms_ecommerce_composed",
-                "category": "composed_service",
-                "cms_provider": "flexible_choice",
-                "ecommerce_provider": "flexible_choice",
-                "ssg_engine_options": ["astro", "gatsby", "nextjs"],
-                "monthly_cost": "$140-405",
-                "setup_cost": "$2,160-5,760",
+                "category": stack_metadata.get("category", "composed_service"),
+                "provider_combinations": "flexible",
+                "ssg_engine_options": stack_metadata.get("ssg_engine_options", ["astro", "gatsby", "nextjs"]),
+                "tier_name": stack_metadata.get("tier_name", "Composed CMS + E-commerce Stack"),
+                "complexity_level": stack_metadata.get("complexity_level", "high"),
                 "reason": "Combined content management and e-commerce capabilities with unified orchestration",
-                "best_for": "Content-driven stores, editorial e-commerce, complex business models",
-                "complexity": "High",
-                "key_benefits": [
-                    "Unified content and commerce",
-                    "Cross-domain event integration",
-                    "Shared user management",
-                    "Integrated analytics"
-                ]
+                "best_for": stack_metadata.get("best_for", "Content-driven stores, editorial e-commerce"),
+                "technical_requirements": stack_metadata.get("technical_requirements", []),
+                "key_features": stack_metadata.get("key_features", []),
+                "use_cases": stack_metadata.get("use_cases", []),
+                "performance_tier": stack_metadata.get("performance_tier", "enterprise"),
+                "target_audience": stack_metadata.get("target_audience", [])
             })
 
-        # Sort recommendations by suitability score
+        # Sort recommendations by capability match score
         for rec in recommendations:
-            rec["suitability_score"] = cls._calculate_suitability_score(rec, requirements)
+            rec["capability_match_score"] = cls._calculate_capability_match_score(rec, requirements)
 
-        recommendations.sort(key=lambda x: x["suitability_score"], reverse=True)
+        recommendations.sort(key=lambda x: x["capability_match_score"], reverse=True)
 
         return recommendations
 
@@ -921,35 +1085,98 @@ class PlatformStackFactory:
         return supported_engines[0]
 
     @classmethod
-    def _calculate_suitability_score(cls, recommendation: Dict[str, Any], requirements: Dict[str, Any]) -> float:
-        """Calculate suitability score for recommendation sorting."""
-        score = 5.0  # Base score
+    def _calculate_capability_match_score(cls, recommendation: Dict[str, Any], requirements: Dict[str, Any]) -> float:
+        """Calculate capability match score for recommendation sorting based on technical alignment."""
+        score = 10.0  # Base score
 
-        # Budget alignment
-        if requirements.get("budget_conscious", False):
-            monthly_cost = recommendation.get("monthly_cost", "$100")
-            min_cost = int(monthly_cost.split("-")[0].replace("$", ""))
-            if min_cost <= 75:
-                score += 2.0
-            elif min_cost <= 100:
-                score += 1.0
+        # Technical complexity alignment
+        rec_complexity = recommendation.get("complexity_level", "medium")
+        req_complexity = requirements.get("technical_level", "intermediate")
 
-        # Technical team alignment
-        if requirements.get("technical_team", False):
-            complexity = recommendation.get("complexity", "Medium")
-            if "High" in complexity:
-                score += 1.5
-            elif "Medium" in complexity:
-                score += 1.0
+        complexity_mapping = {
+            "low": 1, "low_to_medium": 2, "medium": 3,
+            "medium_to_high": 4, "high": 5,
+            "beginner": 1, "intermediate": 3, "advanced": 5
+        }
 
-        # Framework preferences
+        rec_complexity_score = complexity_mapping.get(rec_complexity, 3)
+        req_complexity_score = complexity_mapping.get(req_complexity, 3)
+
+        # Perfect match gets bonus, close match gets partial bonus
+        complexity_diff = abs(rec_complexity_score - req_complexity_score)
+        if complexity_diff == 0:
+            score += 20.0  # Perfect complexity match
+        elif complexity_diff == 1:
+            score += 10.0  # Close complexity match
+        elif complexity_diff == 2:
+            score += 5.0   # Moderate complexity match
+
+        # Framework/SSG engine preferences
         ssg_engine = recommendation.get("ssg_engine", "")
         if requirements.get("react_preferred", False) and ssg_engine in ["gatsby", "nextjs"]:
-            score += 2.0
+            score += 25.0  # Strong framework alignment
         elif requirements.get("vue_preferred", False) and ssg_engine == "nuxt":
-            score += 2.0
+            score += 25.0  # Strong framework alignment
         elif requirements.get("performance_critical", False) and ssg_engine == "hugo":
-            score += 2.0
+            score += 25.0  # Performance requirement alignment
+
+        # Project type alignment
+        project_type = requirements.get("project_type", "")
+        use_cases = recommendation.get("use_cases", [])
+        target_audience = recommendation.get("target_audience", [])
+
+        if project_type == "business_site" and any("business" in case for case in use_cases):
+            score += 15.0
+        elif project_type == "documentation" and any("documentation" in case for case in use_cases):
+            score += 15.0
+        elif project_type == "ecommerce" and any("commerce" in case or "store" in case for case in use_cases):
+            score += 15.0
+
+        # Performance tier alignment
+        if requirements.get("performance_critical", False):
+            performance_tier = recommendation.get("performance_tier", "standard")
+            if performance_tier in ["maximum", "premium", "enterprise"]:
+                score += 15.0
+            elif performance_tier == "optimized":
+                score += 10.0
+
+        # Feature-specific alignments
+        key_features = recommendation.get("key_features", [])
+
+        # Visual editing preference
+        if requirements.get("visual_editing", False) and any("visual" in feature for feature in key_features):
+            score += 12.0
+
+        # Git workflow preference
+        if requirements.get("git_workflow", False) and any("git" in feature for feature in key_features):
+            score += 12.0
+
+        # API-first preference
+        if requirements.get("api_first", False) and any("api" in feature for feature in key_features):
+            score += 12.0
+
+        # Enterprise features preference
+        if requirements.get("enterprise_features", False) and any("enterprise" in feature for feature in key_features):
+            score += 12.0
+
+        # Technical team alignment with target audience
+        if requirements.get("technical_team", False):
+            if any("technical" in audience or "developer" in audience for audience in target_audience):
+                score += 10.0
+
+        # Content management alignment
+        if requirements.get("content_management", False) and recommendation.get("category") == "cms_tier_service":
+            score += 15.0
+
+        # E-commerce alignment
+        if requirements.get("ecommerce_needed", False) and recommendation.get("category") == "ecommerce_tier_service":
+            score += 15.0
+
+        # Composed stack bonus for complex requirements
+        if (requirements.get("content_management", False) and
+            requirements.get("ecommerce_needed", False) and
+            recommendation.get("category") == "composed_service"):
+            score += 20.0  # Bonus for matching complex architectural needs
 
         return score
 
@@ -1003,63 +1230,53 @@ class PlatformStackFactory:
         return metadata.get("ssg_engine_options", [metadata.get("ssg_engine")] if metadata.get("ssg_engine") else [])
 
     @classmethod
-    def estimate_total_cost(
+    def get_stack_capabilities(
         cls,
         stack_type: str,
         ssg_engine: Optional[str] = None,
         client_requirements: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
-        Estimate total cost for any stack type configuration.
+        Get detailed capabilities and technical information for any stack type configuration.
 
         Args:
             stack_type: Platform stack type name
             ssg_engine: Optional SSG engine for flexible stacks
-            client_requirements: Optional client requirements for accurate estimation
+            client_requirements: Optional client requirements for capability matching
 
         Returns:
-            Cost breakdown including setup, monthly, and feature costs
+            Capability breakdown including technical requirements, features, and use cases
         """
         metadata = cls.get_stack_metadata(stack_type)
         if not metadata:
             raise ValueError(f"Unknown stack type: {stack_type}")
 
-        # Base cost ranges
-        setup_range = metadata["setup_cost_range"]
-        monthly_range = metadata["monthly_cost_range"]
-
-        # SSG engine complexity adjustments
-        ssg_multipliers = {
-            "hugo": 0.9,        # Faster setup for technical users
-            "eleventy": 1.0,    # Baseline
-            "astro": 1.1,       # Modern tooling complexity
-            "gatsby": 1.2,      # React ecosystem complexity
-            "nextjs": 1.2,      # Full-stack complexity
-            "nuxt": 1.2         # Vue ecosystem complexity
+        # SSG engine complexity levels for technical requirements
+        ssg_complexity_levels = {
+            "hugo": "high_performance",     # Fast builds, technical setup
+            "eleventy": "balanced",         # Good balance of features and complexity
+            "astro": "modern",             # Modern tooling, component islands
+            "gatsby": "react_ecosystem",    # React knowledge required
+            "nextjs": "full_stack",        # Full-stack capabilities
+            "nuxt": "vue_ecosystem"        # Vue knowledge required
         }
 
-        multiplier = 1.0
+        complexity_description = "standard"
         if ssg_engine:
-            multiplier = ssg_multipliers.get(ssg_engine, 1.0)
-
-        adjusted_setup_cost = (
-            int(setup_range[0] * multiplier),
-            int(setup_range[1] * multiplier)
-        )
+            complexity_description = ssg_complexity_levels.get(ssg_engine, "standard")
 
         return {
             "stack_type": stack_type,
             "ssg_engine": ssg_engine,
-            "setup_cost_range": adjusted_setup_cost,
-            "monthly_cost_range": monthly_range,
-            "ssg_complexity_multiplier": multiplier,
-            "total_first_year_estimate": {
-                "min": adjusted_setup_cost[0] + (monthly_range[0] * 12),
-                "max": adjusted_setup_cost[1] + (monthly_range[1] * 12)
-            },
+            "ssg_complexity_level": complexity_description,
+            "technical_requirements": metadata.get("technical_requirements", []),
+            "key_features": metadata.get("key_features", []),
+            "use_cases": metadata.get("use_cases", []),
             "tier_name": metadata["tier_name"],
             "complexity_level": metadata["complexity_level"],
-            "category": metadata["category"]
+            "category": metadata["category"],
+            "target_audience": metadata.get("target_audience", []),
+            "performance_tier": metadata.get("performance_tier", "standard")
         }
 
     @classmethod
