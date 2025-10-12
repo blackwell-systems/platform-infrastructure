@@ -18,14 +18,19 @@ from datetime import datetime
 import hmac
 import hashlib
 
+# New enhanced interfaces
+from blackwell_core.adapters.interfaces import ICMSAdapter
+from blackwell_core.models.events import ContentEvent, UnifiedContent
+from models.composition import ContentType, ContentStatus
+
+# Legacy interfaces for backward compatibility
 from shared.composition.provider_adapter_registry import IProviderHandler, BaseProviderHandler
-from models.composition import UnifiedContent, ContentType, ContentStatus
 
 
 logger = logging.getLogger(__name__)
 
 
-class DecapCMSHandler(BaseProviderHandler):
+class DecapCMSHandler(ICMSAdapter):
     """
     Decap CMS provider handler implementing Git-based content management.
 
@@ -37,14 +42,85 @@ class DecapCMSHandler(BaseProviderHandler):
     - Perfect for small businesses and developers
     """
 
-    def __init__(self):
-        super().__init__("decap")
+    # Required class attributes for new interface
+    provider_name = "decap"
+    provider_type = "cms"
+    supported_events = ["content.created", "content.updated", "content.deleted"]
+    api_version = "v1"
 
+    def __init__(self):
         # Decap CMS specific configuration
         self.content_directory = "content"
         self.supported_formats = [".md", ".mdx", ".yaml", ".yml", ".json"]
 
         logger.info("Decap CMS adapter initialized")
+
+    def transform_event(self, raw_data: Dict[str, Any]) -> ContentEvent:
+        """
+        Transform GitHub webhook data to standardized ContentEvent.
+
+        This is the new interface method that replaces normalize_webhook_data
+        for the enhanced event system.
+        """
+        try:
+            # Extract basic event information
+            event_type = self._determine_event_type_from_webhook(raw_data)
+
+            # Get the first commit for basic information
+            commit = None
+            content_id = None
+            content_type = "article"
+            action = "updated"
+
+            if raw_data.get('commits'):
+                commit = raw_data['commits'][0]
+
+                # Look for content files in the commit
+                content_files = []
+                for file_path in commit.get('added', []) + commit.get('modified', []):
+                    if self._is_content_file(file_path):
+                        content_files.append(file_path)
+
+                if content_files:
+                    first_file = content_files[0]
+                    content_id = f"decap:{raw_data['repository']['full_name']}:{first_file}"
+                    content_type = self._determine_content_type(first_file).value
+
+                    # Determine action based on commit message and file status
+                    if first_file in commit.get('added', []):
+                        action = "created"
+                    elif commit.get('message', '').lower().startswith('delete'):
+                        action = "deleted"
+                    elif 'publish' in commit.get('message', '').lower():
+                        action = "published"
+                    else:
+                        action = "updated"
+
+            # Create ContentEvent
+            return ContentEvent(
+                event_type=event_type,
+                provider=self.provider_name,
+                client_id=self._extract_client_id(raw_data),
+                payload=raw_data,
+                content_id=content_id or f"decap:{raw_data.get('repository', {}).get('full_name', 'unknown')}",
+                content_type=content_type,
+                action=action,
+                author=commit.get('author', {}).get('name') if commit else None,
+                category=self._extract_category_from_webhook(raw_data)
+            )
+
+        except Exception as e:
+            logger.error(f"Error transforming Decap CMS event: {str(e)}", exc_info=True)
+            # Return a basic event if transformation fails
+            return ContentEvent(
+                event_type="content.updated",
+                provider=self.provider_name,
+                client_id="unknown",
+                payload=raw_data,
+                content_id="unknown",
+                content_type="article",
+                action="updated"
+            )
 
     def normalize_webhook_data(self, webhook_data: Dict[str, Any], event_type: str) -> List[UnifiedContent]:
         """
@@ -81,7 +157,7 @@ class DecapCMSHandler(BaseProviderHandler):
             logger.error(f"Decap CMS normalization error: {str(e)}", exc_info=True)
             return []
 
-    def validate_webhook_signature(self, body: Dict[str, Any], headers: Dict[str, str]) -> bool:
+    def validate_webhook_signature(self, body: bytes, headers: Dict[str, str]) -> bool:
         """
         Validate GitHub webhook signature for Decap CMS.
 
@@ -117,10 +193,9 @@ class DecapCMSHandler(BaseProviderHandler):
                 return True
 
             # Verify signature
-            body_str = json.dumps(body, separators=(',', ':'), sort_keys=True)
             expected_signature = hmac.new(
                 webhook_secret.encode('utf-8'),
-                body_str.encode('utf-8'),
+                body,
                 getattr(hashlib, algorithm)
             ).hexdigest()
 
@@ -293,6 +368,171 @@ class DecapCMSHandler(BaseProviderHandler):
 
         import os
         return os.environ.get('DECAP_WEBHOOK_SECRET')
+
+    # ============================================================================
+    # New IProviderAdapter Interface Methods
+    # ============================================================================
+
+    def get_capabilities(self) -> List[str]:
+        """
+        Return list of features this Decap CMS adapter supports.
+        """
+        return [
+            "webhooks",
+            "content_fetch",
+            "content_listing",
+            "git_integration",
+            "markdown_support",
+            "frontmatter_parsing",
+            "editorial_workflow"
+        ]
+
+    def normalize_content(self, raw_data: Dict[str, Any]) -> UnifiedContent:
+        """
+        Convert provider data to unified content schema.
+
+        This is the single-item version of the normalize_webhook_data method.
+        """
+        try:
+            # Determine content metadata
+            file_path = raw_data.get('file_path', 'unknown')
+            content_type = self._determine_content_type(file_path)
+            slug = self._extract_slug_from_path(file_path)
+
+            return UnifiedContent(
+                id=raw_data.get('id', f"decap:{file_path}"),
+                title=raw_data.get('title', self._generate_title_from_path(file_path)),
+                slug=slug,
+                content_type=content_type.value,
+                provider_type="cms",
+                provider_name=self.provider_name,
+                created_at=raw_data.get('created_at', datetime.utcnow().isoformat()),
+                updated_at=raw_data.get('updated_at', datetime.utcnow().isoformat()),
+                metadata=raw_data.get('metadata', {})
+            )
+
+        except Exception as e:
+            logger.error(f"Error normalizing Decap CMS content: {str(e)}")
+            return UnifiedContent(
+                id="unknown",
+                title="Unknown Content",
+                slug="unknown",
+                content_type="article",
+                provider_type="cms",
+                provider_name=self.provider_name,
+                created_at=datetime.utcnow().isoformat(),
+                updated_at=datetime.utcnow().isoformat()
+            )
+
+    # ============================================================================
+    # Specialized ICMSAdapter Methods
+    # ============================================================================
+
+    def fetch_content_by_id(self, content_id: str) -> Optional[UnifiedContent]:
+        """
+        Retrieve specific content item by ID.
+
+        For Decap CMS, this would require GitHub API integration
+        to fetch the actual file content.
+        """
+        try:
+            # Parse content ID to extract repository and file path
+            if content_id.startswith('decap:'):
+                parts = content_id[6:].split(':', 2)
+                if len(parts) >= 2:
+                    repository = parts[0]
+                    file_path = parts[1] if len(parts) == 2 else parts[2]
+
+                    # In a real implementation, this would use GitHub API
+                    # to fetch the file content and parse it
+                    mock_data = {
+                        'id': content_id,
+                        'file_path': file_path,
+                        'title': self._generate_title_from_path(file_path),
+                        'repository': repository
+                    }
+
+                    return self.normalize_content(mock_data)
+
+            return None
+
+        except Exception as e:
+            logger.error(f"Error fetching Decap CMS content {content_id}: {str(e)}")
+            return None
+
+    def list_content(self, content_type: Optional[str] = None, limit: int = 100) -> List[UnifiedContent]:
+        """
+        List content items with optional filtering.
+
+        For Decap CMS, this would require GitHub API integration
+        to list repository files and parse their metadata.
+        """
+        try:
+            # In a real implementation, this would:
+            # 1. Use GitHub API to list files in the content directory
+            # 2. Filter by content type if specified
+            # 3. Parse frontmatter from each file
+            # 4. Return normalized content items
+
+            # Mock implementation for demonstration
+            mock_content = []
+            content_types = [content_type] if content_type else ['article', 'page']
+
+            for i in range(min(limit, 5)):  # Mock 5 items
+                for ct in content_types:
+                    if len(mock_content) >= limit:
+                        break
+
+                    mock_data = {
+                        'id': f'decap:example-repo:content/{ct}/{ct}-{i}.md',
+                        'file_path': f'content/{ct}/{ct}-{i}.md',
+                        'title': f'Sample {ct.title()} {i}',
+                        'content_type': ct
+                    }
+                    mock_content.append(self.normalize_content(mock_data))
+
+            return mock_content
+
+        except Exception as e:
+            logger.error(f"Error listing Decap CMS content: {str(e)}")
+            return []
+
+    # ============================================================================
+    # Helper Methods for New Interface
+    # ============================================================================
+
+    def _determine_event_type_from_webhook(self, raw_data: Dict[str, Any]) -> str:
+        """Determine event type from GitHub webhook data."""
+        github_event = raw_data.get('github_event', 'push')
+
+        event_mapping = {
+            'push': 'content.updated',
+            'pull_request': 'content.created',
+            'create': 'content.created',
+            'delete': 'content.deleted'
+        }
+
+        return event_mapping.get(github_event, 'content.updated')
+
+    def _extract_client_id(self, raw_data: Dict[str, Any]) -> str:
+        """Extract client ID from webhook data."""
+        repository = raw_data.get('repository', {})
+        return repository.get('full_name', 'unknown').replace('/', '-')
+
+    def _extract_category_from_webhook(self, raw_data: Dict[str, Any]) -> Optional[str]:
+        """Extract content category from webhook data."""
+        if raw_data.get('commits'):
+            commit = raw_data['commits'][0]
+            # Look for category in commit message or file paths
+            for file_path in commit.get('added', []) + commit.get('modified', []):
+                if 'blog' in file_path or 'posts' in file_path:
+                    return 'blog'
+                elif 'docs' in file_path:
+                    return 'documentation'
+                elif 'pages' in file_path:
+                    return 'pages'
+
+        return None
 
 
 # Make handler available for registry

@@ -19,9 +19,14 @@ import base64
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
+# New enhanced interfaces
+from blackwell_core.adapters.interfaces import IEcommerceAdapter
+from blackwell_core.models.events import CommerceEvent, UnifiedContent
+
+# Legacy interfaces for backward compatibility
 from shared.composition.provider_adapter_registry import IProviderHandler, BaseProviderHandler
 from models.composition import (
-    UnifiedContent, ContentType, ContentStatus,
+    ContentType, ContentStatus,
     Price, Inventory, ProductVariant, MediaAsset
 )
 
@@ -29,7 +34,7 @@ from models.composition import (
 logger = logging.getLogger(__name__)
 
 
-class ShopifyBasicHandler(BaseProviderHandler):
+class ShopifyBasicHandler(IEcommerceAdapter):
     """
     Shopify Basic provider handler implementing e-commerce content management.
 
@@ -41,9 +46,14 @@ class ShopifyBasicHandler(BaseProviderHandler):
     - Perfect for small to medium businesses
     """
 
-    def __init__(self):
-        super().__init__("shopify_basic")
+    # Required class attributes for new interface
+    provider_name = "shopify_basic"
+    provider_type = "ecommerce"
+    supported_events = ["product.created", "product.updated", "product.deleted",
+                       "order.created", "order.updated", "inventory.updated"]
+    api_version = "2023-10"
 
+    def __init__(self):
         # Shopify-specific configuration
         self.supported_webhook_topics = [
             'products/create', 'products/update', 'products/delete',
@@ -52,6 +62,97 @@ class ShopifyBasicHandler(BaseProviderHandler):
         ]
 
         logger.info("Shopify Basic adapter initialized")
+
+    def transform_event(self, raw_data: Dict[str, Any]) -> CommerceEvent:
+        """
+        Transform Shopify webhook data to standardized CommerceEvent.
+
+        This is the new interface method that replaces normalize_webhook_data
+        for the enhanced event system.
+        """
+        try:
+            # Extract webhook topic from headers or data
+            webhook_topic = self._extract_webhook_topic_from_raw(raw_data)
+
+            # Determine event type and resource information
+            event_type = self._map_shopify_topic_to_event(webhook_topic)
+            resource_id = None
+            resource_type = "product"  # Default
+            action = "updated"  # Default
+            currency = None
+            amount = None
+
+            # Extract resource information based on webhook topic
+            if webhook_topic.startswith('products/'):
+                resource_id = str(raw_data.get('id', 'unknown'))
+                resource_type = "product"
+                if webhook_topic == 'products/create':
+                    action = "created"
+                elif webhook_topic == 'products/delete':
+                    action = "deleted"
+                else:
+                    action = "updated"
+
+                # Extract pricing information
+                variants = raw_data.get('variants', [])
+                if variants:
+                    first_variant = variants[0]
+                    amount = float(first_variant.get('price', 0))
+                    # Shopify doesn't always include currency in webhook, so we use default
+                    currency = "USD"
+
+            elif webhook_topic.startswith('orders/'):
+                resource_id = str(raw_data.get('id', 'unknown'))
+                resource_type = "order"
+                if webhook_topic == 'orders/create':
+                    action = "created"
+                elif webhook_topic == 'orders/paid':
+                    action = "paid"
+                else:
+                    action = "updated"
+
+                # Extract order totals
+                amount = float(raw_data.get('total_price', 0))
+                currency = raw_data.get('currency', 'USD')
+
+            elif webhook_topic.startswith('inventory_levels/'):
+                resource_id = str(raw_data.get('inventory_item_id', 'unknown'))
+                resource_type = "inventory"
+                action = "updated"
+
+            elif webhook_topic.startswith('collections/'):
+                resource_id = str(raw_data.get('id', 'unknown'))
+                resource_type = "collection"
+                if webhook_topic == 'collections/create':
+                    action = "created"
+                else:
+                    action = "updated"
+
+            # Create CommerceEvent
+            return CommerceEvent(
+                event_type=event_type,
+                provider=self.provider_name,
+                client_id=self._extract_client_id_from_raw(raw_data),
+                payload=raw_data,
+                resource_id=resource_id or "unknown",
+                resource_type=resource_type,
+                action=action,
+                currency=currency,
+                amount=amount
+            )
+
+        except Exception as e:
+            logger.error(f"Error transforming Shopify event: {str(e)}", exc_info=True)
+            # Return a basic event if transformation fails
+            return CommerceEvent(
+                event_type="commerce.updated",
+                provider=self.provider_name,
+                client_id="unknown",
+                payload=raw_data,
+                resource_id="unknown",
+                resource_type="product",
+                action="updated"
+            )
 
     def normalize_webhook_data(self, webhook_data: Dict[str, Any], event_type: str) -> List[UnifiedContent]:
         """
@@ -89,7 +190,7 @@ class ShopifyBasicHandler(BaseProviderHandler):
             logger.error(f"Shopify Basic normalization error: {str(e)}", exc_info=True)
             return []
 
-    def validate_webhook_signature(self, body: Dict[str, Any], headers: Dict[str, str]) -> bool:
+    def validate_webhook_signature(self, body: bytes, headers: Dict[str, str]) -> bool:
         """
         Validate Shopify webhook signature using HMAC-SHA256.
 
@@ -111,11 +212,10 @@ class ShopifyBasicHandler(BaseProviderHandler):
                 return True
 
             # Calculate expected signature
-            body_str = json.dumps(body, separators=(',', ':'), sort_keys=True)
             expected_signature = base64.b64encode(
                 hmac.new(
                     webhook_secret.encode('utf-8'),
-                    body_str.encode('utf-8'),
+                    body,
                     hashlib.sha256
                 ).digest()
             ).decode('utf-8')
@@ -427,6 +527,213 @@ class ShopifyBasicHandler(BaseProviderHandler):
 
         import os
         return os.environ.get('SHOPIFY_WEBHOOK_SECRET')
+
+    # ============================================================================
+    # New IProviderAdapter Interface Methods
+    # ============================================================================
+
+    def get_capabilities(self) -> List[str]:
+        """
+        Return list of features this Shopify adapter supports.
+        """
+        return [
+            "webhooks",
+            "product_catalog",
+            "inventory_management",
+            "order_processing",
+            "payment_gateway",
+            "variant_support",
+            "collection_management",
+            "seo_optimization"
+        ]
+
+    def normalize_content(self, raw_data: Dict[str, Any]) -> UnifiedContent:
+        """
+        Convert provider data to unified content schema.
+
+        This is the single-item version of the normalize_webhook_data method.
+        """
+        try:
+            # Determine content type based on data structure
+            if 'variants' in raw_data:
+                # This is a product
+                content = self._normalize_product(raw_data, 'products/update')
+                return content if content else self._create_fallback_content(raw_data)
+            elif 'published' in raw_data:
+                # This is a collection
+                content = self._normalize_collection(raw_data, 'collections/update')
+                return content if content else self._create_fallback_content(raw_data)
+            else:
+                # Generic content
+                return self._create_fallback_content(raw_data)
+
+        except Exception as e:
+            logger.error(f"Error normalizing Shopify content: {str(e)}")
+            return self._create_fallback_content(raw_data)
+
+    def _create_fallback_content(self, raw_data: Dict[str, Any]) -> UnifiedContent:
+        """Create a fallback UnifiedContent object."""
+        return UnifiedContent(
+            id=str(raw_data.get('id', 'unknown')),
+            title=raw_data.get('title', 'Unknown Content'),
+            slug=raw_data.get('handle', 'unknown'),
+            content_type="product",
+            provider_type="ecommerce",
+            provider_name=self.provider_name,
+            created_at=datetime.utcnow().isoformat(),
+            updated_at=datetime.utcnow().isoformat()
+        )
+
+    # ============================================================================
+    # Specialized IEcommerceAdapter Methods
+    # ============================================================================
+
+    def fetch_product_catalog(self, limit: int = 100) -> List[UnifiedContent]:
+        """
+        Retrieve product catalog.
+
+        For Shopify, this would require Shopify Admin API integration
+        to fetch products and their details.
+        """
+        try:
+            # In a real implementation, this would:
+            # 1. Use Shopify Admin API to fetch products
+            # 2. Transform each product to UnifiedContent
+            # 3. Handle pagination
+
+            # Mock implementation for demonstration
+            mock_products = []
+            for i in range(min(limit, 10)):  # Mock 10 products
+                mock_product_data = {
+                    'id': f'shopify_product_{i}',
+                    'title': f'Sample Product {i}',
+                    'handle': f'sample-product-{i}',
+                    'variants': [{
+                        'id': f'variant_{i}',
+                        'price': 29.99 + i,
+                        'inventory_quantity': 100 - i
+                    }],
+                    'status': 'active',
+                    'created_at': datetime.utcnow().isoformat(),
+                    'updated_at': datetime.utcnow().isoformat()
+                }
+
+                content = self.normalize_content(mock_product_data)
+                mock_products.append(content)
+
+            return mock_products
+
+        except Exception as e:
+            logger.error(f"Error fetching Shopify product catalog: {str(e)}")
+            return []
+
+    def fetch_order_by_id(self, order_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Retrieve specific order details.
+
+        For Shopify, this would require Shopify Admin API integration
+        to fetch order details.
+        """
+        try:
+            # In a real implementation, this would use Shopify Admin API
+            # to fetch order details by ID
+
+            # Mock implementation
+            if order_id.startswith('shopify_order_'):
+                return {
+                    'id': order_id,
+                    'order_number': f'#10{order_id[-3:]}',
+                    'total_price': '99.99',
+                    'currency': 'USD',
+                    'customer': {
+                        'id': 'customer_123',
+                        'email': 'customer@example.com'
+                    },
+                    'line_items': [
+                        {
+                            'id': 'line_item_1',
+                            'product_id': 'product_123',
+                            'quantity': 1,
+                            'price': '99.99'
+                        }
+                    ],
+                    'created_at': datetime.utcnow().isoformat(),
+                    'updated_at': datetime.utcnow().isoformat()
+                }
+
+            return None
+
+        except Exception as e:
+            logger.error(f"Error fetching Shopify order {order_id}: {str(e)}")
+            return None
+
+    def update_inventory(self, product_id: str, quantity: int) -> bool:
+        """
+        Update product inventory levels.
+
+        For Shopify, this would require Shopify Admin API integration
+        to update inventory levels.
+        """
+        try:
+            # In a real implementation, this would:
+            # 1. Use Shopify Admin API to find inventory item ID
+            # 2. Update inventory level at specific location
+            # 3. Handle inventory tracking settings
+
+            logger.info(f"Mock updating inventory for product {product_id} to {quantity}")
+
+            # Mock successful update
+            return True
+
+        except Exception as e:
+            logger.error(f"Error updating Shopify inventory for {product_id}: {str(e)}")
+            return False
+
+    # ============================================================================
+    # Helper Methods for New Interface
+    # ============================================================================
+
+    def _extract_webhook_topic_from_raw(self, raw_data: Dict[str, Any]) -> str:
+        """Extract webhook topic from raw data."""
+        # Check if topic is in the data
+        if 'webhook_topic' in raw_data:
+            return raw_data['webhook_topic']
+        if 'shopify_topic' in raw_data:
+            return raw_data['shopify_topic']
+
+        # Default assumption based on data structure
+        if 'variants' in raw_data:
+            return 'products/update'
+        elif 'line_items' in raw_data:
+            return 'orders/create'
+        else:
+            return 'products/update'
+
+    def _map_shopify_topic_to_event(self, webhook_topic: str) -> str:
+        """Map Shopify webhook topic to our event type."""
+        topic_mapping = {
+            'products/create': 'commerce.created',
+            'products/update': 'commerce.updated',
+            'products/delete': 'commerce.deleted',
+            'orders/create': 'commerce.created',
+            'orders/updated': 'commerce.updated',
+            'orders/paid': 'commerce.paid',
+            'inventory_levels/update': 'commerce.updated',
+            'collections/create': 'commerce.created',
+            'collections/update': 'commerce.updated'
+        }
+        return topic_mapping.get(webhook_topic, 'commerce.updated')
+
+    def _extract_client_id_from_raw(self, raw_data: Dict[str, Any]) -> str:
+        """Extract client ID from raw webhook data."""
+        # In Shopify, shop domain or shop ID could be used as client ID
+        shop_info = raw_data.get('shop', {})
+        if isinstance(shop_info, dict):
+            return shop_info.get('domain', 'unknown-shop')
+        elif isinstance(shop_info, str):
+            return shop_info
+        else:
+            return "unknown-shop"
 
 
 # Make handler available for registry
