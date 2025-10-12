@@ -1,5 +1,5 @@
 {
-  "best_for": "Enterprise performance at small business prices - 80-90% cost reduction vs agencies",
+  "best_for": "Enterprise-grade e-commerce performance with flexible SSG integration",
   "category": "ecommerce_tier_service",
   "complexity_level": "medium_to_high",
   "display_name": "Shopify Basic",
@@ -12,22 +12,29 @@
     "performance_optimization"
   ],
   "last_updated": "2025-10-11T11:11:45.081160+00:00",
-  "monthly_cost_range": [
-    75,
-    125
-  ],
   "performance_tier": "optimized",
   "provider_name": "shopify_basic",
   "provider_type": "ecommerce",
   "schema_version": "1.0.0",
-  "setup_cost_range": [
-    1600,
-    3200
+  "target_audience": [
+    "performance_focused_businesses",
+    "ssg_integration_teams",
+    "scalable_e-commerce_needs",
+    "api_first_developers"
   ],
-  "target_market": [
-    "small_businesses",
-    "agencies",
-    "developers"
+  "technical_requirements": [
+    "shopify_storefront_api",
+    "graphql_familiarity",
+    "real_time_sync_setup",
+    "webhook_integration",
+    "ssg_compatibility"
   ],
-  "tier_name": "Shopify Basic - Performance E-commerce with Flexible SSG"
+  "tier_name": "Shopify Basic - Performance E-commerce with Flexible SSG",
+  "use_cases": [
+    "high_performance_stores",
+    "headless_e-commerce",
+    "ssg_integration",
+    "scalable_product_catalogs",
+    "real_time_inventory_sync"
+  ]
 }

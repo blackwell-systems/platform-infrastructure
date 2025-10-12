@@ -15,23 +15,30 @@
   ],
   "language": "javascript",
   "last_updated": "2025-10-11T11:11:45.081160+00:00",
-  "monthly_cost_range": [
-    75,
-    115
-  ],
   "performance_tier": "optimized",
   "provider_name": "nextjs",
   "provider_type": "ssg",
   "schema_version": "1.0.0",
-  "setup_cost_range": [
-    1000,
-    2500
-  ],
   "ssg_engine": "nextjs",
-  "target_market": [
-    "developers",
-    "technical_teams",
-    "agencies"
+  "target_audience": [
+    "enterprise_developers",
+    "react_teams",
+    "typescript_users",
+    "full_stack_growth_path"
   ],
-  "tier_name": "Next.js - Enterprise Full-Stack React Foundation"
+  "technical_requirements": [
+    "react_expertise",
+    "typescript_knowledge",
+    "modern_javascript",
+    "build_tools_familiarity",
+    "enterprise_patterns"
+  ],
+  "tier_name": "Next.js - Enterprise Full-Stack React Foundation",
+  "use_cases": [
+    "enterprise_applications",
+    "scalable_react_sites",
+    "full_stack_ready_projects",
+    "typescript_development",
+    "growth_oriented_startups"
+  ]
 }

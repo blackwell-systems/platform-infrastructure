@@ -1,5 +1,5 @@
 {
-  "best_for": "Budget-friendly content management with full git workflow control",
+  "best_for": "Git-based content management with developer-friendly workflow and version control",
   "category": "cms_tier_service",
   "cms_provider": "decap",
   "cms_type": "git_based",
@@ -14,16 +14,8 @@
     "no_vendor_lock_in"
   ],
   "last_updated": "2025-10-11T11:11:45.081160+00:00",
-  "monthly_cost_range": [
-    50,
-    75
-  ],
   "performance_tier": "optimized",
   "schema_version": "1.0.0",
-  "setup_cost_range": [
-    960,
-    2640
-  ],
   "ssg_engine_options": [
     "hugo",
     "eleventy",
@@ -31,16 +23,30 @@
     "gatsby"
   ],
   "stack_type": "decap_cms_tier",
-  "target_market": [
-    "budget_conscious_businesses",
+  "target_audience": [
     "technical_teams",
-    "small_to_medium_content",
+    "developer_focused_teams",
+    "small_to_medium_content_needs",
     "git_workflow_users"
+  ],
+  "technical_requirements": [
+    "git_proficiency",
+    "markdown_knowledge",
+    "basic_yaml",
+    "github_workflow",
+    "developer_tools"
   ],
   "template_variants": [
     "git_cms_basic",
     "markdown_focused",
     "developer_friendly"
   ],
-  "tier_name": "Decap CMS - Free Git-Based Content Management"
+  "tier_name": "Decap CMS - Free Git-Based Content Management",
+  "use_cases": [
+    "developer_blogs",
+    "technical_documentation",
+    "small_business_sites",
+    "version_controlled_content",
+    "open_source_projects"
+  ]
 }

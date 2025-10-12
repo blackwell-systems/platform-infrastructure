@@ -242,18 +242,6 @@ class RegistryValidator:
 
         success = True
 
-        # Cost range validation
-        monthly_range = provider_data.get("monthly_cost_range", [])
-        setup_range = provider_data.get("setup_cost_range", [])
-
-        if len(monthly_range) == 2 and monthly_range[0] > monthly_range[1]:
-            self.errors.append(f"Provider {provider_name}: Monthly cost min > max")
-            success = False
-
-        if len(setup_range) == 2 and setup_range[0] > setup_range[1]:
-            self.errors.append(f"Provider {provider_name}: Setup cost min > max")
-            success = False
-
         # Provider type consistency
         provider_type = provider_data.get("provider_type")
         category = provider_data.get("category")
@@ -278,24 +266,19 @@ class RegistryValidator:
                     self.errors.append(f"SSG provider {provider_name}: Missing {field}")
                     success = False
 
+        # Capability validation - ensure required capability fields are present and non-empty
+        required_capability_fields = ["technical_requirements", "use_cases", "target_audience"]
+        for field in required_capability_fields:
+            if field not in provider_data or not provider_data[field]:
+                self.errors.append(f"Provider {provider_name}: Missing or empty {field}")
+                success = False
+
         return success
 
     def _validate_stack_business_rules(self, stack_data: Dict[str, Any], stack_name: str) -> bool:
         """Validate stack business logic rules"""
 
         success = True
-
-        # Cost range validation
-        monthly_range = stack_data.get("monthly_cost_range", [])
-        setup_range = stack_data.get("setup_cost_range", [])
-
-        if len(monthly_range) == 2 and monthly_range[0] > monthly_range[1]:
-            self.errors.append(f"Stack {stack_name}: Monthly cost min > max")
-            success = False
-
-        if len(setup_range) == 2 and setup_range[0] > setup_range[1]:
-            self.errors.append(f"Stack {stack_name}: Setup cost min > max")
-            success = False
 
         # Category-specific validations
         category = stack_data.get("category")
@@ -316,6 +299,13 @@ class RegistryValidator:
                 if field not in stack_data:
                     self.errors.append(f"Composed stack {stack_name}: Missing {field}")
                     success = False
+
+        # Capability validation - ensure required capability fields are present
+        required_capability_fields = ["technical_requirements", "use_cases", "target_audience"]
+        for field in required_capability_fields:
+            if field not in stack_data or not stack_data[field]:
+                self.errors.append(f"Stack {stack_name}: Missing or empty {field}")
+                success = False
 
         return success
 

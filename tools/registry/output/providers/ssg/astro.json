@@ -14,23 +14,28 @@
   ],
   "language": "javascript",
   "last_updated": "2025-10-11T11:11:45.081160+00:00",
-  "monthly_cost_range": [
-    75,
-    115
-  ],
   "performance_tier": "optimized",
   "provider_name": "astro",
   "provider_type": "ssg",
   "schema_version": "1.0.0",
-  "setup_cost_range": [
-    1000,
-    2500
-  ],
   "ssg_engine": "astro",
-  "target_market": [
-    "developers",
-    "technical_teams",
-    "agencies"
+  "target_audience": [
+    "modern_developers",
+    "performance_focused_teams",
+    "multi_framework_users",
+    "component_architecture_preference"
   ],
-  "tier_name": "Astro - Modern High-Performance Framework"
+  "technical_requirements": [
+    "modern_javascript",
+    "component_architecture",
+    "build_tools_familiarity",
+    "multi_framework_concepts"
+  ],
+  "tier_name": "Astro - Modern High-Performance Framework",
+  "use_cases": [
+    "interactive_sites",
+    "performance_critical_applications",
+    "content_focused_sites",
+    "progressive_enhancement"
+  ]
 }

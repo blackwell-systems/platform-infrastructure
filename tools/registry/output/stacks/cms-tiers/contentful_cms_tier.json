@@ -14,16 +14,8 @@
     "advanced_permissions"
   ],
   "last_updated": "2025-10-11T11:11:45.081160+00:00",
-  "monthly_cost_range": [
-    75,
-    500
-  ],
   "performance_tier": "enterprise",
   "schema_version": "1.0.0",
-  "setup_cost_range": [
-    2100,
-    4800
-  ],
   "ssg_engine_options": [
     "gatsby",
     "astro",
@@ -31,17 +23,31 @@
     "nuxt"
   ],
   "stack_type": "contentful_cms_tier",
-  "target_market": [
+  "target_audience": [
     "enterprise_content_teams",
     "large_organizations",
-    "complex_workflows",
+    "complex_workflow_users",
     "multi_brand_companies",
     "international_businesses"
+  ],
+  "technical_requirements": [
+    "enterprise_api_integration",
+    "workflow_management",
+    "multi_language_setup",
+    "advanced_permissions",
+    "content_versioning"
   ],
   "template_variants": [
     "enterprise_workflows",
     "multi_language",
     "team_collaboration"
   ],
-  "tier_name": "Contentful CMS - Enterprise Content Management with Advanced Workflows"
+  "tier_name": "Contentful CMS - Enterprise Content Management with Advanced Workflows",
+  "use_cases": [
+    "enterprise_publishing",
+    "multi_brand_management",
+    "international_content",
+    "complex_editorial_workflows",
+    "team_collaboration"
+  ]
 }

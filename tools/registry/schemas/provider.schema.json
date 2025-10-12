@@ -10,14 +10,14 @@
     "display_name",
     "tier_name",
     "category",
-    "monthly_cost_range",
-    "setup_cost_range",
-    "target_market",
+    "target_audience",
     "best_for",
     "complexity_level",
     "key_features",
     "hosting_pattern",
     "performance_tier",
+    "technical_requirements",
+    "use_cases",
     "last_updated",
     "schema_version"
   ],
@@ -53,34 +53,14 @@
       ],
       "description": "Service category classification"
     },
-    "monthly_cost_range": {
-      "type": "array",
-      "items": {
-        "type": "number",
-        "minimum": 0
-      },
-      "minItems": 2,
-      "maxItems": 2,
-      "description": "Monthly cost range [min, max] in USD"
-    },
-    "setup_cost_range": {
-      "type": "array",
-      "items": {
-        "type": "number",
-        "minimum": 0
-      },
-      "minItems": 2,
-      "maxItems": 2,
-      "description": "Setup cost range [min, max] in USD"
-    },
-    "target_market": {
+    "target_audience": {
       "type": "array",
       "items": {
         "type": "string",
         "minLength": 1
       },
       "minItems": 1,
-      "description": "Target market segments for this provider"
+      "description": "Technical target audiences and user types"
     },
     "best_for": {
       "type": "string",
@@ -126,6 +106,24 @@
         "maximum"
       ],
       "description": "Performance classification tier"
+    },
+    "technical_requirements": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "description": "Technical skills and knowledge required to use this provider"
+    },
+    "use_cases": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "description": "Primary use cases and scenarios where this provider excels"
     },
     "last_updated": {
       "type": "string",
@@ -190,12 +188,6 @@
       "type": "string",
       "enum": ["fastest", "fast", "medium", "slow"],
       "description": "Build performance classification (for SSG engines)"
-    },
-    "transaction_fee": {
-      "type": "number",
-      "minimum": 0,
-      "maximum": 1,
-      "description": "Transaction fee percentage (for e-commerce providers)"
     },
     "api_endpoints": {
       "type": "object",

@@ -15,23 +15,30 @@
   ],
   "language": "go",
   "last_updated": "2025-10-11T11:11:45.081160+00:00",
-  "monthly_cost_range": [
-    75,
-    115
-  ],
   "performance_tier": "optimized",
   "provider_name": "hugo",
   "provider_type": "ssg",
   "schema_version": "1.0.0",
-  "setup_cost_range": [
-    1000,
-    2500
-  ],
   "ssg_engine": "hugo",
-  "target_market": [
-    "developers",
-    "technical_teams",
-    "agencies"
+  "target_audience": [
+    "performance_focused_developers",
+    "technical_documentation_teams",
+    "content_heavy_sites",
+    "go_template_users"
   ],
-  "tier_name": "Hugo - Ultra-Fast Static Site Generator"
+  "technical_requirements": [
+    "go_templating",
+    "markdown_expertise",
+    "yaml_frontmatter",
+    "content_organization",
+    "taxonomy_concepts"
+  ],
+  "tier_name": "Hugo - Ultra-Fast Static Site Generator",
+  "use_cases": [
+    "technical_documentation",
+    "large_content_sites",
+    "multi_language_sites",
+    "performance_critical_sites",
+    "complex_content_relationships"
+  ]
 }

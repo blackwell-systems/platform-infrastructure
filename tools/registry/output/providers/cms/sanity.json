@@ -14,22 +14,27 @@
     "webhook_automation"
   ],
   "last_updated": "2025-10-11T11:11:45.081160+00:00",
-  "monthly_cost_range": [
-    65,
-    280
-  ],
-  "performance_tier": "optimized",
+  "performance_tier": "premium",
   "provider_name": "sanity",
   "provider_type": "cms",
   "schema_version": "1.0.0",
-  "setup_cost_range": [
-    1440,
-    3360
+  "target_audience": [
+    "professional_content_teams",
+    "api_first_developers",
+    "structured_content_needs",
+    "enterprise_ready"
   ],
-  "target_market": [
-    "small_businesses",
-    "agencies",
-    "developers"
+  "technical_requirements": [
+    "api_integration",
+    "structured_content_modeling",
+    "groq_query_language",
+    "webhook_setup"
   ],
-  "tier_name": "Sanity CMS - Structured Content with Real-Time APIs"
+  "tier_name": "Sanity CMS - Structured Content with Real-Time APIs",
+  "use_cases": [
+    "professional_publishing",
+    "api_driven_sites",
+    "structured_data_management",
+    "real_time_content_sync"
+  ]
 }

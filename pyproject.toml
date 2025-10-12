@@ -43,5 +43,16 @@ select = ["E", "W", "F", "I"]
 [tool.hatch.build.targets.wheel]
 packages = ["stacks", "clients", "shared", "tools", "constructs"]
 
+[tool.pytest.ini_options]
+markers = [
+    "legacy_pricing: marks tests that depend on removed pricing logic (quarantined during capability transformation)",
+    "capability_focused: marks tests that validate technical capabilities rather than costs",
+    "provider_integration: marks tests that validate provider compatibility and features"
+]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
 [tool.uv.sources]
 blackwell-core = { path = "../blackwell-core", editable = true }

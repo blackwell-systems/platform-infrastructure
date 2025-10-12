@@ -15,23 +15,30 @@
   ],
   "language": "javascript",
   "last_updated": "2025-10-11T11:11:45.081160+00:00",
-  "monthly_cost_range": [
-    75,
-    115
-  ],
   "performance_tier": "optimized",
   "provider_name": "eleventy",
   "provider_type": "ssg",
   "schema_version": "1.0.0",
-  "setup_cost_range": [
-    1000,
-    2500
-  ],
   "ssg_engine": "eleventy",
-  "target_market": [
-    "developers",
-    "technical_teams",
-    "agencies"
+  "target_audience": [
+    "simplicity_preference",
+    "javascript_developers",
+    "minimal_configuration_users",
+    "flexible_templating_teams"
   ],
-  "tier_name": "Eleventy - Simple and Flexible Static Site Generator"
+  "technical_requirements": [
+    "basic_javascript",
+    "templating_concepts",
+    "minimal_configuration",
+    "markdown_knowledge",
+    "build_process_understanding"
+  ],
+  "tier_name": "Eleventy - Simple and Flexible Static Site Generator",
+  "use_cases": [
+    "simple_websites",
+    "fast_prototyping",
+    "minimal_complexity_projects",
+    "flexible_content_structures",
+    "quick_site_deployment"
+  ]
 }

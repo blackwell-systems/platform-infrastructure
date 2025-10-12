@@ -245,6 +245,7 @@ class TestEventDrivenIntegration:
         # Verify Lambda integration
         template.resource_count_is("AWS::Lambda::Function", at_least=1)
 
+    @pytest.mark.legacy_pricing
     def test_cost_estimation_compatibility(self):
         """Test that cost estimation works for both modes"""
 
@@ -266,31 +267,33 @@ class TestEventDrivenIntegration:
         # Event-driven mode should have additional costs for SNS, Lambda, DynamoDB
         # This validates that the cost calculation adapts to the integration mode
 
-    def test_suitability_scoring_compatibility(self):
-        """Test that client suitability scoring works for all providers"""
+    @pytest.mark.capability_focused
+    def test_capability_alignment_scoring_compatibility(self):
+        """Test that client capability alignment scoring works for all providers - validates technical compatibility"""
 
-        # Test requirements
+        # Test capability requirements (pricing-neutral)
         requirements = {
-            "budget_conscious": True,
-            "technical_team": True,
+            "technical_comfort": "intermediate",
+            "team_technical_skills": "high",
             "content_volume": "medium",
-            "growth_planning": True
+            "growth_planning": True,
+            "integration_flexibility": True
         }
 
         # Test all CMS providers
         cms_classes = [DecapCMSTierStack, SanityCMSTierStack, ContentfulCMSStack, TinaCMSTierStack]
 
         for stack_class in cms_classes:
-            score = stack_class.get_client_suitability_score(requirements)
+            score = stack_class.get_client_capability_alignment_score(requirements)
 
             assert isinstance(score, dict)
-            assert "suitability_score" in score
-            assert "suitability" in score
-            assert "reasons" in score
+            assert "alignment_score" in score
+            assert "capability_alignment" in score
+            assert "capability_reasons" in score
             assert "integration_mode_recommendation" in score
 
             # Score should be between 0 and 100
-            assert 0 <= score["suitability_score"] <= 100
+            assert 0 <= score["alignment_score"] <= 100
 
     def test_configuration_validation(self):
         """Test that configuration validation works correctly"""

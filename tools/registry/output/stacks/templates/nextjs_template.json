@@ -11,28 +11,34 @@
     "full_stack_growth"
   ],
   "last_updated": "2025-10-11T11:11:45.081160+00:00",
-  "monthly_cost_range": [
-    85,
-    115
-  ],
   "performance_tier": "enterprise",
   "schema_version": "1.0.0",
-  "setup_cost_range": [
-    1440,
-    3360
-  ],
   "ssg_engine": "nextjs",
   "stack_type": "nextjs_template",
-  "target_market": [
+  "target_audience": [
     "fullstack_developers",
     "enterprise_teams",
-    "business_applications",
-    "scalable_architecture"
+    "typescript_users",
+    "scalable_architecture_teams"
+  ],
+  "technical_requirements": [
+    "react_expertise",
+    "typescript_knowledge",
+    "enterprise_patterns",
+    "nextjs_framework",
+    "modern_javascript"
   ],
   "template_variants": [
     "business_app",
     "marketing_site",
     "saas_landing"
   ],
-  "tier_name": "Next.js Template - Enterprise Full-Stack React Foundation"
+  "tier_name": "Next.js Template - Enterprise Full-Stack React Foundation",
+  "use_cases": [
+    "enterprise_applications",
+    "business_applications",
+    "saas_platforms",
+    "full_stack_ready_projects",
+    "typescript_development"
+  ]
 }

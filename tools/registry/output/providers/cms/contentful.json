@@ -2,7 +2,7 @@
   "best_for": "Enterprise-grade content management with advanced workflows, team collaboration, and multi-language support",
   "category": "cms_tier_service",
   "cms_type": "api_based",
-  "complexity_level": "medium_to_high",
+  "complexity_level": "high",
   "display_name": "Contentful CMS",
   "hosting_pattern": "aws_optimized",
   "key_features": [
@@ -14,22 +14,28 @@
     "advanced_permissions"
   ],
   "last_updated": "2025-10-11T11:11:45.081160+00:00",
-  "monthly_cost_range": [
-    75,
-    500
-  ],
-  "performance_tier": "optimized",
+  "performance_tier": "enterprise",
   "provider_name": "contentful",
   "provider_type": "cms",
   "schema_version": "1.0.0",
-  "setup_cost_range": [
-    2100,
-    4800
+  "target_audience": [
+    "enterprise_content_teams",
+    "large_organizations",
+    "complex_workflows",
+    "multi_brand_companies",
+    "international_businesses"
   ],
-  "target_market": [
-    "small_businesses",
-    "agencies",
-    "developers"
+  "technical_requirements": [
+    "enterprise_api_integration",
+    "workflow_management",
+    "multi_language_setup",
+    "advanced_permissions"
   ],
-  "tier_name": "Contentful CMS - Enterprise Content Management with Advanced Workflows"
+  "tier_name": "Contentful CMS - Enterprise Content Management with Advanced Workflows",
+  "use_cases": [
+    "enterprise_publishing",
+    "multi_brand_management",
+    "international_content",
+    "complex_editorial_workflows"
+  ]
 }

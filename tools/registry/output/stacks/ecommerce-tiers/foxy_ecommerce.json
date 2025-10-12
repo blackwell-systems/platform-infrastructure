@@ -1,5 +1,5 @@
 {
-  "best_for": "Advanced features, subscriptions, complex workflows",
+  "best_for": "Advanced e-commerce with subscriptions, complex workflows, and automation",
   "category": "ecommerce_tier_service",
   "complexity_level": "medium_to_high",
   "ecommerce_provider": "foxy",
@@ -12,31 +12,38 @@
     "complex_pricing"
   ],
   "last_updated": "2025-10-11T11:11:45.081160+00:00",
-  "monthly_cost_range": [
-    100,
-    150
-  ],
   "performance_tier": "premium",
   "schema_version": "1.0.0",
-  "setup_cost_range": [
-    1200,
-    3000
-  ],
   "ssg_engine_options": [
     "eleventy",
     "astro",
     "gatsby"
   ],
   "stack_type": "foxy_ecommerce",
-  "target_market": [
-    "small_businesses",
-    "growing_companies",
-    "subscription_services"
+  "target_audience": [
+    "growing_businesses",
+    "subscription_service_providers",
+    "advanced_e-commerce_teams",
+    "complex_workflow_users"
+  ],
+  "technical_requirements": [
+    "advanced_api_integration",
+    "webhook_configuration",
+    "subscription_logic",
+    "complex_pricing_setup",
+    "automation_workflows"
   ],
   "template_variants": [
     "subscription_store",
     "advanced_catalog",
     "custom_checkout"
   ],
-  "tier_name": "Foxy E-commerce - Advanced E-commerce Features"
+  "tier_name": "Foxy E-commerce - Advanced E-commerce Features",
+  "use_cases": [
+    "subscription_businesses",
+    "complex_product_catalogs",
+    "automated_workflows",
+    "advanced_pricing_models",
+    "recurring_billing"
+  ]
 }

@@ -1,7 +1,7 @@
 # Composed Stack Ownership Crisis
 ## How Factory Refactoring Broke Cross-Domain Stack Architecture
 
-**Document Version:** 1.0
+**Document Version:** 2.0
 **Created:** January 2025
 **Issue Status:** 🚨 **CRITICAL REGRESSION**
 **Impact:** Composed stacks lack clear factory ownership
@@ -11,7 +11,7 @@
 
 ## Executive Summary
 
-The recent factory architecture refactoring (creating separate CMSStackFactory and maintaining separate EcommerceStackFactory) has created a **critical ownership crisis** for composed stacks - stacks that combine CMS and E-commerce functionality. These stacks, which are a core part of the platform's business model, are now **architecturally orphaned** with no clear factory responsible for their creation and management.
+The recent factory architecture refactoring (creating separate CMSStackFactory and maintaining separate EcommerceStackFactory) has created a **critical ownership crisis** for composed stacks - stacks that combine CMS and E-commerce functionality. These stacks, which are a core part of the platform's capability matrix, are now **architecturally orphaned** with no clear factory responsible for their creation and management.
 
 ### The Problem in One Sentence
 **Composed stacks combine CMS + E-commerce but now neither CMSStackFactory nor EcommerceStackFactory has clear ownership over cross-domain functionality.**
@@ -168,16 +168,16 @@ SSG_STACK_CLASSES: Dict[str, Type[BaseSSGStack]] = {
 
 ---
 
-## Concrete Business Impact Analysis
+## Concrete Technical Impact Analysis
 
-### Composed Stack Examples from Business Documents
+### Composed Stack Examples from Capability Matrix
 
-From `development-services.md` and `tech-stack-product-matrix.md`:
+From platform capability documentation and technical stack specifications:
 
-**🎯 Budget Composition** ($65-90/month):
+**🎯 Foundation Composition**:
 ```python
 # This stack is now ORPHANED
-budget_composition = {
+foundation_composition = {
     "cms_provider": "decap",           # CMSStackFactory domain
     "ecommerce_provider": "snipcart",  # EcommerceStackFactory domain
     "ssg_engine": "eleventy",          # All factories need this
@@ -185,7 +185,7 @@ budget_composition = {
 }
 ```
 
-**🎯 Professional Composition** ($180-220/month):
+**🎯 Professional Composition**:
 ```python
 # This stack is now ORPHANED
 professional_composition = {
@@ -196,7 +196,7 @@ professional_composition = {
 }
 ```
 
-**🎯 Enterprise Composition** ($430-580/month):
+**🎯 Enterprise Composition**:
 ```python
 # This stack is now ORPHANED
 enterprise_composition = {
@@ -207,14 +207,14 @@ enterprise_composition = {
 }
 ```
 
-### Revenue Impact
+### Capability Impact
 
-**Composed stacks represent significant revenue:**
-- Budget compositions: $65-90/month recurring
-- Professional compositions: $180-220/month recurring
-- Enterprise compositions: $430-580/month recurring
+**Composed stacks represent significant platform capabilities:**
+- Foundation compositions: Essential for content-driven e-commerce
+- Professional compositions: Advanced CMS with e-commerce integration
+- Enterprise compositions: Full-featured content-commerce platforms
 
-**These are NOT edge cases** - they're core business offerings that are now architecturally homeless.
+**These are NOT edge cases** - they're core technical offerings that are now architecturally homeless.
 
 ---
 
@@ -298,13 +298,13 @@ class SSGStackFactory:
 
 ### The Fundamental Problem: Artificial Domain Boundaries
 
-**The Issue:** We created **technical domain boundaries** (SSG, CMS, E-commerce) that don't align with **business domain reality** (web infrastructure services).
+**The Issue:** We created **technical domain boundaries** (SSG, CMS, E-commerce) that don't align with **platform capability reality** (integrated web infrastructure services).
 
-**Business Reality Check:**
+**Platform Reality Check:**
 ```
 Client Request: "I need a blog with a store"
 ├── Technical Reality: This needs CMS + E-commerce + SSG
-└── Business Reality: This is ONE web infrastructure service
+└── Platform Reality: This is ONE integrated web infrastructure service
 
 Current Factory Model:
 ├── CMSStackFactory: "I handle CMS"
@@ -368,11 +368,11 @@ class BaseSSGStack:
 ### **What's Broken:**
 - 🚨 **Composed stack creation**: No clear factory owner
 - 🚨 **Cross-domain recommendations**: No factory can recommend across domains
-- 🚨 **Business model support**: Key revenue streams lack proper factory support
+- 🚨 **Platform capability support**: Key technical capabilities lack proper factory support
 - 🚨 **Developer confusion**: "Which factory do I use for composed stacks?"
 
 ### **Severity: HIGH**
-This isn't a minor architectural inconsistency - **composed stacks are core business offerings** that now lack proper factory support.
+This isn't a minor architectural inconsistency - **composed stacks are core platform capabilities** that now lack proper factory support.
 
 ---
 
@@ -446,7 +446,7 @@ class PlatformStackFactory:
 
 ### **Immediate Action Required**
 
-**The composed stack ownership crisis demonstrates that the 3-factory approach is fundamentally flawed for the platform's business model.**
+**The composed stack ownership crisis demonstrates that the 3-factory approach is fundamentally flawed for the platform's capability model.**
 
 **Recommended Path:**
 1. **Immediate (This Week)**: Revert CMS tier stacks to SSGStackFactory to restore working composed stacks
@@ -456,10 +456,10 @@ class PlatformStackFactory:
 ### **Why This Crisis Proves Unified is Right**
 
 This ownership crisis is **perfect evidence** that:
-- Cross-domain features are core to the business (not edge cases)
+- Cross-domain features are core to the platform (not edge cases)
 - Single-domain factories create artificial boundaries
 - The platform needs unified stack management
-- **Business domain (web infrastructure) should drive architecture, not technical domains**
+- **Platform capability model should drive architecture, not technical domains**
 
 ---
 
@@ -467,7 +467,7 @@ This ownership crisis is **perfect evidence** that:
 
 ### **Technical Lessons:**
 1. **Cross-domain features reveal architectural flaws** - Composed stacks exposed the factory separation problem
-2. **Business model should drive architecture** - Platform sells web infrastructure, not separate CMS/e-commerce services
+2. **Platform capability model should drive architecture** - Platform provides integrated web infrastructure, not separate CMS/e-commerce services
 3. **Refactoring requires holistic analysis** - Can't change part of architecture without considering all features
 
 ### **Process Lessons:**
@@ -479,10 +479,19 @@ This ownership crisis is **perfect evidence** that:
 
 ## Conclusion
 
-The factory refactoring created a **critical architectural regression** for composed stacks, the platform's cross-domain business offerings. While the intention (architectural consistency) was sound, the execution failed to account for the platform's cross-domain feature requirements.
+The factory refactoring created a **critical architectural regression** for composed stacks, the platform's cross-domain capability offerings. While the intention (architectural consistency) was sound, the execution failed to account for the platform's cross-domain feature requirements.
+
+`★ Insight ─────────────────────────────────────`
+**The composed stack ownership crisis reveals a fundamental tension between technical domain separation and platform capability reality. Cross-domain features require unified management because they represent integrated platform capabilities, not combinations of separate services.**
+
+**Key Architectural Lessons:**
+- **Platform Capabilities Drive Architecture**: The platform provides integrated web infrastructure services, not separate domain-specific tools
+- **Cross-domain Features Are Core**: Composed stacks aren't edge cases - they're fundamental platform capabilities
+- **Unified Factory Is Necessary**: Cross-domain capabilities require unified factory management to avoid architectural orphaning
+`─────────────────────────────────────────────────`
 
 **The composed stack ownership crisis proves that:**
-- The 3-factory approach is architecturally insufficient for the platform's business model
+- The 3-factory approach is architecturally insufficient for the platform's capability model
 - Cross-domain features require unified factory management
 - The unified PlatformStackFactory is not just cleaner - it's functionally necessary
 
@@ -490,7 +499,7 @@ The factory refactoring created a **critical architectural regression** for comp
 
 ---
 
-**Document Status**: Critical Issue Documentation
+**Document Status**: Critical Issue Documentation - Capability-Focused Analysis
 **Resolution Required**: Yes - Immediate Action Needed
 **Recommended Solution**: Unified PlatformStackFactory Implementation
-**Business Impact**: High - Core revenue streams affected
+**Technical Impact**: High - Core platform capabilities affected

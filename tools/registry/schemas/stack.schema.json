@@ -8,14 +8,14 @@
     "stack_type",
     "tier_name",
     "category",
-    "monthly_cost_range",
-    "setup_cost_range",
-    "target_market",
+    "target_audience",
     "best_for",
     "complexity_level",
     "key_features",
     "hosting_pattern",
     "performance_tier",
+    "technical_requirements",
+    "use_cases",
     "last_updated",
     "schema_version"
   ],
@@ -41,34 +41,32 @@
       ],
       "description": "Stack service category classification"
     },
-    "monthly_cost_range": {
-      "type": "array",
-      "items": {
-        "type": "number",
-        "minimum": 0
-      },
-      "minItems": 2,
-      "maxItems": 2,
-      "description": "Monthly cost range [min, max] in USD"
-    },
-    "setup_cost_range": {
-      "type": "array",
-      "items": {
-        "type": "number",
-        "minimum": 0
-      },
-      "minItems": 2,
-      "maxItems": 2,
-      "description": "Setup cost range [min, max] in USD"
-    },
-    "target_market": {
+    "target_audience": {
       "type": "array",
       "items": {
         "type": "string",
         "minLength": 1
       },
       "minItems": 1,
-      "description": "Target market segments for this stack"
+      "description": "Target audience segments for this stack"
+    },
+    "technical_requirements": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "description": "Technical requirements and skills needed"
+    },
+    "use_cases": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "description": "Primary use cases and applications"
     },
     "best_for": {
       "type": "string",

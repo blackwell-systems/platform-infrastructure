@@ -14,23 +14,30 @@
   ],
   "language": "ruby",
   "last_updated": "2025-10-11T11:11:45.081160+00:00",
-  "monthly_cost_range": [
-    75,
-    115
-  ],
   "performance_tier": "optimized",
   "provider_name": "jekyll",
   "provider_type": "ssg",
   "schema_version": "1.0.0",
-  "setup_cost_range": [
-    1000,
-    2500
-  ],
   "ssg_engine": "jekyll",
-  "target_market": [
-    "developers",
-    "technical_teams",
-    "agencies"
+  "target_audience": [
+    "github_users",
+    "ruby_developers",
+    "git_workflow_teams",
+    "technical_documentation_writers"
   ],
-  "tier_name": "Jekyll - GitHub Pages Compatible Static Site Generator"
+  "technical_requirements": [
+    "ruby_familiarity",
+    "git_workflow_knowledge",
+    "liquid_templating",
+    "yaml_frontmatter",
+    "github_pages_understanding"
+  ],
+  "tier_name": "Jekyll - GitHub Pages Compatible Static Site Generator",
+  "use_cases": [
+    "github_pages_sites",
+    "technical_blogs",
+    "documentation_sites",
+    "ruby_ecosystem_projects",
+    "git_based_content_management"
+  ]
 }

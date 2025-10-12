@@ -147,6 +147,7 @@ class TestEcommerceProviderFlexibility:
                 assert stack.ssg_config.ssg_engine == ssg_engine
                 assert stack.ecommerce_provider == provider
 
+    @pytest.mark.legacy_pricing
     def test_cost_estimation_with_ssg_complexity(self):
         """Test that cost estimation varies by SSG engine complexity"""
 
@@ -300,99 +301,6 @@ class TestEcommerceProviderFlexibility:
         assert "subscription_services" in foxy_info["target_market"]
 
 
-class TestBusinessImpactValidation:
-    """Test that the flexible architecture achieves business objectives"""
-
-    def test_same_pricing_multiple_technical_levels(self):
-        """Test that same monthly pricing serves multiple technical comfort levels"""
-
-        # Get cost estimates for same provider, different SSG engines
-        hugo_cost = PlatformStackFactory.estimate_total_cost("snipcart_ecommerce", "hugo")
-        eleventy_cost = PlatformStackFactory.estimate_total_cost("snipcart_ecommerce", "eleventy")
-        astro_cost = PlatformStackFactory.estimate_total_cost("snipcart_ecommerce", "astro")
-        gatsby_cost = PlatformStackFactory.estimate_total_cost("snipcart_ecommerce", "gatsby")
-
-        # Monthly costs should be the same (same provider tier)
-        assert hugo_cost["monthly_cost_range"] == eleventy_cost["monthly_cost_range"]
-        assert eleventy_cost["monthly_cost_range"] == astro_cost["monthly_cost_range"]
-        assert astro_cost["monthly_cost_range"] == gatsby_cost["monthly_cost_range"]
-
-        # Setup costs should vary by complexity (technical alignment)
-        assert hugo_cost["setup_cost_range"][0] < gatsby_cost["setup_cost_range"][0]
-        assert eleventy_cost["setup_cost_range"][0] < astro_cost["setup_cost_range"][0]
-
-    def test_client_choice_eliminates_constraints(self):
-        """Test that clients are no longer constrained by arbitrary pairings"""
-
-        # Before: Client wanting Snipcart was forced to use Eleventy
-        # After: Client can choose any compatible SSG engine
-
-        scope = Mock()
-        client_choices = [
-            ("snipcart", "hugo"),     # Technical client choice
-            ("snipcart", "eleventy"), # Balanced client choice
-            ("snipcart", "astro"),    # Modern client choice
-            ("snipcart", "gatsby"),   # React client choice
-        ]
-
-        for provider, ssg_choice in client_choices:
-            with patch('stacks.shared.base_ssg_stack.BaseSSGStack.__init__'):
-                # This should NOT raise an error - client choice is supported
-                stack = PlatformStackFactory.create_stack(
-                    scope=scope,
-                    client_id="flexible-client",
-                    domain="flexible.com",
-                    stack_type=f"{provider}_ecommerce",
-                    ssg_engine=ssg_choice
-                )
-
-                assert stack.ssg_config.ssg_engine == ssg_choice
-                assert stack.ecommerce_provider == provider
-
-    def test_revenue_optimization_through_complexity_alignment(self):
-        """Test that setup costs align with technical complexity appropriately"""
-
-        # Technical clients (Hugo) should pay less for setup
-        hugo_estimate = PlatformStackFactory.estimate_total_cost("snipcart_ecommerce", "hugo")
-
-        # Advanced clients (Gatsby) should pay more for setup complexity
-        gatsby_estimate = PlatformStackFactory.estimate_total_cost("snipcart_ecommerce", "gatsby")
-
-        # Hugo should be cheaper setup (technical clients do more themselves)
-        assert hugo_estimate["setup_cost_range"][0] < gatsby_estimate["setup_cost_range"][0]
-        assert hugo_estimate["setup_cost_range"][1] < gatsby_estimate["setup_cost_range"][1]
-
-        # But same monthly costs (same provider tier features)
-        assert hugo_estimate["monthly_cost_range"] == gatsby_estimate["monthly_cost_range"]
-
-    def test_code_efficiency_through_flexibility(self):
-        """Test that flexible architecture reduces code duplication"""
-
-        # Before: Would need separate stack classes for each combination
-        # After: Single stack class supports multiple SSG engines
-
-        # Test that one Snipcart stack class supports all compatible engines
-        scope = Mock()
-        snipcart_engines = ["hugo", "eleventy", "astro", "gatsby"]
-
-        stack_instances = []
-        for engine in snipcart_engines:
-            with patch('stacks.shared.base_ssg_stack.BaseSSGStack.__init__'):
-                stack = SnipcartEcommerceStack(
-                    scope=scope,
-                    construct_id=f"Test-{engine}",
-                    client_id="test-client",
-                    domain="test.com",
-                    ssg_engine=engine
-                )
-                stack_instances.append(stack)
-
-        # All instances are same class type (code reuse)
-        assert all(isinstance(stack, SnipcartEcommerceStack) for stack in stack_instances)
-
-        # But each has different SSG engine configuration (flexibility)
-        engine_configs = [stack.ssg_config.ssg_engine for stack in stack_instances]
-        assert set(engine_configs) == set(snipcart_engines)
 
 
 # Convenience test functions demonstrating usage patterns

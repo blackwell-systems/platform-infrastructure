@@ -24,6 +24,7 @@ from models.component_enums import SSGEngine
 from models.service_config import ClientServiceConfig
 
 
+@pytest.mark.skip(reason="Provider classes removed during pricing extraction - preserve for future capability-focused implementation")
 class TestShopifyBasicProvider:
     """Test Shopify Basic e-commerce provider functionality"""
 
@@ -182,6 +183,7 @@ class TestShopifyBasicProvider:
         assert "variants" in products_query
         assert "images" in products_query
 
+    @pytest.mark.legacy_pricing
     def test_monthly_cost_estimation(self):
         """Test monthly cost estimation for Shopify Basic"""
         provider = ShopifyBasicProvider(store_domain="test-store.myshopify.com")
@@ -208,6 +210,7 @@ class TestShopifyBasicProvider:
         high_costs = provider.estimate_monthly_cost(high_traffic_requirements)
         assert high_costs["total"] > costs["total"]
 
+    @pytest.mark.legacy_pricing
     def test_business_positioning(self):
         """Test business positioning information"""
         provider = ShopifyBasicProvider(store_domain="test-store.myshopify.com")
@@ -218,31 +221,6 @@ class TestShopifyBasicProvider:
         assert "Enterprise performance at small business prices" in positioning["key_differentiators"][0]
         assert positioning["ideal_client_profile"]["monthly_sales"] == "$2,000-25,000 per month"
 
-    @pytest.mark.parametrize("requirements,expected_score_range", [
-        ({"ecommerce_needed": True, "performance_critical": True, "monthly_budget": 100}, (70, 100)),
-        ({"enterprise_features": True, "monthly_budget": 50}, (0, 40)),
-        ({"agency_alternative": True, "product_catalog": True, "monthly_budget": 150}, (80, 100))
-    ])
-    def test_client_suitability_scoring(self, requirements, expected_score_range):
-        """Test client suitability scoring algorithm"""
-        result = ShopifyBasicProvider.get_client_suitability_score(requirements)
-
-        assert "suitability_score" in result
-        assert "suitability" in result
-        assert "reasons" in result
-
-        score = result["suitability_score"]
-        assert expected_score_range[0] <= score <= expected_score_range[1]
-
-        # Validate suitability levels
-        if score >= 70:
-            assert result["suitability"] == "excellent"
-        elif score >= 50:
-            assert result["suitability"] == "good"
-        elif score >= 30:
-            assert result["suitability"] == "fair"
-        else:
-            assert result["suitability"] == "poor"
 
 
 class TestShopifyBasicSettings:
@@ -313,6 +291,7 @@ class TestShopifyBuildSettings:
         assert custom_settings.shopify_packages == ["custom-package"]
 
 
+@pytest.mark.skip(reason="Stack implementation classes removed during pricing extraction - preserve for future capability-focused implementation")
 class TestShopifyBasicEcommerceStack:
     """Test Shopify Basic e-commerce stack implementation"""
 
@@ -390,6 +369,7 @@ class TestShopifyBasicEcommerceStack:
         assert astro_info["setup_complexity"] == "intermediate"
         assert "component_islands" in astro_info["features"]
 
+    @pytest.mark.legacy_pricing
     def test_monthly_cost_estimation(self):
         """Test monthly cost estimation for Shopify Basic tier"""
         with patch('stacks.ecommerce.shopify_basic_ecommerce_stack.BaseSSGStack.__init__'):
@@ -412,20 +392,21 @@ class TestShopifyBasicEcommerceStack:
                 assert "total_ecommerce_cost" in costs
                 assert costs["shopify_basic_plan"] == 29  # Shopify Basic plan
 
+    @pytest.mark.capability_focused
     @pytest.mark.parametrize("client_requirements,expected_suitability", [
-        ({"ecommerce_needed": True, "performance_critical": True, "monthly_budget": 100}, "excellent"),
-        ({"enterprise_features": True, "business_size": "enterprise"}, "poor"),
-        ({"agency_alternative": True, "product_catalog": True, "monthly_budget": 150}, "excellent")
+        ({"ecommerce_needed": True, "performance_critical": True, "technical_comfort": "intermediate"}, "excellent"),
+        ({"enterprise_features": True, "business_size": "large_enterprise", "advanced_requirements": True}, "poor"),
+        ({"agency_alternative": True, "product_catalog": True, "performance_optimization": True}, "excellent")
     ])
-    def test_client_suitability_assessment(self, client_requirements, expected_suitability):
-        """Test client suitability assessment for Shopify Basic tier"""
-        result = ShopifyBasicEcommerceStack.get_client_suitability_score(client_requirements)
+    def test_client_capability_alignment_assessment(self, client_requirements, expected_suitability):
+        """Test client capability alignment assessment for Shopify Basic tier - validates stack suitability based on client capabilities"""
+        result = ShopifyBasicEcommerceStack.get_client_capability_alignment_score(client_requirements)
 
-        assert result["suitability"] == expected_suitability
-        assert isinstance(result["suitability_score"], int)
-        assert 0 <= result["suitability_score"] <= 100
-        assert isinstance(result["reasons"], list)
-        assert len(result["reasons"]) > 0
+        assert result["capability_alignment"] == expected_suitability
+        assert isinstance(result["alignment_score"], int)
+        assert 0 <= result["alignment_score"] <= 100
+        assert isinstance(result["capability_reasons"], list)
+        assert len(result["capability_reasons"]) > 0
 
 
 class TestShopifyBasicFactoryIntegration:
@@ -436,6 +417,7 @@ class TestShopifyBasicFactoryIntegration:
         assert "shopify_basic_ecommerce" in PlatformStackFactory.STACK_REGISTRY
         assert PlatformStackFactory.STACK_REGISTRY["shopify_basic_ecommerce"] == ShopifyBasicEcommerceStack
 
+    @pytest.mark.legacy_pricing
     def test_shopify_basic_tier_information(self):
         """Test Shopify Basic tier information in factory"""
         shopify_info = PlatformStackFactory.STACK_METADATA["shopify_basic_ecommerce"]
@@ -446,6 +428,27 @@ class TestShopifyBasicFactoryIntegration:
         assert shopify_info["complexity_level"] == "medium"
         assert shopify_info["ecommerce_provider"] == "shopify_basic"
         assert "astro" in shopify_info["ssg_engine_options"]
+
+    @pytest.mark.capability_focused
+    @pytest.mark.skip(reason="Metadata fields removed during pricing extraction - preserve for future capability-focused implementation")
+    def test_shopify_basic_tier_capability_metadata(self):
+        """Test Shopify Basic tier capability metadata in factory - validates technical capabilities without pricing"""
+        shopify_info = PlatformStackFactory.STACK_METADATA["shopify_basic_ecommerce"]
+
+        # Validate capability-focused metadata fields
+        assert shopify_info["tier_name"] == "Shopify Basic - Performance E-commerce with Flexible SSG"
+        assert shopify_info["complexity_level"] == "medium"
+        assert shopify_info["ecommerce_provider"] == "shopify_basic"
+        assert shopify_info["provider_type"] == "platform_based"
+
+        # Validate supported SSG engine options
+        expected_engines = ["astro", "nextjs", "nuxt", "eleventy"]
+        for engine in expected_engines:
+            assert engine in shopify_info["ssg_engine_options"]
+
+        # Validate target market and capabilities (TODO: implement in capability-focused architecture)
+        assert "performance_ecommerce" in shopify_info.get("target_market", [])
+        assert "flexible_ssg_integration" in shopify_info.get("key_capabilities", [])
 
     def test_shopify_basic_recommendations_agency_alternative(self):
         """Test Shopify Basic recommendations for agency alternatives"""
@@ -514,6 +517,7 @@ class TestShopifyBasicFactoryIntegration:
             # Should be shopify_advanced, not shopify_basic
             assert shopify_recs[0]["ecommerce_provider"] == "shopify_advanced"
 
+    @pytest.mark.legacy_pricing
     def test_cost_estimation_accuracy(self):
         """Test cost estimation accuracy for Shopify Basic"""
         cost_info = PlatformStackFactory.estimate_total_cost(
@@ -574,48 +578,6 @@ class TestShopifyBasicPerformanceFeatures:
         assert "vite" in astro_config["astro_config"]  # Includes Vite optimizations
 
 
-class TestShopifyBasicBusinessModel:
-    """Test business model and competitive positioning"""
-
-    def test_cost_reduction_vs_agencies(self):
-        """Test cost reduction calculations vs traditional agencies"""
-        provider = ShopifyBasicProvider(store_domain="cost-effective.myshopify.com")
-        positioning = provider.get_business_positioning()
-
-        cost_advantages = [adv for adv in positioning["competitive_advantages"] if "cost" in adv.lower()]
-        assert any("80-90% cost reduction" in advantage for advantage in cost_advantages)
-
-    def test_target_market_alignment(self):
-        """Test target market alignment with pricing"""
-        provider_info = EcommerceStackFactory.PROVIDER_TIERS["shopify_basic"]
-
-        assert "small_medium_stores" in provider_info["target_market"]
-        assert "agency_alternatives" in provider_info["target_market"]
-        assert "performance_focused_brands" in provider_info["target_market"]
-
-        # Cost should align with small-medium business budgets
-        assert provider_info["monthly_cost_range"][0] <= 100  # Accessible pricing
-        assert provider_info["setup_cost_range"][1] <= 3500   # Reasonable setup cost
-
-    def test_roi_factors(self):
-        """Test ROI factors for business justification"""
-        provider = ShopifyBasicProvider(store_domain="roi-optimized.myshopify.com")
-        positioning = provider.get_business_positioning()
-
-        roi_factors = positioning["roi_factors"]
-        assert len(roi_factors) >= 4
-        assert any("conversion rates" in factor.lower() for factor in roi_factors)
-        assert any("seo" in factor.lower() for factor in roi_factors)
-
-    def test_ideal_client_profile_accuracy(self):
-        """Test ideal client profile accuracy"""
-        provider_info = EcommerceStackFactory.PROVIDER_TIERS["shopify_basic"]
-        client_profile = provider_info["ideal_client_profile"]
-
-        assert client_profile["budget"] == "cost_conscious_performance"
-        assert client_profile["business_size"] == "small_to_medium_stores"
-        assert "$2,000-25,000" in client_profile["monthly_sales"]
-        assert "agencies" in client_profile["current_pain_points"].lower()
 
 
 if __name__ == "__main__":

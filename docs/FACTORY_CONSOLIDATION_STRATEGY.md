@@ -1,9 +1,9 @@
 # Factory Consolidation Strategy
 ## Migration from Multi-Factory Architecture to Unified PlatformStackFactory
 
-**Document Version:** 1.0
+**Document Version:** 2.0
 **Created:** January 2025
-**Status:** Strategic Plan
+**Status:** Capability-Focused Strategic Plan
 **Priority:** 2 (Architecture Optimization)
 **Timeline:** Post-MVP Implementation
 
@@ -13,7 +13,7 @@
 
 This document outlines the strategy for consolidating the current multi-factory architecture (SSGStackFactory, CMSStackFactory, EcommerceStackFactory) into a unified **PlatformStackFactory**. This consolidation aligns with the platform's factory-first architecture philosophy while simplifying the developer experience and maintaining all existing functionality.
 
-### Business Impact
+### Technical Impact
 
 **Current State Issues:**
 - **Developer Confusion**: Three different factories with overlapping responsibilities
@@ -74,7 +74,7 @@ ecommerce_stack = EcommerceStackFactory.create_ecommerce_stack(
 1. **Inconsistent Method Names**: `create_ssg_stack()` vs `create_cms_stack()` vs `create_ecommerce_stack()`
 2. **Different Parameter Patterns**: `stack_type` vs `cms_provider` vs `ecommerce_provider`
 3. **Overlapping Functionality**: All factories handle SSG engine selection and AWS infrastructure
-4. **Knowledge Duplication**: Cost estimation, recommendation logic, validation spread across factories
+4. **Knowledge Duplication**: Capability assessment, recommendation logic, validation spread across factories
 
 ---
 
@@ -86,7 +86,7 @@ ecommerce_stack = EcommerceStackFactory.create_ecommerce_stack(
 class PlatformStackFactory:
     """
     Unified factory for all platform stack types.
-    Single source of truth for stack creation, recommendations, and cost estimation.
+    Single source of truth for stack creation, recommendations, and capability assessment.
     """
 
     # All stack types in one registry
@@ -171,7 +171,7 @@ ecommerce_stack = PlatformStackFactory.create_stack(
 - [ ] Create `PlatformStackFactory` class with unified interface
 - [ ] Implement stack registry consolidation from all three factories
 - [ ] Create unified recommendation engine that merges logic from all factories
-- [ ] Implement universal cost estimation system
+- [ ] Implement universal capability assessment system
 - [ ] Create comprehensive test suite for unified factory
 
 **Deliverables:**
@@ -284,15 +284,15 @@ ecommerce_recommendations = EcommerceStackFactory.get_ecommerce_recommendations(
 all_recommendations = PlatformStackFactory.get_recommendations(requirements)
 
 # Results intelligently compare across stack types:
-# "For your requirements, Sanity CMS tier ($65-90/month) provides better value
-#  than pure Gatsby template ($85-110/month) due to structured content needs"
+# "For your requirements, Sanity CMS tier provides better technical capabilities
+#  than pure Gatsby template due to structured content needs and team collaboration features"
 ```
 
-### 2. Universal Cost Comparison
+### 2. Universal Capability Comparison
 
-**Enhanced Cost Analysis:**
+**Enhanced Capability Analysis:**
 ```python
-cost_comparison = PlatformStackFactory.compare_stack_costs([
+capability_comparison = PlatformStackFactory.compare_stack_capabilities([
     "hugo_template",
     "decap_cms_tier",
     "sanity_cms_tier",
@@ -300,11 +300,11 @@ cost_comparison = PlatformStackFactory.compare_stack_costs([
 ], requirements={
     "content_volume": "medium",
     "team_size": 3,
-    "budget_limit": 150
+    "performance_critical": True
 })
 
 # Returns comprehensive analysis across all stack types
-# with business value justification for cost differences
+# with technical capability justification for differences
 ```
 
 ### 3. Intelligent Stack Progression
@@ -321,7 +321,7 @@ growth_path = PlatformStackFactory.get_stack_progression_path(
 )
 
 # Returns: ["hugo_template" → "decap_cms_tier" → "sanity_cms_tier" → "composed_stack"]
-# with migration effort estimates and business justification
+# with migration effort estimates and technical capability justification
 ```
 
 ### 4. Unified Configuration Management
@@ -377,28 +377,28 @@ class PlatformStackFactory:
         # Metadata from SSGStackFactory
         "hugo_template": {
             "category": "ssg_templates",
-            "monthly_cost_range": (75, 100),
+            "performance_tier": "maximum",
             "ssg_engine": "hugo",
             "features": ["performance_critical", "technical_focused"],
-            "business_value": "Fastest builds for technical teams"
+            "technical_value": "Fastest builds for technical teams"
         },
 
         # Metadata from CMSStackFactory
         "sanity_cms_tier": {
             "category": "cms_tiers",
-            "monthly_cost_range": (65, 280),
+            "performance_tier": "premium",
             "supported_ssg_engines": ["astro", "nextjs", "gatsby"],
             "features": ["structured_content", "real_time_collaboration"],
-            "business_value": "Scalable content architecture"
+            "technical_value": "Scalable content architecture"
         },
 
         # Metadata from EcommerceStackFactory
         "snipcart_ecommerce": {
             "category": "ecommerce_tiers",
-            "monthly_cost_range": (85, 125),
+            "performance_tier": "optimized",
             "supported_ssg_engines": ["hugo", "eleventy", "astro"],
-            "features": ["simple_ecommerce", "2_percent_fees"],
-            "business_value": "Quick e-commerce integration"
+            "features": ["simple_ecommerce", "low_transaction_fees"],
+            "technical_value": "Quick e-commerce integration"
         }
     }
 ```
@@ -413,8 +413,8 @@ def get_recommendations(cls, requirements: Dict[str, Any]) -> List[Dict[str, Any
     Key Improvements:
     - Cross-category comparison (SSG vs CMS vs E-commerce)
     - Growth path analysis (current needs vs future needs)
-    - Total cost of ownership across stack evolution
-    - Business value scoring across different approaches
+    - Total capability assessment across stack evolution
+    - Technical value scoring across different approaches
     """
 
     # 1. Analyze immediate requirements
@@ -503,7 +503,7 @@ class LegacyFactoryAdapter:
   - Comprehensive documentation and examples
   - Modular architecture allows focused maintenance
 
-### Business Risks
+### Technical Risks
 
 **Risk: Developer Productivity Impact**
 - **Probability**: Low
@@ -550,7 +550,7 @@ class LegacyFactoryAdapter:
 - **API Discoverability**: Single import, clear method names, comprehensive examples
 - **Migration Effort**: <2 hours to migrate existing code per team
 
-### Business Impact Metrics
+### Technical Impact Metrics
 
 **Development Velocity:**
 - **Feature Development Speed**: 20% faster stack creation due to unified patterns
@@ -569,7 +569,7 @@ class LegacyFactoryAdapter:
 ### Week 1: Foundation Development
 - **Days 1-2**: Create `PlatformStackFactory` class structure
 - **Days 3-4**: Implement unified stack registry and metadata consolidation
-- **Days 5-7**: Create unified recommendation engine and cost estimation
+- **Days 5-7**: Create unified recommendation engine and capability assessment
 
 ### Week 2: Compatibility Layer
 - **Days 8-9**: Implement legacy factory wrapper classes
@@ -603,19 +603,28 @@ The consolidation of multiple factories into a unified `PlatformStackFactory` re
 - **Maintenance Efficiency**: Consolidated codebase with shared logic and testing
 
 **Long-term Strategic Value:**
-- **Enhanced Intelligence**: Cross-stack-type recommendations and cost optimization
+- **Enhanced Intelligence**: Cross-stack-type recommendations and capability optimization
 - **Scalability**: Easier to add new stack types and capabilities
-- **Business Growth**: Platform ready for advanced features like composed stacks
+- **Technical Growth**: Platform ready for advanced features like composed stacks
 
 **Risk Management:**
 - **Zero Breaking Changes**: Compatibility layer ensures smooth transition
 - **Gradual Migration**: Phased approach allows validation at each step
 - **Rollback Safety**: Clear rollback strategy if issues arise
 
+`★ Insight ─────────────────────────────────────`
+**Factory consolidation eliminates architectural fragmentation while creating a single intelligent system that can make sophisticated recommendations across all platform capabilities. The unified approach transforms three separate recommendation engines into one comprehensive capability assessment system.**
+
+**Key Technical Benefits:**
+- **Cross-stack Intelligence**: Recommendations consider all technical options, not just within silos
+- **Capability Evolution**: Growth paths based on technical requirements rather than arbitrary boundaries
+- **Architecture Consistency**: Single pattern scales from simple templates to complex composed systems
+`─────────────────────────────────────────────────`
+
 The proposed timeline of 5 weeks provides comprehensive development, testing, and migration while maintaining full backward compatibility throughout the process. This consolidation positions the platform for continued growth while simplifying the developer experience and maintenance overhead.
 
 ---
 
-**Implementation Status**: Strategic Plan Ready
+**Implementation Status**: Capability-Focused Strategic Plan Ready
 **Next Steps**: Schedule implementation post-MVP completion
 **Success Criteria**: Unified factory handling 100% of stack creation with improved developer experience and reduced maintenance overhead

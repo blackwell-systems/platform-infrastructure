@@ -10,32 +10,39 @@
     "integrated_analytics"
   ],
   "last_updated": "2025-10-11T11:11:45.081160+00:00",
-  "monthly_cost_range": [
-    140,
-    405
-  ],
   "performance_tier": "enterprise",
   "provider_combinations": "flexible",
   "schema_version": "1.0.0",
-  "setup_cost_range": [
-    2160,
-    5760
-  ],
   "ssg_engine_options": [
     "astro",
     "gatsby",
     "nextjs"
   ],
   "stack_type": "cms_ecommerce_composed",
-  "target_market": [
+  "target_audience": [
     "content_driven_stores",
-    "editorial_ecommerce",
-    "complex_business_models"
+    "editorial_e-commerce_teams",
+    "complex_business_models",
+    "integrated_platform_users"
+  ],
+  "technical_requirements": [
+    "advanced_api_integration",
+    "cross_platform_management",
+    "unified_authentication",
+    "complex_workflow_orchestration",
+    "integrated_analytics_setup"
   ],
   "template_variants": [
     "content_store",
     "editorial_commerce",
     "magazine_shop"
   ],
-  "tier_name": "Composed CMS + E-commerce Stack"
+  "tier_name": "Composed CMS + E-commerce Stack",
+  "use_cases": [
+    "content_driven_commerce",
+    "editorial_storefronts",
+    "magazine_commerce",
+    "complex_business_models",
+    "unified_content_commerce_platforms"
+  ]
 }

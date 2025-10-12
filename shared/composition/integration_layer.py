@@ -48,13 +48,14 @@ from shared.interfaces.composable_component import ComponentRegistry
 logger = logging.getLogger(__name__)
 
 
-class EventDrivenIntegrationLayer(Construct, BaseIntegrationLayer):
+class EventDrivenIntegrationLayer(Construct):
     """
     Central integration layer orchestrating event-driven CMS + E-commerce composition.
 
+    This class implements the BaseIntegrationLayer interface using AWS infrastructure.
+
     This system democratizes professional web development by providing:
     - Fault-tolerant integration between any CMS and E-commerce provider
-    - 80-90% cost reduction compared to traditional agency solutions
     - Event-driven architecture that scales globally
     - Pluggable component system for unlimited extensibility
 
@@ -797,7 +798,7 @@ class EventDrivenIntegrationLayer(Construct, BaseIntegrationLayer):
             ]
         }
 
-    def estimate_monthly_cost(self) -> Dict[str, float]:
+    def estimate_operational_cost(self) -> Dict[str, float]:
         """
         Estimate monthly operational costs for the integration layer.
 
