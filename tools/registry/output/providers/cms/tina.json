@@ -1,0 +1,35 @@
+{
+  "best_for": "Visual content editing with git-based storage and real-time collaboration",
+  "category": "cms_tier_service",
+  "cms_type": "hybrid",
+  "complexity_level": "medium_to_high",
+  "display_name": "Tina CMS",
+  "hosting_pattern": "aws_optimized",
+  "key_features": [
+    "visual_editing",
+    "real_time_preview",
+    "git_workflow",
+    "react_based",
+    "graphql_api",
+    "collaboration"
+  ],
+  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "monthly_cost_range": [
+    60,
+    125
+  ],
+  "performance_tier": "optimized",
+  "provider_name": "tina",
+  "provider_type": "cms",
+  "schema_version": "1.0.0",
+  "setup_cost_range": [
+    1200,
+    2880
+  ],
+  "target_market": [
+    "small_businesses",
+    "agencies",
+    "developers"
+  ],
+  "tier_name": "Tina CMS - Visual Editing with Git Workflow"
+}

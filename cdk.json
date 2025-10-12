@@ -14,8 +14,8 @@
     ]
   },
   "context": {
-    "account": "YOUR_AWS_ACCOUNT_ID",
-    "region": "us-east-1",
+    "account": "105249142972",
+    "region": "us-west-2",
     "@aws-cdk/aws-apigateway:usagePlanKeyOrderInsensitiveId": true,
     "@aws-cdk/core:stackRelativeExports": true,
     "@aws-cdk/aws-rds:lowercaseDbIdentifier": true,
@@ -51,7 +51,7 @@
       "qualifier": "hnb659fds"
     }
   },
-  "profile": "default",
+  "profile": "blackwellsystems",
   "requireApproval": "never",
   "versionReporting": false,
   "pathMetadata": false,

@@ -52,6 +52,9 @@ from aws_cdk import (
 
 from constructs import Construct
 
+# Import the Provider Registry construct
+from shared.constructs.provider_registry_construct import ProviderRegistryConstruct
+
 
 class SharedInfraStack(Stack):
     """
@@ -79,6 +82,7 @@ class SharedInfraStack(Stack):
         self._create_cost_allocation_foundation()
         self._create_tier_cost_tracking()
         self._create_shared_storage()
+        self._create_provider_registry()
 
         # Apply business tags to all resources
         self._apply_shared_tags()
@@ -382,6 +386,13 @@ class SharedInfraStack(Stack):
             removal_policy=RemovalPolicy.RETAIN
         )
 
+    def _create_provider_registry(self) -> None:
+        """Create Provider Metadata Registry infrastructure."""
+        self.provider_registry = ProviderRegistryConstruct(
+            self,
+            "ProviderRegistry"
+        )
+
     def _apply_shared_tags(self) -> None:
         """Apply business-wide tags to all shared resources."""
 
@@ -423,6 +434,11 @@ class SharedInfraStack(Stack):
             "backup_coordination_bucket_name": self.backup_coordination_bucket.bucket_name,
             "cost_allocation_role_arn": self.cost_allocation_role.role_arn,
             "operational_dashboard_url": f"https://{self.region}.console.aws.amazon.com/cloudwatch/home?region={self.region}#dashboards:name=WebServicesOperations",
+            # Provider Registry exports
+            "provider_registry_url": self.provider_registry.registry_url,
+            "provider_registry_bucket_name": self.provider_registry.bucket_name,
+            "provider_registry_distribution_id": self.provider_registry.distribution_id,
+            "provider_registry_deployment_role_arn": self.provider_registry.deployment_role.role_arn,
             # NEW: Tier-specific resources for client stacks
             "tier_cost_thresholds": {
                 "tier1": 150,

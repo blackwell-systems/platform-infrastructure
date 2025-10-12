@@ -1,0 +1,37 @@
+{
+  "best_for": "Content-driven marketing sites with fast loading and SEO optimization",
+  "category": "foundation_ssg_service",
+  "complexity_level": "low_to_medium",
+  "hosting_pattern": "aws_optimized",
+  "key_features": [
+    "fast_builds",
+    "seo_optimized",
+    "cost_effective",
+    "developer_managed"
+  ],
+  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "monthly_cost_range": [
+    75,
+    100
+  ],
+  "performance_tier": "optimized",
+  "schema_version": "1.0.0",
+  "setup_cost_range": [
+    1200,
+    2400
+  ],
+  "ssg_engine": "eleventy",
+  "stack_type": "marketing",
+  "target_market": [
+    "small_businesses",
+    "marketing_agencies",
+    "content_creators",
+    "professionals"
+  ],
+  "template_variants": [
+    "business_modern",
+    "corporate_clean",
+    "marketing_focused"
+  ],
+  "tier_name": "Marketing-Optimized Static Sites"
+}

@@ -1,0 +1,62 @@
+{
+  "cdn_urls": {
+    "base": "https://registry.blackwell.dev",
+    "manifest": "https://registry.blackwell.dev/manifest.json"
+  },
+  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "metadata": {
+    "registry_version": "1.0.0",
+    "total_providers": 14,
+    "total_stacks": 15
+  },
+  "providers": {
+    "cms": [
+      "contentful",
+      "decap",
+      "sanity",
+      "tina"
+    ],
+    "ecommerce": [
+      "foxy",
+      "shopify_basic",
+      "snipcart"
+    ],
+    "ssg": [
+      "astro",
+      "eleventy",
+      "gatsby",
+      "hugo",
+      "jekyll",
+      "nextjs",
+      "nuxt"
+    ]
+  },
+  "schema_version": "1.0.0",
+  "stacks": {
+    "cms-tiers": [
+      "decap_cms_tier",
+      "tina_cms_tier",
+      "sanity_cms_tier",
+      "contentful_cms_tier"
+    ],
+    "composed": [
+      "cms_ecommerce_composed"
+    ],
+    "ecommerce-tiers": [
+      "snipcart_ecommerce",
+      "foxy_ecommerce",
+      "shopify_basic_ecommerce"
+    ],
+    "foundation": [
+      "marketing",
+      "developer",
+      "modern_performance"
+    ],
+    "templates": [
+      "hugo_template",
+      "gatsby_template",
+      "nextjs_template",
+      "nuxt_template"
+    ]
+  }
+}

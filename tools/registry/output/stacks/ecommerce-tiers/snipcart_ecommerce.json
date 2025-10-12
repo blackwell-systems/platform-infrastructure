@@ -1,0 +1,43 @@
+{
+  "best_for": "Budget-friendly e-commerce with fast setup",
+  "category": "ecommerce_tier_service",
+  "complexity_level": "low_to_medium",
+  "ecommerce_provider": "snipcart",
+  "ecommerce_type": "simple_integration",
+  "hosting_pattern": "aws_optimized",
+  "key_features": [
+    "simple_integration",
+    "secure_checkout",
+    "inventory_management",
+    "basic_analytics"
+  ],
+  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "monthly_cost_range": [
+    85,
+    125
+  ],
+  "performance_tier": "optimized",
+  "schema_version": "1.0.0",
+  "setup_cost_range": [
+    960,
+    2640
+  ],
+  "ssg_engine_options": [
+    "hugo",
+    "eleventy",
+    "astro",
+    "gatsby"
+  ],
+  "stack_type": "snipcart_ecommerce",
+  "target_market": [
+    "individuals",
+    "small_businesses",
+    "simple_stores"
+  ],
+  "template_variants": [
+    "simple_store",
+    "digital_products",
+    "catalog_basic"
+  ],
+  "tier_name": "Snipcart E-commerce - Simple E-commerce Integration"
+}

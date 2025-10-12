@@ -1,0 +1,35 @@
+{
+  "best_for": "Budget-friendly content management with full git workflow control",
+  "category": "cms_tier_service",
+  "cms_type": "git_based",
+  "complexity_level": "medium_to_high",
+  "display_name": "Decap CMS",
+  "hosting_pattern": "aws_optimized",
+  "key_features": [
+    "free_cms",
+    "git_workflow",
+    "markdown_editing",
+    "github_oauth",
+    "version_control",
+    "no_vendor_lock_in"
+  ],
+  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "monthly_cost_range": [
+    50,
+    75
+  ],
+  "performance_tier": "optimized",
+  "provider_name": "decap",
+  "provider_type": "cms",
+  "schema_version": "1.0.0",
+  "setup_cost_range": [
+    960,
+    2640
+  ],
+  "target_market": [
+    "small_businesses",
+    "agencies",
+    "developers"
+  ],
+  "tier_name": "Decap CMS - Free Git-Based Content Management"
+}

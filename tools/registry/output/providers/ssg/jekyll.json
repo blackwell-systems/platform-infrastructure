@@ -1,0 +1,36 @@
+{
+  "best_for": "Technical sites with Git-based workflows and GitHub Pages compatibility",
+  "build_speed": "medium",
+  "category": "ssg_template_business_service",
+  "complexity_level": "medium_to_high",
+  "display_name": "Jekyll",
+  "ecosystem": "ruby",
+  "hosting_pattern": "aws_optimized",
+  "key_features": [
+    "github_pages_compatible",
+    "git_workflow",
+    "theme_system",
+    "dual_hosting"
+  ],
+  "language": "ruby",
+  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "monthly_cost_range": [
+    75,
+    115
+  ],
+  "performance_tier": "optimized",
+  "provider_name": "jekyll",
+  "provider_type": "ssg",
+  "schema_version": "1.0.0",
+  "setup_cost_range": [
+    1000,
+    2500
+  ],
+  "ssg_engine": "jekyll",
+  "target_market": [
+    "developers",
+    "technical_teams",
+    "agencies"
+  ],
+  "tier_name": "Jekyll - GitHub Pages Compatible Static Site Generator"
+}

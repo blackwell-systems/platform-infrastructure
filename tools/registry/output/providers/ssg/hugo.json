@@ -1,0 +1,37 @@
+{
+  "best_for": "Ultra-fast static sites with complex content relationships and technical documentation",
+  "build_speed": "fastest",
+  "category": "ssg_template_business_service",
+  "complexity_level": "medium_to_high",
+  "display_name": "Hugo",
+  "ecosystem": "go_templates",
+  "hosting_pattern": "aws_optimized",
+  "key_features": [
+    "ultra_fast_builds",
+    "technical_documentation",
+    "multi_language",
+    "complex_taxonomies",
+    "performance_optimization"
+  ],
+  "language": "go",
+  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "monthly_cost_range": [
+    75,
+    115
+  ],
+  "performance_tier": "optimized",
+  "provider_name": "hugo",
+  "provider_type": "ssg",
+  "schema_version": "1.0.0",
+  "setup_cost_range": [
+    1000,
+    2500
+  ],
+  "ssg_engine": "hugo",
+  "target_market": [
+    "developers",
+    "technical_teams",
+    "agencies"
+  ],
+  "tier_name": "Hugo - Ultra-Fast Static Site Generator"
+}

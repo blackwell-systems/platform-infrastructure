@@ -1,0 +1,37 @@
+{
+  "best_for": "React-based static sites with GraphQL data layer and component architecture",
+  "build_speed": "medium",
+  "category": "ssg_template_business_service",
+  "complexity_level": "medium_to_high",
+  "display_name": "Gatsby",
+  "ecosystem": "react",
+  "hosting_pattern": "aws_optimized",
+  "key_features": [
+    "react_components",
+    "graphql_data_layer",
+    "plugin_ecosystem",
+    "image_optimization",
+    "component_reusability"
+  ],
+  "language": "javascript",
+  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "monthly_cost_range": [
+    75,
+    115
+  ],
+  "performance_tier": "optimized",
+  "provider_name": "gatsby",
+  "provider_type": "ssg",
+  "schema_version": "1.0.0",
+  "setup_cost_range": [
+    1000,
+    2500
+  ],
+  "ssg_engine": "gatsby",
+  "target_market": [
+    "developers",
+    "technical_teams",
+    "agencies"
+  ],
+  "tier_name": "Gatsby - React Ecosystem with GraphQL"
+}
