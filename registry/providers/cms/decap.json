@@ -1,0 +1,117 @@
+{
+  "provider_id": "decap",
+  "provider_name": "Decap CMS",
+  "category": "cms",
+  "tier_name": "Decap CMS - Free Git-Based Content Management",
+  "description": "Git-based content management with GitHub OAuth authentication, markdown editing, version control, and zero vendor lock-in",
+  "features": [
+    "git_based",
+    "version_control",
+    "webhook_integration",
+    "developer_api",
+    "rich_text_editing",
+    "collaboration",
+    "media_management"
+  ],
+  "supported_ssg_engines": [
+    "hugo",
+    "eleventy",
+    "astro",
+    "gatsby"
+  ],
+  "integration_modes": [
+    "direct",
+    "event_driven"
+  ],
+  "complexity_level": "simple",
+  "target_market": [
+    "developer_teams",
+    "technical_users",
+    "small_businesses",
+    "agencies"
+  ],
+  "use_cases": [
+    "Budget-conscious projects with zero CMS costs",
+    "Developer-managed sites with git workflow",
+    "Version-controlled content workflows",
+    "Small to medium content teams",
+    "Blog and documentation sites"
+  ],
+  "cost_characteristics": {
+    "base_tier": "free",
+    "pricing_model": "free",
+    "estimated_monthly_range": {
+      "min": 0,
+      "max": 0
+    }
+  },
+  "technical_requirements": {
+    "api_keys_required": true,
+    "webhook_support": true,
+    "custom_domain_support": true,
+    "ssl_certificate_management": true
+  },
+  "performance_characteristics": {
+    "build_time": "fast",
+    "content_sync_speed": "instant",
+    "cache_strategy": "basic"
+  },
+  "implementation_class": "stacks.cms.decap_cms_tier_stack.DecapCMSTierStack",
+  "provider_class": "shared.providers.cms.providers.decap_cms.DecapCMSProvider",
+  "documentation": {
+    "setup_guide": "https://decapcms.org/docs/quick-start/",
+    "api_reference": "https://decapcms.org/docs/configuration-options/",
+    "examples": "https://decapcms.org/docs/"
+  },
+  "compatibility": {
+    "ssg_engine_compatibility": {
+      "hugo": {
+        "compatibility_score": 10,
+        "setup_complexity": "simple",
+        "special_features": [
+          "fast_builds",
+          "markdown_native",
+          "powerful_templating"
+        ],
+        "limitations": []
+      },
+      "eleventy": {
+        "compatibility_score": 10,
+        "setup_complexity": "simple",
+        "special_features": [
+          "flexible_templating",
+          "fast_builds",
+          "javascript_config"
+        ],
+        "limitations": []
+      },
+      "astro": {
+        "compatibility_score": 8,
+        "setup_complexity": "intermediate",
+        "special_features": [
+          "component_islands",
+          "modern_tooling",
+          "partial_hydration"
+        ],
+        "limitations": [
+          "Requires additional markdown processing setup"
+        ]
+      },
+      "gatsby": {
+        "compatibility_score": 8,
+        "setup_complexity": "advanced",
+        "special_features": [
+          "react_based",
+          "graphql",
+          "plugin_ecosystem"
+        ],
+        "limitations": [
+          "More complex setup process",
+          "Longer build times for large sites"
+        ]
+      }
+    }
+  },
+  "metadata_version": "1.0.0",
+  "last_updated": "2025-01-12T12:00:00Z"
+}

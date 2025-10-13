@@ -1,0 +1,118 @@
+{
+  "provider_id": "shopify_basic",
+  "provider_name": "Shopify Basic",
+  "category": "ecommerce",
+  "tier_name": "Shopify Basic - Performance E-commerce with Flexible SSG",
+  "description": "High-performance static frontend with Shopify Basic plan backend, offering 2-3x faster page loads with proven e-commerce reliability",
+  "features": [
+    "ecommerce_platform",
+    "product_sync",
+    "inventory_tracking",
+    "payment_processing",
+    "order_management",
+    "performance_optimization",
+    "webhook_integration",
+    "static_generation"
+  ],
+  "supported_ssg_engines": [
+    "eleventy",
+    "astro",
+    "nextjs",
+    "nuxt"
+  ],
+  "integration_modes": [
+    "direct",
+    "event_driven"
+  ],
+  "complexity_level": "intermediate",
+  "target_market": [
+    "small_businesses",
+    "agencies",
+    "performance_focused",
+    "ecommerce_stores"
+  ],
+  "use_cases": [
+    "Small-medium stores needing proven e-commerce platform",
+    "Performance-focused brands wanting static site benefits",
+    "Businesses wanting Shopify reliability with custom frontend",
+    "Agency alternatives with professional results",
+    "Stores needing straightforward product catalog management"
+  ],
+  "cost_characteristics": {
+    "base_tier": "paid",
+    "pricing_model": "hybrid",
+    "estimated_monthly_range": {
+      "min": 80,
+      "max": 125
+    }
+  },
+  "technical_requirements": {
+    "api_keys_required": true,
+    "webhook_support": true,
+    "custom_domain_support": true,
+    "ssl_certificate_management": true
+  },
+  "performance_characteristics": {
+    "build_time": "fast",
+    "content_sync_speed": "fast",
+    "cache_strategy": "advanced"
+  },
+  "implementation_class": "stacks.ecommerce.shopify_basic_ecommerce_stack.ShopifyBasicEcommerceStack",
+  "provider_class": "shared.providers.ecommerce.shopify_basic_provider.ShopifyBasicProvider",
+  "documentation": {
+    "setup_guide": "https://help.shopify.com/en/manual/getting-started",
+    "api_reference": "https://shopify.dev/api",
+    "examples": "https://shopify.dev/tutorials"
+  },
+  "compatibility": {
+    "ssg_engine_compatibility": {
+      "eleventy": {
+        "compatibility_score": 10,
+        "setup_complexity": "simple",
+        "special_features": [
+          "fast_builds",
+          "simple_templating",
+          "shopify_integration"
+        ],
+        "limitations": []
+      },
+      "astro": {
+        "compatibility_score": 10,
+        "setup_complexity": "intermediate",
+        "special_features": [
+          "component_islands",
+          "performance_optimization",
+          "shopify_components"
+        ],
+        "limitations": []
+      },
+      "nextjs": {
+        "compatibility_score": 9,
+        "setup_complexity": "advanced",
+        "special_features": [
+          "react_ecosystem",
+          "shopify_hooks",
+          "api_routes",
+          "incremental_regeneration"
+        ],
+        "limitations": [
+          "More complex deployment setup"
+        ]
+      },
+      "nuxt": {
+        "compatibility_score": 8,
+        "setup_complexity": "advanced",
+        "special_features": [
+          "vue_ecosystem",
+          "ssr_support",
+          "shopify_modules"
+        ],
+        "limitations": [
+          "Smaller ecosystem compared to React-based solutions"
+        ]
+      }
+    }
+  },
+  "metadata_version": "1.0.0",
+  "last_updated": "2025-01-12T10:00:00Z"
+}

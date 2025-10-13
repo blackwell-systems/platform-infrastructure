@@ -1,0 +1,93 @@
+{
+  "provider_id": "gatsby",
+  "provider_name": "Gatsby",
+  "category": "ssg",
+  "tier_name": "Gatsby - React Ecosystem with GraphQL",
+  "description": "React-based static site generator with GraphQL data layer, plugin ecosystem, and component architecture optimized for content-heavy websites",
+  "features": [
+    "react_ecosystem",
+    "javascript_based",
+    "static_generation",
+    "component_islands",
+    "plugin_system",
+    "template_engine",
+    "performance_optimization",
+    "modern_tooling",
+    "theme_support",
+    "fast_builds"
+  ],
+  "supported_ssg_engines": [
+    "gatsby"
+  ],
+  "integration_modes": [
+    "direct"
+  ],
+  "complexity_level": "advanced",
+  "target_market": [
+    "react_developers",
+    "frontend_developers",
+    "developer_teams",
+    "content_heavy_sites",
+    "technical_users",
+    "jamstack_enthusiasts"
+  ],
+  "use_cases": [
+    "React-based business websites with component architecture",
+    "Content-heavy websites with GraphQL data sourcing",
+    "Portfolio sites with interactive component showcases",
+    "Blog sites requiring React component integration",
+    "E-commerce frontends with headless CMS integration",
+    "Progressive web applications with static generation"
+  ],
+  "cost_characteristics": {
+    "base_tier": "free",
+    "pricing_model": "free",
+    "estimated_monthly_range": {
+      "min": 0,
+      "max": 0
+    }
+  },
+  "technical_requirements": {
+    "api_keys_required": false,
+    "webhook_support": false,
+    "custom_domain_support": true,
+    "ssl_certificate_management": true
+  },
+  "performance_characteristics": {
+    "build_time": "medium",
+    "content_sync_speed": "fast",
+    "cache_strategy": "advanced"
+  },
+  "implementation_class": "stacks.hosted_only.tier1.gatsby_template_stack.GatsbyTemplateStack",
+  "provider_class": "shared.ssg.engines.gatsby.GatsbyConfig",
+  "documentation": {
+    "setup_guide": "https://www.gatsbyjs.com/docs/quick-start/",
+    "api_reference": "https://www.gatsbyjs.com/docs/reference/",
+    "examples": "https://www.gatsbyjs.com/starters/"
+  },
+  "compatibility": {
+    "ssg_engine_compatibility": {
+      "gatsby": {
+        "compatibility_score": 10,
+        "setup_complexity": "advanced",
+        "special_features": [
+          "react_components",
+          "graphql_data_layer",
+          "plugin_ecosystem",
+          "image_optimization",
+          "component_reusability",
+          "progressive_web_app",
+          "hot_reloading"
+        ],
+        "limitations": [
+          "Requires React knowledge",
+          "Complex GraphQL data layer setup",
+          "Longer build times for large sites",
+          "JavaScript ecosystem dependency"
+        ]
+      }
+    }
+  },
+  "metadata_version": "1.0.0",
+  "last_updated": "2025-01-13T15:35:00Z"
+}

@@ -1,0 +1,118 @@
+{
+  "provider_id": "contentful",
+  "provider_name": "Contentful",
+  "category": "cms",
+  "tier_name": "Contentful - Enterprise Content Management with Advanced Workflows",
+  "description": "Enterprise-grade content management with advanced workflows, team collaboration, multi-language support, content versioning, and sophisticated API-first architecture for large organizations",
+  "features": [
+    "structured_content",
+    "api_based",
+    "collaboration",
+    "version_control",
+    "rich_text_editing",
+    "media_management",
+    "webhook_integration",
+    "developer_api",
+    "content_validation"
+  ],
+  "supported_ssg_engines": [
+    "gatsby",
+    "astro",
+    "nextjs",
+    "nuxt"
+  ],
+  "integration_modes": [
+    "direct",
+    "event_driven"
+  ],
+  "complexity_level": "advanced",
+  "target_market": [
+    "enterprises",
+    "content_creators",
+    "mixed_technical_teams",
+    "collaboration_focused",
+    "content_heavy_sites"
+  ],
+  "use_cases": [
+    "Enterprise content management with complex workflows",
+    "Large content teams requiring collaboration tools",
+    "Multi-brand organizations needing content governance",
+    "Global companies requiring localization workflows",
+    "Organizations needing enterprise security and compliance"
+  ],
+  "cost_characteristics": {
+    "base_tier": "paid",
+    "pricing_model": "fixed_monthly",
+    "estimated_monthly_range": {
+      "min": 350,
+      "max": 2100
+    }
+  },
+  "technical_requirements": {
+    "api_keys_required": true,
+    "webhook_support": true,
+    "custom_domain_support": true,
+    "ssl_certificate_management": true
+  },
+  "performance_characteristics": {
+    "build_time": "medium",
+    "content_sync_speed": "fast",
+    "cache_strategy": "advanced"
+  },
+  "implementation_class": "stacks.cms.contentful_cms_stack.ContentfulCMSStack",
+  "provider_class": "shared.providers.cms.contentful_provider.ContentfulProvider",
+  "documentation": {
+    "setup_guide": "https://www.contentful.com/developers/docs/",
+    "api_reference": "https://www.contentful.com/developers/docs/references/",
+    "examples": "https://app.contentful.com/"
+  },
+  "compatibility": {
+    "ssg_engine_compatibility": {
+      "gatsby": {
+        "compatibility_score": 10,
+        "setup_complexity": "advanced",
+        "special_features": [
+          "graphql",
+          "image_optimization",
+          "content_sourcing",
+          "rich_text"
+        ],
+        "limitations": []
+      },
+      "astro": {
+        "compatibility_score": 9,
+        "setup_complexity": "intermediate",
+        "special_features": [
+          "component_islands",
+          "modern_architecture",
+          "performance_optimization"
+        ],
+        "limitations": []
+      },
+      "nextjs": {
+        "compatibility_score": 9,
+        "setup_complexity": "advanced",
+        "special_features": [
+          "react_ecosystem",
+          "api_routes",
+          "enterprise_scaling"
+        ],
+        "limitations": []
+      },
+      "nuxt": {
+        "compatibility_score": 8,
+        "setup_complexity": "advanced",
+        "special_features": [
+          "vue_ecosystem",
+          "ssr_support",
+          "enterprise_features"
+        ],
+        "limitations": [
+          "Requires Vue ecosystem knowledge"
+        ]
+      }
+    }
+  },
+  "metadata_version": "1.0.0",
+  "last_updated": "2025-01-12T13:30:00Z"
+}

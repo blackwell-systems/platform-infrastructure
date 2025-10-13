@@ -1,0 +1,99 @@
+{
+  "provider_id": "nuxt",
+  "provider_name": "Nuxt",
+  "category": "ssg",
+  "tier_name": "Nuxt - Vue 3 Progressive Application Framework",
+  "description": "Modern Vue framework with Composition API, static generation, and progressive application features optimized for Vue ecosystem developers and content-focused applications",
+  "features": [
+    "vue_ecosystem",
+    "javascript_based",
+    "static_generation",
+    "component_islands",
+    "modern_tooling",
+    "template_engine",
+    "performance_optimization",
+    "fast_builds",
+    "partial_hydration",
+    "blog_optimized"
+  ],
+  "supported_ssg_engines": [
+    "nuxt"
+  ],
+  "integration_modes": [
+    "direct"
+  ],
+  "complexity_level": "advanced",
+  "target_market": [
+    "frontend_developers",
+    "vue_developers",
+    "developer_teams",
+    "technical_users",
+    "content_creators",
+    "agencies",
+    "jamstack_enthusiasts",
+    "performance_critical_sites"
+  ],
+  "use_cases": [
+    "Vue business applications with component architecture",
+    "Progressive web applications with modern patterns",
+    "Content-focused sites with Nuxt Content integration",
+    "Creative portfolio sites with Vue animations",
+    "Professional websites with Vue ecosystem patterns",
+    "Static sites requiring Vue interactivity and modern development experience"
+  ],
+  "cost_characteristics": {
+    "base_tier": "free",
+    "pricing_model": "free",
+    "estimated_monthly_range": {
+      "min": 0,
+      "max": 0
+    }
+  },
+  "technical_requirements": {
+    "api_keys_required": false,
+    "webhook_support": false,
+    "custom_domain_support": true,
+    "ssl_certificate_management": true
+  },
+  "performance_characteristics": {
+    "build_time": "fast",
+    "content_sync_speed": "fast",
+    "cache_strategy": "advanced"
+  },
+  "implementation_class": "stacks.hosted_only.tier1.nuxt_template_stack.NuxtTemplateStack",
+  "provider_class": "shared.ssg.engines.nuxt.NuxtConfig",
+  "documentation": {
+    "setup_guide": "https://nuxt.com/docs/getting-started/installation",
+    "api_reference": "https://nuxt.com/docs/api",
+    "examples": "https://nuxt.com/examples"
+  },
+  "compatibility": {
+    "ssg_engine_compatibility": {
+      "nuxt": {
+        "compatibility_score": 10,
+        "setup_complexity": "advanced",
+        "special_features": [
+          "vue_3_composition_api",
+          "auto_imports",
+          "file_based_routing",
+          "nuxt_content",
+          "pinia_state_management",
+          "progressive_enhancement",
+          "vite_build_system",
+          "server_side_generation",
+          "typescript_support",
+          "universal_rendering",
+          "nitro_engine"
+        ],
+        "limitations": [
+          "Requires Vue and Nuxt knowledge",
+          "Advanced concepts for universal applications",
+          "JavaScript ecosystem dependency",
+          "Vue-specific development patterns required"
+        ]
+      }
+    }
+  },
+  "metadata_version": "1.0.0",
+  "last_updated": "2025-01-13T15:45:00Z"
+}

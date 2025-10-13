@@ -1,0 +1,118 @@
+{
+  "provider_id": "foxy",
+  "provider_name": "Foxy",
+  "category": "ecommerce",
+  "tier_name": "Foxy - Advanced E-commerce with Subscription Management",
+  "description": "Advanced e-commerce platform with subscription management, multi-currency support, custom checkout flows, and comprehensive API access for growing businesses",
+  "features": [
+    "ecommerce_platform",
+    "payment_processing",
+    "inventory_tracking",
+    "order_management",
+    "webhook_integration",
+    "developer_api",
+    "performance_optimization"
+  ],
+  "supported_ssg_engines": [
+    "hugo",
+    "eleventy",
+    "astro",
+    "gatsby"
+  ],
+  "integration_modes": [
+    "direct",
+    "event_driven"
+  ],
+  "complexity_level": "advanced",
+  "target_market": [
+    "developer_teams",
+    "technical_users",
+    "enterprises",
+    "agencies",
+    "ecommerce_stores"
+  ],
+  "use_cases": [
+    "Subscription-based business models",
+    "Advanced e-commerce with custom checkout flows",
+    "Multi-currency international operations",
+    "Complex product catalogs with advanced pricing",
+    "Growing businesses needing sophisticated cart behavior"
+  ],
+  "cost_characteristics": {
+    "base_tier": "paid",
+    "pricing_model": "hybrid",
+    "estimated_monthly_range": {
+      "min": 95,
+      "max": 320
+    }
+  },
+  "technical_requirements": {
+    "api_keys_required": true,
+    "webhook_support": true,
+    "custom_domain_support": true,
+    "ssl_certificate_management": true
+  },
+  "performance_characteristics": {
+    "build_time": "medium",
+    "content_sync_speed": "fast",
+    "cache_strategy": "advanced"
+  },
+  "implementation_class": "stacks.ecommerce.foxy_ecommerce_stack.FoxyEcommerceStack",
+  "provider_class": "shared.providers.ecommerce.foxy_provider.FoxyProvider",
+  "documentation": {
+    "setup_guide": "https://wiki.foxycart.com/",
+    "api_reference": "https://api.foxycart.com/docs",
+    "examples": "https://admin.foxycart.com/"
+  },
+  "compatibility": {
+    "ssg_engine_compatibility": {
+      "hugo": {
+        "compatibility_score": 10,
+        "setup_complexity": "intermediate",
+        "special_features": [
+          "fast_builds",
+          "advanced_templating",
+          "foxy_integration"
+        ],
+        "limitations": []
+      },
+      "eleventy": {
+        "compatibility_score": 10,
+        "setup_complexity": "intermediate",
+        "special_features": [
+          "flexible_templating",
+          "foxy_helpers",
+          "subscription_support"
+        ],
+        "limitations": []
+      },
+      "astro": {
+        "compatibility_score": 10,
+        "setup_complexity": "advanced",
+        "special_features": [
+          "component_islands",
+          "foxy_components",
+          "modern_tooling"
+        ],
+        "limitations": [
+          "Requires advanced JavaScript integration setup"
+        ]
+      },
+      "gatsby": {
+        "compatibility_score": 8,
+        "setup_complexity": "advanced",
+        "special_features": [
+          "react_components",
+          "graphql",
+          "foxy_plugins"
+        ],
+        "limitations": [
+          "Complex setup process",
+          "Higher learning curve for advanced features"
+        ]
+      }
+    }
+  },
+  "metadata_version": "1.0.0",
+  "last_updated": "2025-01-12T12:30:00Z"
+}

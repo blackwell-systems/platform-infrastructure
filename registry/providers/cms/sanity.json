@@ -1,0 +1,118 @@
+{
+  "provider_id": "sanity",
+  "provider_name": "Sanity CMS",
+  "category": "cms",
+  "tier_name": "Sanity CMS - Structured Content with Real-Time APIs",
+  "description": "Structured content platform with real-time APIs, GROQ query language, and advanced content modeling for enterprise content management",
+  "features": [
+    "structured_content",
+    "api_based",
+    "real_time_preview",
+    "collaboration",
+    "rich_text_editing",
+    "media_management",
+    "webhook_integration",
+    "developer_api",
+    "content_validation"
+  ],
+  "supported_ssg_engines": [
+    "astro",
+    "gatsby",
+    "nextjs",
+    "nuxt"
+  ],
+  "integration_modes": [
+    "direct",
+    "event_driven"
+  ],
+  "complexity_level": "advanced",
+  "target_market": [
+    "enterprises",
+    "developer_teams",
+    "content_heavy_sites",
+    "collaboration_focused"
+  ],
+  "use_cases": [
+    "Content-heavy sites requiring structured data",
+    "Teams needing advanced content modeling",
+    "Projects requiring real-time collaboration",
+    "Enterprises needing scalable content architecture",
+    "Sites with complex content relationships"
+  ],
+  "cost_characteristics": {
+    "base_tier": "free",
+    "pricing_model": "usage_based",
+    "estimated_monthly_range": {
+      "min": 65,
+      "max": 280
+    }
+  },
+  "technical_requirements": {
+    "api_keys_required": true,
+    "webhook_support": true,
+    "custom_domain_support": true,
+    "ssl_certificate_management": true
+  },
+  "performance_characteristics": {
+    "build_time": "medium",
+    "content_sync_speed": "fast",
+    "cache_strategy": "advanced"
+  },
+  "implementation_class": "stacks.cms.sanity_cms_tier_stack.SanityCMSTierStack",
+  "provider_class": "shared.providers.cms.providers.sanity_cms.SanityCMSProvider",
+  "documentation": {
+    "setup_guide": "https://www.sanity.io/docs/getting-started",
+    "api_reference": "https://www.sanity.io/docs/reference",
+    "examples": "https://www.sanity.io/templates"
+  },
+  "compatibility": {
+    "ssg_engine_compatibility": {
+      "astro": {
+        "compatibility_score": 9,
+        "setup_complexity": "intermediate",
+        "special_features": [
+          "component_islands",
+          "sanity_integration",
+          "fast_builds"
+        ],
+        "limitations": []
+      },
+      "gatsby": {
+        "compatibility_score": 10,
+        "setup_complexity": "advanced",
+        "special_features": [
+          "graphql",
+          "sanity_source_plugin",
+          "rich_ecosystem"
+        ],
+        "limitations": [
+          "Longer build times for large content volumes"
+        ]
+      },
+      "nextjs": {
+        "compatibility_score": 10,
+        "setup_complexity": "intermediate",
+        "special_features": [
+          "incremental_regeneration",
+          "preview_mode",
+          "sanity_studio_embed"
+        ],
+        "limitations": []
+      },
+      "nuxt": {
+        "compatibility_score": 8,
+        "setup_complexity": "intermediate",
+        "special_features": [
+          "vue_components",
+          "sanity_module",
+          "ssr_support"
+        ],
+        "limitations": [
+          "Smaller ecosystem compared to React-based solutions"
+        ]
+      }
+    }
+  },
+  "metadata_version": "1.0.0",
+  "last_updated": "2025-01-12T10:00:00Z"
+}

@@ -1,0 +1,100 @@
+{
+  "provider_id": "nextjs",
+  "provider_name": "Next.js",
+  "category": "ssg",
+  "tier_name": "Next.js - Enterprise Full-Stack React Foundation",
+  "description": "Enterprise React framework with static generation and full-stack capabilities, optimized for business applications with potential server-side requirements and API route capabilities",
+  "features": [
+    "react_ecosystem",
+    "javascript_based",
+    "static_generation",
+    "component_islands",
+    "modern_tooling",
+    "template_engine",
+    "performance_optimization",
+    "enterprise_ready",
+    "fast_builds",
+    "partial_hydration"
+  ],
+  "supported_ssg_engines": [
+    "nextjs"
+  ],
+  "integration_modes": [
+    "direct"
+  ],
+  "complexity_level": "advanced",
+  "target_market": [
+    "frontend_developers",
+    "react_developers",
+    "developer_teams",
+    "technical_users",
+    "enterprises",
+    "agencies",
+    "performance_critical_sites",
+    "jamstack_enthusiasts"
+  ],
+  "use_cases": [
+    "Business applications with React component architecture",
+    "Enterprise websites requiring full-stack growth potential",
+    "Marketing sites with advanced SEO and analytics integration",
+    "SaaS landing pages with customer portal preparation",
+    "Professional websites with TypeScript and enterprise patterns",
+    "High-performance sites with comprehensive optimization features"
+  ],
+  "cost_characteristics": {
+    "base_tier": "free",
+    "pricing_model": "free",
+    "estimated_monthly_range": {
+      "min": 0,
+      "max": 0
+    }
+  },
+  "technical_requirements": {
+    "api_keys_required": false,
+    "webhook_support": false,
+    "custom_domain_support": true,
+    "ssl_certificate_management": true
+  },
+  "performance_characteristics": {
+    "build_time": "medium",
+    "content_sync_speed": "fast",
+    "cache_strategy": "advanced"
+  },
+  "implementation_class": "stacks.hosted_only.tier1.nextjs_template_stack.NextJSTemplateStack",
+  "provider_class": "shared.ssg.engines.nextjs.NextJSConfig",
+  "documentation": {
+    "setup_guide": "https://nextjs.org/docs/getting-started",
+    "api_reference": "https://nextjs.org/docs/api-reference",
+    "examples": "https://nextjs.org/examples"
+  },
+  "compatibility": {
+    "ssg_engine_compatibility": {
+      "nextjs": {
+        "compatibility_score": 10,
+        "setup_complexity": "advanced",
+        "special_features": [
+          "react_components",
+          "typescript_support",
+          "api_routes_ready",
+          "enterprise_patterns",
+          "static_export",
+          "image_optimization",
+          "font_optimization",
+          "automatic_code_splitting",
+          "app_router",
+          "server_components_ready",
+          "full_stack_growth_path"
+        ],
+        "limitations": [
+          "Requires React and Next.js knowledge",
+          "Complex configuration for advanced features",
+          "Medium build times for large applications",
+          "JavaScript ecosystem dependency",
+          "Enterprise patterns require development expertise"
+        ]
+      }
+    }
+  },
+  "metadata_version": "1.0.0",
+  "last_updated": "2025-01-13T15:40:00Z"
+}

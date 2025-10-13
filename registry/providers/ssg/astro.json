@@ -1,0 +1,99 @@
+{
+  "provider_id": "astro",
+  "provider_name": "Astro",
+  "category": "ssg",
+  "tier_name": "Astro - Modern High-Performance Static Site Generator",
+  "description": "Modern static site generator with component islands architecture, partial hydration, and framework-agnostic components optimized for performance-critical interactive websites",
+  "features": [
+    "javascript_based",
+    "static_generation",
+    "component_islands",
+    "partial_hydration",
+    "modern_tooling",
+    "template_engine",
+    "performance_optimization",
+    "ultra_fast_builds",
+    "fast_builds",
+    "enterprise_ready"
+  ],
+  "supported_ssg_engines": [
+    "astro"
+  ],
+  "integration_modes": [
+    "direct"
+  ],
+  "complexity_level": "intermediate",
+  "target_market": [
+    "frontend_developers",
+    "developer_teams",
+    "small_businesses",
+    "agencies",
+    "performance_critical_sites",
+    "technical_users",
+    "jamstack_enthusiasts",
+    "enterprises"
+  ],
+  "use_cases": [
+    "Interactive websites with component islands and selective hydration",
+    "Performance-critical sites with modern aesthetics and fast loading",
+    "Component showcases and design systems with framework flexibility",
+    "Modern business websites requiring selective interactivity",
+    "High-performance applications with mixed static and dynamic content",
+    "Sites requiring framework-agnostic components (React + Vue + Svelte)"
+  ],
+  "cost_characteristics": {
+    "base_tier": "free",
+    "pricing_model": "free",
+    "estimated_monthly_range": {
+      "min": 0,
+      "max": 0
+    }
+  },
+  "technical_requirements": {
+    "api_keys_required": false,
+    "webhook_support": false,
+    "custom_domain_support": true,
+    "ssl_certificate_management": true
+  },
+  "performance_characteristics": {
+    "build_time": "fast",
+    "content_sync_speed": "fast",
+    "cache_strategy": "advanced"
+  },
+  "implementation_class": "stacks.hosted_only.tier1.astro_template_basic_stack.AstroTemplateBasicStack",
+  "provider_class": "shared.ssg.engines.astro.AstroConfig",
+  "documentation": {
+    "setup_guide": "https://docs.astro.build/en/install/auto/",
+    "api_reference": "https://docs.astro.build/en/reference/api-reference/",
+    "examples": "https://astro.build/themes/"
+  },
+  "compatibility": {
+    "ssg_engine_compatibility": {
+      "astro": {
+        "compatibility_score": 10,
+        "setup_complexity": "intermediate",
+        "special_features": [
+          "component_islands",
+          "partial_hydration",
+          "framework_agnostic",
+          "zero_js_by_default",
+          "vite_build_system",
+          "typescript_support",
+          "built_in_optimizations",
+          "modern_tooling",
+          "automatic_code_splitting",
+          "multi_framework_support",
+          "performance_first_architecture"
+        ],
+        "limitations": [
+          "Requires understanding of component islands concept",
+          "Modern development patterns and tooling knowledge needed",
+          "JavaScript ecosystem dependency",
+          "Intermediate complexity for advanced features"
+        ]
+      }
+    }
+  },
+  "metadata_version": "1.0.0",
+  "last_updated": "2025-01-13T16:00:00Z"
+}

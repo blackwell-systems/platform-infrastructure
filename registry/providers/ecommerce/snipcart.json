@@ -1,0 +1,114 @@
+{
+  "provider_id": "snipcart",
+  "provider_name": "Snipcart",
+  "category": "ecommerce",
+  "tier_name": "Snipcart - Simple E-commerce Integration",
+  "description": "Simple e-commerce integration with HTML data attributes, no monthly fees (2% transaction fee only), built-in payment processing, and perfect for small to medium stores",
+  "features": [
+    "ecommerce_platform",
+    "payment_processing",
+    "inventory_tracking",
+    "order_management",
+    "webhook_integration",
+    "developer_api"
+  ],
+  "supported_ssg_engines": [
+    "hugo",
+    "eleventy",
+    "astro",
+    "gatsby"
+  ],
+  "integration_modes": [
+    "direct",
+    "event_driven"
+  ],
+  "complexity_level": "simple",
+  "target_market": [
+    "small_businesses",
+    "developer_teams",
+    "technical_users",
+    "agencies",
+    "ecommerce_stores"
+  ],
+  "use_cases": [
+    "Small to medium online stores with simple product catalogs",
+    "Budget-conscious businesses wanting no monthly fees",
+    "Adding e-commerce to existing static sites",
+    "Developers preferring lightweight JavaScript integration",
+    "Stores with low to medium transaction volumes"
+  ],
+  "cost_characteristics": {
+    "base_tier": "paid",
+    "pricing_model": "usage_based",
+    "estimated_monthly_range": {
+      "min": 50,
+      "max": 75
+    }
+  },
+  "technical_requirements": {
+    "api_keys_required": true,
+    "webhook_support": true,
+    "custom_domain_support": true,
+    "ssl_certificate_management": true
+  },
+  "performance_characteristics": {
+    "build_time": "fast",
+    "content_sync_speed": "fast",
+    "cache_strategy": "basic"
+  },
+  "implementation_class": "stacks.ecommerce.snipcart_ecommerce_stack.SnipcartEcommerceStack",
+  "provider_class": "shared.providers.ecommerce.snipcart_provider.SnipcartProvider",
+  "documentation": {
+    "setup_guide": "https://docs.snipcart.com/v3/",
+    "api_reference": "https://docs.snipcart.com/v3/",
+    "examples": "https://app.snipcart.com/dashboard"
+  },
+  "compatibility": {
+    "ssg_engine_compatibility": {
+      "hugo": {
+        "compatibility_score": 10,
+        "setup_complexity": "simple",
+        "special_features": [
+          "fast_builds",
+          "simple_integration",
+          "snipcart_partials"
+        ],
+        "limitations": []
+      },
+      "eleventy": {
+        "compatibility_score": 10,
+        "setup_complexity": "simple",
+        "special_features": [
+          "flexible_templating",
+          "snipcart_filters",
+          "javascript_config"
+        ],
+        "limitations": []
+      },
+      "astro": {
+        "compatibility_score": 10,
+        "setup_complexity": "intermediate",
+        "special_features": [
+          "component_islands",
+          "snipcart_components",
+          "modern_tooling"
+        ],
+        "limitations": []
+      },
+      "gatsby": {
+        "compatibility_score": 8,
+        "setup_complexity": "advanced",
+        "special_features": [
+          "react_components",
+          "graphql",
+          "snipcart_plugins"
+        ],
+        "limitations": [
+          "More complex setup with React integration"
+        ]
+      }
+    }
+  },
+  "metadata_version": "1.0.0",
+  "last_updated": "2025-01-12T13:00:00Z"
+}

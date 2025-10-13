@@ -1,0 +1,100 @@
+{
+  "provider_id": "jekyll",
+  "provider_name": "Jekyll",
+  "category": "ssg",
+  "tier_name": "Jekyll - Ruby-Based Static Site Generator",
+  "description": "Ruby-based static site generator with GitHub Pages compatibility, optimized for technical users, documentation sites, and cost-effective hosting solutions",
+  "features": [
+    "ruby_based",
+    "static_generation",
+    "template_engine",
+    "markdown_processing",
+    "version_control",
+    "documentation_focused",
+    "blog_optimized",
+    "github_pages_compatible",
+    "git_based",
+    "fast_builds"
+  ],
+  "supported_ssg_engines": [
+    "jekyll"
+  ],
+  "integration_modes": [
+    "direct"
+  ],
+  "complexity_level": "simple",
+  "target_market": [
+    "technical_users",
+    "developer_teams",
+    "technical_writers",
+    "documentation_sites",
+    "open_source_projects",
+    "content_creators",
+    "small_businesses",
+    "non_technical_users"
+  ],
+  "use_cases": [
+    "Technical documentation sites with advanced navigation",
+    "Developer blogs and technical content sites",
+    "GitHub Pages hosted sites for zero-cost deployment",
+    "Nonprofit and charity websites with donation integration",
+    "Simple personal blogs with GitHub integration",
+    "Open source project documentation and community sites"
+  ],
+  "cost_characteristics": {
+    "base_tier": "free",
+    "pricing_model": "free",
+    "estimated_monthly_range": {
+      "min": 0,
+      "max": 0
+    }
+  },
+  "technical_requirements": {
+    "api_keys_required": false,
+    "webhook_support": true,
+    "custom_domain_support": true,
+    "ssl_certificate_management": true
+  },
+  "performance_characteristics": {
+    "build_time": "medium",
+    "content_sync_speed": "fast",
+    "cache_strategy": "basic"
+  },
+  "implementation_class": "stacks.hosted_only.tier1.jekyll_github_stack.JekyllGitHubStack",
+  "provider_class": "shared.ssg.engines.jekyll.JekyllConfig",
+  "documentation": {
+    "setup_guide": "https://jekyllrb.com/docs/",
+    "api_reference": "https://jekyllrb.com/docs/variables/",
+    "examples": "https://jekyllrb.com/showcase/"
+  },
+  "compatibility": {
+    "ssg_engine_compatibility": {
+      "jekyll": {
+        "compatibility_score": 10,
+        "setup_complexity": "simple",
+        "special_features": [
+          "github_pages_compatible",
+          "liquid_templating",
+          "ruby_based",
+          "bundler_dependency_management",
+          "markdown_processing",
+          "sass_support",
+          "plugin_ecosystem",
+          "syntax_highlighting",
+          "git_workflow",
+          "dual_hosting_option",
+          "free_hosting_available",
+          "technical_seo"
+        ],
+        "limitations": [
+          "Requires Ruby knowledge for advanced customization",
+          "Plugin restrictions on GitHub Pages",
+          "Moderate build times for large sites",
+          "Ruby ecosystem dependency"
+        ]
+      }
+    }
+  },
+  "metadata_version": "1.0.0",
+  "last_updated": "2025-01-13T15:55:00Z"
+}

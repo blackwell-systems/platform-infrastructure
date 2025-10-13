@@ -1,0 +1,98 @@
+{
+  "provider_id": "example_cms",
+  "provider_name": "Example CMS",
+  "category": "cms",
+  "tier_name": "Example CMS - Demonstration Provider",
+  "description": "An example CMS provider showing the complete metadata structure",
+  "features": [
+    "visual_editing",
+    "git_based",
+    "real_time_preview",
+    "webhook_integration"
+  ],
+  "supported_ssg_engines": [
+    "astro",
+    "nextjs",
+    "eleventy"
+  ],
+  "integration_modes": [
+    "direct",
+    "event_driven"
+  ],
+  "complexity_level": "intermediate",
+  "target_market": [
+    "content_creators",
+    "developer_teams",
+    "small_businesses"
+  ],
+  "use_cases": [
+    "Corporate websites with frequent content updates",
+    "Multi-author blogs with editorial workflow",
+    "Marketing sites with visual editing requirements"
+  ],
+  "cost_characteristics": {
+    "base_tier": "free",
+    "pricing_model": "hybrid",
+    "estimated_monthly_range": {
+      "min": 0,
+      "max": 99
+    }
+  },
+  "technical_requirements": {
+    "api_keys_required": true,
+    "webhook_support": true,
+    "custom_domain_support": true,
+    "ssl_certificate_management": true
+  },
+  "performance_characteristics": {
+    "build_time": "fast",
+    "content_sync_speed": "fast",
+    "cache_strategy": "advanced"
+  },
+  "implementation_class": "stacks.cms.example_cms_tier_stack.ExampleCMSTierStack",
+  "provider_class": "shared.providers.cms.providers.example_cms.ExampleCMSProvider",
+  "documentation": {
+    "setup_guide": "https://docs.example-cms.com/setup",
+    "api_reference": "https://docs.example-cms.com/api",
+    "examples": "https://docs.example-cms.com/examples"
+  },
+  "compatibility": {
+    "ssg_engine_compatibility": {
+      "astro": {
+        "compatibility_score": 10,
+        "setup_complexity": "intermediate",
+        "special_features": [
+          "component_islands",
+          "fast_builds",
+          "modern_architecture"
+        ],
+        "limitations": []
+      },
+      "nextjs": {
+        "compatibility_score": 9,
+        "setup_complexity": "intermediate",
+        "special_features": [
+          "react_integration",
+          "preview_mode",
+          "incremental_regeneration"
+        ],
+        "limitations": [
+          "Requires Node.js runtime"
+        ]
+      },
+      "eleventy": {
+        "compatibility_score": 8,
+        "setup_complexity": "simple",
+        "special_features": [
+          "fast_builds",
+          "simple_templating"
+        ],
+        "limitations": [
+          "Limited plugin ecosystem compared to React-based frameworks"
+        ]
+      }
+    }
+  },
+  "metadata_version": "1.0.0",
+  "last_updated": "2025-01-12T10:00:00Z"
+}

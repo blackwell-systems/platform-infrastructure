@@ -1,0 +1,329 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://platform-infrastructure.local/schemas/provider-metadata.json",
+  "title": "Provider Metadata Schema",
+  "description": "Schema for provider metadata in the platform infrastructure registry",
+  "type": "object",
+  "required": [
+    "provider_id",
+    "provider_name",
+    "category",
+    "tier_name",
+    "features",
+    "supported_ssg_engines",
+    "integration_modes",
+    "complexity_level",
+    "implementation_class"
+  ],
+  "properties": {
+    "provider_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$",
+      "description": "Unique identifier for the provider (snake_case)",
+      "examples": ["tina", "shopify_basic", "sanity"]
+    },
+    "provider_name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable provider name",
+      "examples": ["TinaCMS", "Shopify Basic", "Sanity CMS"]
+    },
+    "category": {
+      "type": "string",
+      "enum": ["cms", "ecommerce", "ssg", "analytics", "auth"],
+      "description": "Provider category"
+    },
+    "tier_name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Descriptive tier name for marketing/UI display",
+      "examples": ["Visual CMS with Git Workflow", "Performance E-commerce with Flexible SSG"]
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of the provider's main purpose"
+    },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "visual_editing",
+          "git_based",
+          "real_time_preview",
+          "structured_content",
+          "api_based",
+          "hybrid",
+          "collaboration",
+          "version_control",
+          "rich_text_editing",
+          "media_management",
+          "webhook_integration",
+          "developer_api",
+          "content_validation",
+          "ecommerce_platform",
+          "product_sync",
+          "inventory_tracking",
+          "payment_processing",
+          "order_management",
+          "performance_optimization",
+          "static_generation",
+          "component_islands",
+          "fast_builds",
+          "ultra_fast_builds",
+          "go_based",
+          "javascript_based",
+          "ruby_based",
+          "react_ecosystem",
+          "vue_ecosystem",
+          "markdown_processing",
+          "template_engine",
+          "plugin_system",
+          "theme_support",
+          "multilingual",
+          "documentation_focused",
+          "blog_optimized",
+          "enterprise_ready",
+          "github_pages_compatible",
+          "partial_hydration",
+          "modern_tooling"
+        ]
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "List of key features supported by this provider"
+    },
+    "supported_ssg_engines": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["astro", "eleventy", "gatsby", "hugo", "jekyll", "nextjs", "nuxt", "vite"]
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "List of supported Static Site Generator engines"
+    },
+    "integration_modes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["direct", "event_driven"]
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Supported integration modes"
+    },
+    "complexity_level": {
+      "type": "string",
+      "enum": ["simple", "intermediate", "advanced"],
+      "description": "Setup and maintenance complexity level"
+    },
+    "target_market": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "content_creators",
+          "developer_teams",
+          "mixed_technical_teams",
+          "enterprises",
+          "small_businesses",
+          "agencies",
+          "performance_focused",
+          "collaboration_focused",
+          "technical_users",
+          "non_technical_users",
+          "ecommerce_stores",
+          "content_heavy_sites",
+          "open_source_projects",
+          "documentation_sites",
+          "technical_writers",
+          "frontend_developers",
+          "performance_critical_sites",
+          "jamstack_enthusiasts",
+          "react_developers",
+          "vue_developers",
+          "go_developers"
+        ]
+      },
+      "uniqueItems": true,
+      "description": "Primary target market segments"
+    },
+    "use_cases": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Common use cases for this provider",
+      "examples": [
+        "Corporate websites with frequent content updates",
+        "E-commerce stores with performance requirements",
+        "Multi-author blogs with editorial workflow"
+      ]
+    },
+    "cost_characteristics": {
+      "type": "object",
+      "properties": {
+        "base_tier": {
+          "type": "string",
+          "enum": ["free", "paid"],
+          "description": "Whether the provider has a free tier"
+        },
+        "pricing_model": {
+          "type": "string",
+          "enum": ["free", "fixed_monthly", "usage_based", "hybrid"],
+          "description": "Primary pricing model"
+        },
+        "estimated_monthly_range": {
+          "type": "object",
+          "properties": {
+            "min": {
+              "type": "number",
+              "minimum": 0
+            },
+            "max": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "required": ["min", "max"]
+        }
+      },
+      "description": "Cost characteristics for the provider"
+    },
+    "technical_requirements": {
+      "type": "object",
+      "properties": {
+        "api_keys_required": {
+          "type": "boolean",
+          "description": "Whether API keys are required"
+        },
+        "webhook_support": {
+          "type": "boolean",
+          "description": "Whether webhooks are supported"
+        },
+        "custom_domain_support": {
+          "type": "boolean",
+          "description": "Whether custom domains are supported"
+        },
+        "ssl_certificate_management": {
+          "type": "boolean",
+          "description": "Whether SSL certificates are managed automatically"
+        }
+      },
+      "description": "Technical requirements and capabilities"
+    },
+    "performance_characteristics": {
+      "type": "object",
+      "properties": {
+        "build_time": {
+          "type": "string",
+          "enum": ["fast", "medium", "slow"],
+          "description": "Typical build time characteristics"
+        },
+        "content_sync_speed": {
+          "type": "string",
+          "enum": ["instant", "fast", "medium", "slow"],
+          "description": "Speed of content synchronization"
+        },
+        "cache_strategy": {
+          "type": "string",
+          "enum": ["none", "basic", "advanced"],
+          "description": "Caching strategy complexity"
+        }
+      },
+      "description": "Performance characteristics of the provider"
+    },
+    "implementation_class": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_.]+$",
+      "description": "Python import path to the implementation class",
+      "examples": [
+        "stacks.cms.tina_cms_tier_stack.TinaCMSTierStack",
+        "stacks.ecommerce.shopify_basic_ecommerce_stack.ShopifyBasicEcommerceStack"
+      ]
+    },
+    "provider_class": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_.]+$",
+      "description": "Python import path to the provider class",
+      "examples": [
+        "shared.providers.cms.providers.tina_cms.TinaCMSProvider",
+        "shared.providers.ecommerce.shopify_basic_provider.ShopifyBasicProvider"
+      ]
+    },
+    "documentation": {
+      "type": "object",
+      "properties": {
+        "setup_guide": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to setup documentation"
+        },
+        "api_reference": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to API reference"
+        },
+        "examples": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to examples and tutorials"
+        }
+      },
+      "description": "Documentation links"
+    },
+    "compatibility": {
+      "type": "object",
+      "properties": {
+        "ssg_engine_compatibility": {
+          "type": "object",
+          "patternProperties": {
+            "^(astro|eleventy|gatsby|hugo|jekyll|nextjs|nuxt|vite)$": {
+              "type": "object",
+              "properties": {
+                "compatibility_score": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10,
+                  "description": "Compatibility score from 1-10"
+                },
+                "setup_complexity": {
+                  "type": "string",
+                  "enum": ["simple", "intermediate", "advanced"]
+                },
+                "special_features": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "limitations": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": ["compatibility_score", "setup_complexity"]
+            }
+          },
+          "description": "Detailed compatibility information for each SSG engine"
+        }
+      },
+      "description": "Compatibility information"
+    },
+    "metadata_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of this metadata format",
+      "examples": ["1.0.0"]
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of last metadata update"
+    }
+  },
+  "additionalProperties": false
+}

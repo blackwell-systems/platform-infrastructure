@@ -1,0 +1,97 @@
+{
+  "provider_id": "eleventy",
+  "provider_name": "Eleventy",
+  "category": "ssg",
+  "tier_name": "Eleventy - Flexible Static Site Generator",
+  "description": "Flexible JavaScript-based static site generator optimized for marketing sites, business websites, and content-focused applications with fast builds and simple setup",
+  "features": [
+    "javascript_based",
+    "static_generation",
+    "template_engine",
+    "fast_builds",
+    "ultra_fast_builds",
+    "markdown_processing",
+    "performance_optimization",
+    "modern_tooling",
+    "blog_optimized",
+    "github_pages_compatible"
+  ],
+  "supported_ssg_engines": [
+    "eleventy"
+  ],
+  "integration_modes": [
+    "direct"
+  ],
+  "complexity_level": "intermediate",
+  "target_market": [
+    "small_businesses",
+    "content_creators",
+    "agencies",
+    "frontend_developers",
+    "technical_writers",
+    "performance_focused",
+    "jamstack_enthusiasts"
+  ],
+  "use_cases": [
+    "Marketing websites with SEO optimization and analytics integration",
+    "Business websites with hero sections, services, and testimonials",
+    "Service provider sites with pricing, FAQ, and booking integration",
+    "Landing pages with high-conversion CTAs and social proof",
+    "Professional portfolios and small business websites",
+    "Content-focused sites with blog functionality and fast loading"
+  ],
+  "cost_characteristics": {
+    "base_tier": "free",
+    "pricing_model": "free",
+    "estimated_monthly_range": {
+      "min": 0,
+      "max": 0
+    }
+  },
+  "technical_requirements": {
+    "api_keys_required": false,
+    "webhook_support": false,
+    "custom_domain_support": true,
+    "ssl_certificate_management": true
+  },
+  "performance_characteristics": {
+    "build_time": "fast",
+    "content_sync_speed": "fast",
+    "cache_strategy": "advanced"
+  },
+  "implementation_class": "stacks.hosted_only.tier1.eleventy_marketing_stack.EleventyMarketingStack",
+  "provider_class": "shared.ssg.engines.eleventy.EleventyConfig",
+  "documentation": {
+    "setup_guide": "https://www.11ty.dev/docs/getting-started/",
+    "api_reference": "https://www.11ty.dev/docs/",
+    "examples": "https://www.11ty.dev/docs/starter/"
+  },
+  "compatibility": {
+    "ssg_engine_compatibility": {
+      "eleventy": {
+        "compatibility_score": 10,
+        "setup_complexity": "intermediate",
+        "special_features": [
+          "incremental_builds",
+          "template_caching",
+          "flexible_templating",
+          "multiple_template_languages",
+          "asset_optimization",
+          "html_minification",
+          "marketing_optimization",
+          "seo_focused",
+          "analytics_integration",
+          "simple_ecommerce_ready"
+        ],
+        "limitations": [
+          "Less suitable for complex interactive applications",
+          "Limited built-in component system compared to React/Vue",
+          "Requires JavaScript ecosystem knowledge",
+          "Manual setup for advanced features"
+        ]
+      }
+    }
+  },
+  "metadata_version": "1.0.0",
+  "last_updated": "2025-01-13T15:50:00Z"
+}

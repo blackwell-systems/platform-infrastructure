@@ -1,0 +1,107 @@
+{
+  "provider_id": "tina",
+  "provider_name": "TinaCMS",
+  "category": "cms",
+  "tier_name": "TinaCMS - Visual Editing with Git Workflow",
+  "description": "Visual editing with real-time preview combined with git-based workflow and full version control",
+  "features": [
+    "visual_editing",
+    "git_based",
+    "real_time_preview",
+    "version_control",
+    "rich_text_editing",
+    "webhook_integration",
+    "collaboration",
+    "developer_api"
+  ],
+  "supported_ssg_engines": [
+    "nextjs",
+    "astro",
+    "gatsby"
+  ],
+  "integration_modes": [
+    "direct",
+    "event_driven"
+  ],
+  "complexity_level": "intermediate",
+  "target_market": [
+    "content_creators",
+    "developer_teams",
+    "mixed_technical_teams",
+    "agencies"
+  ],
+  "use_cases": [
+    "Content creators wanting visual editing with git benefits",
+    "Developer teams needing both technical control and content creator ease",
+    "Agencies managing multiple client sites with different skill levels",
+    "Projects requiring version control but user-friendly editing"
+  ],
+  "cost_characteristics": {
+    "base_tier": "free",
+    "pricing_model": "hybrid",
+    "estimated_monthly_range": {
+      "min": 0,
+      "max": 125
+    }
+  },
+  "technical_requirements": {
+    "api_keys_required": true,
+    "webhook_support": true,
+    "custom_domain_support": true,
+    "ssl_certificate_management": true
+  },
+  "performance_characteristics": {
+    "build_time": "medium",
+    "content_sync_speed": "fast",
+    "cache_strategy": "basic"
+  },
+  "implementation_class": "stacks.cms.tina_cms_tier_stack.TinaCMSTierStack",
+  "provider_class": "shared.providers.cms.providers.tina_cms.TinaCMSProvider",
+  "documentation": {
+    "setup_guide": "https://tina.io/docs/setup-overview/",
+    "api_reference": "https://tina.io/docs/reference/",
+    "examples": "https://tina.io/examples/"
+  },
+  "compatibility": {
+    "ssg_engine_compatibility": {
+      "nextjs": {
+        "compatibility_score": 10,
+        "setup_complexity": "intermediate",
+        "special_features": [
+          "react_integration",
+          "tina_components",
+          "preview_mode",
+          "incremental_regeneration"
+        ],
+        "limitations": []
+      },
+      "astro": {
+        "compatibility_score": 8,
+        "setup_complexity": "intermediate",
+        "special_features": [
+          "component_islands",
+          "tina_content",
+          "modern_architecture"
+        ],
+        "limitations": [
+          "Limited Tina component ecosystem compared to React"
+        ]
+      },
+      "gatsby": {
+        "compatibility_score": 8,
+        "setup_complexity": "advanced",
+        "special_features": [
+          "react_ecosystem",
+          "graphql",
+          "tina_plugins"
+        ],
+        "limitations": [
+          "More complex setup process",
+          "Longer build times for large sites"
+        ]
+      }
+    }
+  },
+  "metadata_version": "1.0.0",
+  "last_updated": "2025-01-12T10:00:00Z"
+}
