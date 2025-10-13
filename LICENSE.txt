@@ -1,0 +1,14 @@
+Copyright (c) 2025 Blackwell Systems, Inc.
+All rights reserved.
+
+This software is the confidential and proprietary information of
+Blackwell Systems, Inc. ("Company"). You may use this software solely
+under a written agreement with the Company or as otherwise expressly
+authorized in writing by the Company.
+
+Without written permission, you may NOT:
+- copy, modify, distribute, sublicense, or sell this software;
+- reverse engineer or decompile it; or
+- use it to provide competing or commercial services.
+
+This software is provided "as is" without warranty of any kind.
