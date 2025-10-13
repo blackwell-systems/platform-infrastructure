@@ -9,35 +9,24 @@
     "theme_system",
     "dual_hosting"
   ],
-  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "last_updated": "2025-10-13T08:50:30.595139+00:00",
+  "monthly_cost_range": [
+    0,
+    0
+  ],
   "performance_tier": "basic",
   "schema_version": "1.0.0",
+  "setup_cost_range": [
+    0,
+    0
+  ],
   "ssg_engine": "jekyll",
   "stack_type": "developer",
-  "target_audience": [
-    "developers",
-    "technical_writers",
-    "open_source_maintainers",
-    "github_workflow_users"
-  ],
-  "technical_requirements": [
-    "git_workflow_knowledge",
-    "ruby_familiarity",
-    "markdown_expertise",
-    "github_pages_understanding",
-    "liquid_templating"
-  ],
+  "target_market": [],
   "template_variants": [
     "technical_blog",
     "documentation",
     "simple_blog"
   ],
-  "tier_name": "Developer-Focused Git Workflow",
-  "use_cases": [
-    "technical_blogs",
-    "project_documentation",
-    "open_source_sites",
-    "github_pages_hosting",
-    "developer_portfolios"
-  ]
+  "tier_name": "Developer-Focused Git Workflow"
 }

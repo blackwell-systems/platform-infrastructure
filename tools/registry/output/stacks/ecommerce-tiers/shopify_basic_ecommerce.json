@@ -1,5 +1,5 @@
 {
-  "best_for": "Enterprise-grade e-commerce performance with flexible SSG integration",
+  "best_for": "High-performance e-commerce leveraging Shopify's platform with custom frontend flexibility",
   "category": "ecommerce_tier_service",
   "complexity_level": "medium_to_high",
   "ecommerce_provider": "shopify_basic",
@@ -11,9 +11,17 @@
     "webhook_automation",
     "performance_optimization"
   ],
-  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "last_updated": "2025-10-13T08:50:30.595139+00:00",
+  "monthly_cost_range": [
+    0,
+    0
+  ],
   "performance_tier": "premium",
   "schema_version": "1.0.0",
+  "setup_cost_range": [
+    0,
+    0
+  ],
   "ssg_engine_options": [
     "eleventy",
     "astro",
@@ -21,30 +29,11 @@
     "nuxt"
   ],
   "stack_type": "shopify_basic_ecommerce",
-  "target_audience": [
-    "performance_focused_businesses",
-    "ssg_integration_teams",
-    "scalable_e-commerce_needs",
-    "shopify_enhancement_users"
-  ],
-  "technical_requirements": [
-    "shopify_storefront_api",
-    "graphql_familiarity",
-    "real_time_sync_setup",
-    "webhook_integration",
-    "ssg_compatibility"
-  ],
+  "target_market": [],
   "template_variants": [
     "performance_optimized",
     "static_site_ecommerce",
     "agency_alternative"
   ],
-  "tier_name": "Shopify Basic - Performance E-commerce with Flexible SSG",
-  "use_cases": [
-    "high_performance_stores",
-    "headless_e-commerce",
-    "ssg_integration",
-    "scalable_product_catalogs",
-    "real_time_inventory_sync"
-  ]
+  "tier_name": "Shopify Basic - Performance E-commerce with Flexible SSG"
 }

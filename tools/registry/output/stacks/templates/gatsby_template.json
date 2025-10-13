@@ -10,35 +10,24 @@
     "image_optimization",
     "component_reusability"
   ],
-  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "last_updated": "2025-10-13T08:50:30.595139+00:00",
+  "monthly_cost_range": [
+    0,
+    0
+  ],
   "performance_tier": "optimized",
   "schema_version": "1.0.0",
+  "setup_cost_range": [
+    0,
+    0
+  ],
   "ssg_engine": "gatsby",
   "stack_type": "gatsby_template",
-  "target_audience": [
-    "react_developers",
-    "component_driven_teams",
-    "content_heavy_sites",
-    "graphql_users"
-  ],
-  "technical_requirements": [
-    "react_knowledge",
-    "graphql_familiarity",
-    "modern_javascript",
-    "component_architecture",
-    "gatsby_ecosystem"
-  ],
+  "target_market": [],
   "template_variants": [
     "react_business",
     "content_blog",
     "portfolio_showcase"
   ],
-  "tier_name": "Gatsby Template - React Ecosystem with GraphQL",
-  "use_cases": [
-    "react_based_sites",
-    "content_rich_applications",
-    "portfolio_sites",
-    "component_libraries",
-    "image_heavy_sites"
-  ]
+  "tier_name": "Gatsby Template - React Ecosystem with GraphQL"
 }

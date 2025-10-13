@@ -1,5 +1,5 @@
 {
-  "best_for": "Simple e-commerce integration with fast setup and secure checkout",
+  "best_for": "Budget-friendly e-commerce with fast setup",
   "category": "ecommerce_tier_service",
   "complexity_level": "medium_to_high",
   "display_name": "Snipcart",
@@ -11,28 +11,23 @@
     "inventory_management",
     "basic_analytics"
   ],
-  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "last_updated": "2025-10-13T08:50:30.595139+00:00",
+  "monthly_cost_range": [
+    85,
+    125
+  ],
   "performance_tier": "optimized",
   "provider_name": "snipcart",
   "provider_type": "ecommerce",
   "schema_version": "1.0.0",
-  "target_audience": [
+  "setup_cost_range": [
+    960,
+    2640
+  ],
+  "target_market": [
     "small_businesses",
     "agencies",
-    "developer_friendly_teams",
-    "quick_setup_preference"
+    "developers"
   ],
-  "technical_requirements": [
-    "basic_javascript",
-    "html_integration",
-    "api_configuration",
-    "payment_gateway_setup"
-  ],
-  "tier_name": "Snipcart E-commerce - Simple E-commerce Integration",
-  "use_cases": [
-    "small_product_catalogs",
-    "quick_e-commerce_addition",
-    "simple_checkout_flows",
-    "basic_online_stores"
-  ]
+  "tier_name": "Snipcart E-commerce - Simple E-commerce Integration"
 }

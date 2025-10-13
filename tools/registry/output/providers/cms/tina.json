@@ -13,28 +13,23 @@
     "graphql_api",
     "collaboration"
   ],
-  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "last_updated": "2025-10-13T08:50:30.595139+00:00",
+  "monthly_cost_range": [
+    60,
+    125
+  ],
   "performance_tier": "optimized",
   "provider_name": "tina",
   "provider_type": "cms",
   "schema_version": "1.0.0",
-  "target_audience": [
-    "content_creators",
+  "setup_cost_range": [
+    1200,
+    2880
+  ],
+  "target_market": [
+    "small_businesses",
     "agencies",
-    "visual_editing_preference",
-    "collaboration_teams"
+    "developers"
   ],
-  "technical_requirements": [
-    "react_familiarity",
-    "git_basics",
-    "graphql_understanding",
-    "modern_javascript"
-  ],
-  "tier_name": "Tina CMS - Visual Editing with Git Workflow",
-  "use_cases": [
-    "content_marketing",
-    "agency_projects",
-    "collaborative_editing",
-    "visual_content_creation"
-  ]
+  "tier_name": "Tina CMS - Visual Editing with Git Workflow"
 }

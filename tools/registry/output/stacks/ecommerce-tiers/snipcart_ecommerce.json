@@ -1,5 +1,5 @@
 {
-  "best_for": "Simple e-commerce integration with fast setup and secure checkout",
+  "best_for": "Simple e-commerce integration with fast setup and minimal technical complexity",
   "category": "ecommerce_tier_service",
   "complexity_level": "low_to_medium",
   "ecommerce_provider": "snipcart",
@@ -11,9 +11,17 @@
     "inventory_management",
     "basic_analytics"
   ],
-  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "last_updated": "2025-10-13T08:50:30.595139+00:00",
+  "monthly_cost_range": [
+    0,
+    0
+  ],
   "performance_tier": "optimized",
   "schema_version": "1.0.0",
+  "setup_cost_range": [
+    0,
+    0
+  ],
   "ssg_engine_options": [
     "hugo",
     "eleventy",
@@ -21,30 +29,11 @@
     "gatsby"
   ],
   "stack_type": "snipcart_ecommerce",
-  "target_audience": [
-    "small_businesses",
-    "quick_setup_preference",
-    "simple_store_owners",
-    "developer_friendly_teams"
-  ],
-  "technical_requirements": [
-    "basic_javascript",
-    "html_integration",
-    "api_configuration",
-    "payment_gateway_setup",
-    "simple_inventory_management"
-  ],
+  "target_market": [],
   "template_variants": [
     "simple_store",
     "digital_products",
     "catalog_basic"
   ],
-  "tier_name": "Snipcart E-commerce - Simple E-commerce Integration",
-  "use_cases": [
-    "small_product_catalogs",
-    "quick_e-commerce_addition",
-    "simple_checkout_flows",
-    "basic_online_stores",
-    "digital_product_sales"
-  ]
+  "tier_name": "Snipcart E-commerce - Simple E-commerce Integration"
 }

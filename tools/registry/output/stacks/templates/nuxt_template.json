@@ -10,35 +10,24 @@
     "modern_patterns",
     "vue_ecosystem"
   ],
-  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "last_updated": "2025-10-13T08:50:30.595139+00:00",
+  "monthly_cost_range": [
+    0,
+    0
+  ],
   "performance_tier": "optimized",
   "schema_version": "1.0.0",
+  "setup_cost_range": [
+    0,
+    0
+  ],
   "ssg_engine": "nuxt",
   "stack_type": "nuxt_template",
-  "target_audience": [
-    "vue_developers",
-    "composition_api_teams",
-    "progressive_web_app_builders",
-    "vue_ecosystem_users"
-  ],
-  "technical_requirements": [
-    "vue_3_knowledge",
-    "composition_api_familiarity",
-    "modern_javascript",
-    "pinia_state_management",
-    "nuxt_framework"
-  ],
+  "target_market": [],
   "template_variants": [
     "vue_business",
     "content_site",
     "vue_portfolio"
   ],
-  "tier_name": "Nuxt Template - Vue Ecosystem with Modern Patterns",
-  "use_cases": [
-    "vue_applications",
-    "progressive_web_apps",
-    "modern_business_sites",
-    "spa_with_ssg",
-    "vue_portfolios"
-  ]
+  "tier_name": "Nuxt Template - Vue Ecosystem with Modern Patterns"
 }

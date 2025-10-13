@@ -14,31 +14,24 @@
     "vue_ecosystem"
   ],
   "language": "javascript",
-  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "last_updated": "2025-10-13T08:50:30.595139+00:00",
+  "monthly_cost_range": [
+    75,
+    115
+  ],
   "performance_tier": "optimized",
   "provider_name": "nuxt",
   "provider_type": "ssg",
   "schema_version": "1.0.0",
+  "setup_cost_range": [
+    1000,
+    2500
+  ],
   "ssg_engine": "nuxt",
-  "target_audience": [
-    "vue_developers",
-    "progressive_web_app_builders",
-    "modern_javascript_teams",
-    "composition_api_users"
+  "target_market": [
+    "developers",
+    "technical_teams",
+    "agencies"
   ],
-  "technical_requirements": [
-    "vue_3_knowledge",
-    "composition_api_familiarity",
-    "modern_javascript",
-    "pinia_state_management",
-    "build_tools_experience"
-  ],
-  "tier_name": "Nuxt - Vue Ecosystem with Modern Patterns",
-  "use_cases": [
-    "vue_applications",
-    "progressive_web_apps",
-    "spa_with_ssg",
-    "component_driven_development",
-    "modern_web_applications"
-  ]
+  "tier_name": "Nuxt - Vue Ecosystem with Modern Patterns"
 }

@@ -13,9 +13,17 @@
     "version_control",
     "no_vendor_lock_in"
   ],
-  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "last_updated": "2025-10-13T08:50:30.595139+00:00",
+  "monthly_cost_range": [
+    0,
+    0
+  ],
   "performance_tier": "optimized",
   "schema_version": "1.0.0",
+  "setup_cost_range": [
+    0,
+    0
+  ],
   "ssg_engine_options": [
     "hugo",
     "eleventy",
@@ -23,30 +31,11 @@
     "gatsby"
   ],
   "stack_type": "decap_cms_tier",
-  "target_audience": [
-    "technical_teams",
-    "developer_focused_teams",
-    "small_to_medium_content_needs",
-    "git_workflow_users"
-  ],
-  "technical_requirements": [
-    "git_proficiency",
-    "markdown_knowledge",
-    "basic_yaml",
-    "github_workflow",
-    "developer_tools"
-  ],
+  "target_market": [],
   "template_variants": [
     "git_cms_basic",
     "markdown_focused",
     "developer_friendly"
   ],
-  "tier_name": "Decap CMS - Free Git-Based Content Management",
-  "use_cases": [
-    "developer_blogs",
-    "technical_documentation",
-    "small_business_sites",
-    "version_controlled_content",
-    "open_source_projects"
-  ]
+  "tier_name": "Decap CMS - Free Git-Based Content Management"
 }

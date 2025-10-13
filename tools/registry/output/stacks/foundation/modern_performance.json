@@ -9,35 +9,24 @@
     "framework_agnostic",
     "performance_optimized"
   ],
-  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "last_updated": "2025-10-13T08:50:30.595139+00:00",
+  "monthly_cost_range": [
+    0,
+    0
+  ],
   "performance_tier": "premium",
   "schema_version": "1.0.0",
+  "setup_cost_range": [
+    0,
+    0
+  ],
   "ssg_engine": "astro",
   "stack_type": "modern_performance",
-  "target_audience": [
-    "performance_focused_teams",
-    "modern_development_agencies",
-    "interactive_site_builders",
-    "component_architecture_users"
-  ],
-  "technical_requirements": [
-    "modern_javascript",
-    "component_architecture",
-    "astro_framework",
-    "performance_optimization",
-    "build_tools_expertise"
-  ],
+  "target_market": [],
   "template_variants": [
     "modern_interactive",
     "component_islands",
     "performance_optimized"
   ],
-  "tier_name": "Modern High-Performance Interactive",
-  "use_cases": [
-    "performance_critical_sites",
-    "interactive_applications",
-    "modern_business_sites",
-    "component_driven_development",
-    "progressive_enhancement"
-  ]
+  "tier_name": "Modern High-Performance Interactive"
 }

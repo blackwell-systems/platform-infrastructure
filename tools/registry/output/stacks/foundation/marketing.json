@@ -6,37 +6,27 @@
   "key_features": [
     "fast_builds",
     "seo_optimized",
-    "cost_effective",
+    "content_focused",
     "developer_managed"
   ],
-  "last_updated": "2025-10-11T11:11:45.081160+00:00",
+  "last_updated": "2025-10-13T08:50:30.595139+00:00",
+  "monthly_cost_range": [
+    0,
+    0
+  ],
   "performance_tier": "optimized",
   "schema_version": "1.0.0",
+  "setup_cost_range": [
+    0,
+    0
+  ],
   "ssg_engine": "eleventy",
   "stack_type": "marketing",
-  "target_audience": [
-    "small_businesses",
-    "marketing_agencies",
-    "content_creators",
-    "seo_focused_teams"
-  ],
-  "technical_requirements": [
-    "basic_html_css",
-    "content_management",
-    "seo_best_practices",
-    "eleventy_basics"
-  ],
+  "target_market": [],
   "template_variants": [
     "business_modern",
     "corporate_clean",
     "marketing_focused"
   ],
-  "tier_name": "Marketing-Optimized Static Sites",
-  "use_cases": [
-    "business_websites",
-    "marketing_campaigns",
-    "content_marketing",
-    "seo_optimized_sites",
-    "professional_portfolios"
-  ]
+  "tier_name": "Marketing-Optimized Static Sites"
 }
