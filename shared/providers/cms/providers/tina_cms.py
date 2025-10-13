@@ -35,15 +35,7 @@ from typing import Dict, Any, List, Optional
 import asyncio
 from datetime import datetime
 
-from shared.providers.cms.base import CMSProvider
-from shared.providers.cms.enums import CMSType, CMSAuthMethod, CMSCapability
-from shared.providers.cms.models import (
-    CMSCostEstimate,
-    CMSUser,
-    ContentCollection,
-    MediaAsset,
-    CMSMetrics
-)
+from shared.providers.cms.base_provider import CMSProvider, CMSType, CMSAuthMethod, CMSFeatures
 
 
 class TinaCMSProvider(CMSProvider):
@@ -69,7 +61,7 @@ class TinaCMSProvider(CMSProvider):
                 - tina_token: Optional Tina Cloud token
                 - tina_client_id: Optional Tina Cloud client ID
         """
-        super().__init__(config)
+        super().__init__("tina", config)
 
         # Validate required Tina configuration
         self._validate_tina_config()
@@ -99,30 +91,27 @@ class TinaCMSProvider(CMSProvider):
     def get_auth_method(self) -> CMSAuthMethod:
         return CMSAuthMethod.GITHUB_OAUTH
 
-    def get_supported_capabilities(self) -> List[CMSCapability]:
-        capabilities = [
-            CMSCapability.VISUAL_EDITING,
-            CMSCapability.VERSION_CONTROL,
-            CMSCapability.BRANCH_WORKFLOWS,
-            CMSCapability.MEDIA_MANAGEMENT,
-            CMSCapability.MARKDOWN_EDITING,
-            CMSCapability.RICH_TEXT_EDITING,
-            CMSCapability.STRUCTURED_CONTENT,
-            CMSCapability.DEVELOPER_API,
-            CMSCapability.PREVIEW_MODE,
-            CMSCapability.CONTENT_SCHEDULING
+    def get_supported_features(self) -> List[str]:
+        features = [
+            CMSFeatures.VISUAL_EDITOR,
+            CMSFeatures.MARKDOWN_EDITOR,
+            CMSFeatures.MEDIA_MANAGEMENT,
+            CMSFeatures.PREVIEW_MODE,
+            CMSFeatures.API_ACCESS,
+            CMSFeatures.WEBHOOK_SUPPORT,
+            CMSFeatures.REVISION_HISTORY,
+            CMSFeatures.CUSTOM_FIELDS
         ]
 
-        # Add cloud-specific capabilities
+        # Add cloud-specific features
         if self.is_cloud_enabled:
-            capabilities.extend([
-                CMSCapability.REAL_TIME_COLLABORATION,
-                CMSCapability.ADVANCED_MEDIA,
-                CMSCapability.TEAM_MANAGEMENT,
-                CMSCapability.ANALYTICS_DASHBOARD
+            features.extend([
+                CMSFeatures.REAL_TIME_COLLABORATION,
+                CMSFeatures.WORKFLOW_MANAGEMENT,
+                CMSFeatures.ROLE_BASED_ACCESS
             ])
 
-        return capabilities
+        return features
 
     def get_supported_ssg_engines(self) -> List[str]:
         """Tina CMS works best with React-based SSGs"""
@@ -238,7 +227,7 @@ class TinaCMSProvider(CMSProvider):
             }
         }
 
-    def estimate_monthly_cost(self, content_volume: str = "medium") -> CMSCostEstimate:
+    def estimate_monthly_cost(self, content_volume: str = "medium") -> Dict[str, Any]:
         """Estimate monthly costs for Tina CMS"""
 
         # Volume-based cost calculation
@@ -264,76 +253,80 @@ class TinaCMSProvider(CMSProvider):
             # Self-hosted Tina (free CMS, but consider GitHub costs)
             total_cms_cost = 0
 
-        return CMSCostEstimate(
-            provider="tina",
-            base_monthly_fee=total_cms_cost,
-            content_volume=content_volume,
-            additional_features={
+        return {
+            "provider": "tina",
+            "base_monthly_fee": total_cms_cost,
+            "content_volume": content_volume,
+            "additional_features": {
                 "visual_editing": 0,  # Included
                 "git_integration": 0,  # Included
                 "real_time_collaboration": 0 if not self.is_cloud_enabled else 10,
                 "advanced_media": 0 if not self.is_cloud_enabled else 5
             },
-            total_estimated=total_cms_cost
-        )
+            "total_estimated": total_cms_cost
+        }
 
-    async def create_user(self, user_data: Dict[str, Any]) -> CMSUser:
-        """Create a new user in Tina CMS"""
-        # Tina uses GitHub authentication, so user creation is handled by GitHub
-        return CMSUser(
-            id=user_data.get("github_id", ""),
-            email=user_data["email"],
-            name=user_data.get("name", ""),
-            role=user_data.get("role", "editor"),
-            permissions=self._get_default_permissions(user_data.get("role", "editor")),
-            last_login=datetime.now(),
-            created_at=datetime.now()
-        )
+    def get_environment_variables(self) -> Dict[str, str]:
+        """Get Tina CMS environment variables"""
+        base_vars = {
+            "CMS_PROVIDER": "tina",
+            "CMS_TYPE": "hybrid",
+            "GITHUB_REPO": self.repository,
+            "GITHUB_OWNER": self.repository_owner,
+            "BRANCH": self.branch,
+            "CONTENT_PATH": self.content_path,
+            "MEDIA_PATH": self.media_path
+        }
 
-    async def get_content_collections(self) -> List[ContentCollection]:
-        """Get content collections from Tina CMS"""
-        schema = self.get_content_model_schema()
-        collections = []
+        if self.is_cloud_enabled:
+            base_vars.update({
+                "TINA_CLIENT_ID": self.tina_client_id,
+                "TINA_TOKEN": self.tina_token,
+                "TINA_CLOUD_ENABLED": "true"
+            })
+        else:
+            base_vars["TINA_CLOUD_ENABLED"] = "false"
 
-        for collection_config in schema["collections"]:
-            collections.append(ContentCollection(
-                id=collection_config["name"],
-                name=collection_config["label"],
-                slug=collection_config["name"],
-                content_type="structured",
-                fields=collection_config["fields"],
-                item_count=await self._get_collection_item_count(collection_config["name"]),
-                last_modified=datetime.now()
-            ))
+        return base_vars
 
-        return collections
+    def setup_infrastructure(self, stack) -> None:
+        """Set up Tina CMS infrastructure"""
+        # Tina CMS is primarily client-side, minimal AWS infrastructure needed
+        pass
 
-    async def upload_media(self, file_data: bytes, filename: str, metadata: Dict[str, Any]) -> MediaAsset:
-        """Upload media asset to Tina CMS"""
-        # In git-based Tina, media is stored in the repository
-        file_path = f"{self.media_path}/{filename}"
-
-        # This would integrate with git repository API
-        return MediaAsset(
-            id=filename,
-            filename=filename,
-            url=f"/{self.media_path}/{filename}",
-            content_type=metadata.get("content_type", ""),
-            size=len(file_data),
-            alt_text=metadata.get("alt_text", ""),
-            created_at=datetime.now()
-        )
-
-    async def get_analytics(self) -> CMSMetrics:
-        """Get Tina CMS analytics and metrics"""
-        return CMSMetrics(
-            total_content_items=await self._get_total_content_count(),
-            monthly_edits=await self._get_monthly_edit_count(),
-            active_users=await self._get_active_user_count(),
-            storage_usage=await self._get_storage_usage(),
-            api_requests=await self._get_api_request_count(),
-            last_updated=datetime.now()
-        )
+    def get_configuration_metadata(self) -> Dict[str, Any]:
+        """Get Tina CMS configuration metadata"""
+        return {
+            "provider": "tina",
+            "cms_type": "hybrid",
+            "monthly_cost_range": [0, 125],
+            "setup_complexity": "medium",
+            "estimated_setup_hours": 4.0,
+            "features": self.get_supported_features(),
+            "strengths": [
+                "Visual editing with git workflow",
+                "Real-time preview",
+                "Developer-friendly",
+                "Flexible content schema",
+                "Optional cloud features"
+            ],
+            "limitations": [
+                "Requires React/JavaScript knowledge",
+                "Limited to React-based SSGs",
+                "Cloud features require subscription"
+            ],
+            "ideal_for": [
+                "Developer teams wanting visual editing",
+                "Content creators needing real-time preview",
+                "Teams wanting git-based workflow with ease of use",
+                "Projects requiring custom content fields"
+            ],
+            "documentation_links": {
+                "official_docs": "https://tina.io/docs/",
+                "setup_guide": "https://tina.io/docs/setup-overview/",
+                "examples": "https://tina.io/examples/"
+            }
+        }
 
     def _validate_tina_config(self) -> None:
         """Validate Tina CMS specific configuration"""
@@ -350,44 +343,18 @@ class TinaCMSProvider(CMSProvider):
         if (tina_token and not tina_client_id) or (tina_client_id and not tina_token):
             raise ValueError("Both tina_token and tina_client_id must be provided for Tina Cloud integration")
 
+    def get_admin_config(self) -> Dict[str, Any]:
+        """Get Tina CMS admin configuration"""
+        return self.get_admin_interface_config()
+
+    def validate_configuration(self) -> bool:
+        """Validate Tina CMS configuration"""
+        self._validate_tina_config()
+        return True
+
     def _get_graphql_endpoint(self) -> str:
         """Get GraphQL API endpoint"""
         if self.is_cloud_enabled:
             return f"https://content.tinajs.io/content/{self.tina_client_id}/github/{self.repository_owner}/{self.repository}"
         else:
             return "/api/tina/graphql"  # Local development endpoint
-
-    def _get_default_permissions(self, role: str) -> List[str]:
-        """Get default permissions for user role"""
-        permissions = {
-            "admin": ["read", "write", "delete", "publish", "manage_users", "manage_settings"],
-            "editor": ["read", "write", "publish"],
-            "author": ["read", "write"],
-            "viewer": ["read"]
-        }
-        return permissions.get(role, permissions["viewer"])
-
-    async def _get_collection_item_count(self, collection_name: str) -> int:
-        """Get item count for a content collection"""
-        # This would query the git repository or Tina Cloud API
-        return 0  # Placeholder
-
-    async def _get_total_content_count(self) -> int:
-        """Get total content item count"""
-        return 0  # Placeholder
-
-    async def _get_monthly_edit_count(self) -> int:
-        """Get monthly edit count"""
-        return 0  # Placeholder
-
-    async def _get_active_user_count(self) -> int:
-        """Get active user count"""
-        return len(self.config.get("admin_users", []))
-
-    async def _get_storage_usage(self) -> int:
-        """Get storage usage in bytes"""
-        return 0  # Placeholder - would calculate git repository size
-
-    async def _get_api_request_count(self) -> int:
-        """Get API request count"""
-        return 0  # Placeholder
